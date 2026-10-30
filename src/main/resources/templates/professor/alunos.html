@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Alunos</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="marca-topbar">
+        <span class="logo-marca">📘</span>
+        <div>
+            <strong>Trilha do Saber</strong>
+            <span>Professor</span>
+        </div>
+    </div>
+
+    <nav class="menu-topbar">
+        <a th:href="@{/professor/inicio}" class="item-menu"><span>🏠</span> Início</a>
+        <a th:href="@{/professor/alunos}" class="item-menu ativo"><span>👥</span> Alunos</a>
+        <a href="#" class="item-menu"><span>📈</span> Desempenho da Turma</a>
+        <a href="#" class="item-menu"><span>📤</span> Conteúdo de Aula</a>
+        <a href="#" class="item-menu"><span>👤</span> Minha Conta</a>
+    </nav>
+
+    <div class="perfil-topbar">
+        <div class="avatar-usuario">PR</div>
+        <div>
+            <strong th:text="${usuarioLogado.nome}">Professor</strong>
+            <span th:text="${usuarioLogado.email}">professor@umc.br</span>
+        </div>
+        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
+        <a th:href="@{/logout}" class="link-sair">Sair</a>
+    </div>
+</header>
+
+<main class="conteudo">
+
+    <header class="topo-conteudo">
+        <h1>Alunos</h1>
+        <p class="subtitulo-pagina">Consulta dos alunos cadastrados na plataforma</p>
+    </header>
+
+    <section class="grade-cards">
+        <div class="card-estatistica">
+            <span class="rotulo-card">Alunos cadastrados</span>
+            <strong class="numero-card" th:text="${alunos.size()}"></strong>
+        </div>
+        <div class="card-estatistica">
+            <span class="rotulo-card">Alunos ativos</span>
+            <strong class="numero-card" th:text="${alunos.?[ativo].size()}"></strong>
+        </div>
+    </section>
+
+    <table class="tabela-usuarios">
+        <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>RGM</th>
+            <th>Curso</th>
+            <th>Semestre</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="aluno : ${alunos}">
+            <td th:text="${aluno.nome}"></td>
+            <td th:text="${aluno.email}"></td>
+            <td th:text="${aluno.rgm}"></td>
+            <td th:text="${aluno.curso}"></td>
+            <td th:text="${aluno.semestre}"></td>
+            <td>
+                <span class="badge-status" th:classappend="${aluno.ativo} ? 'badge-ativo' : 'badge-inativo'"
+                      th:text="${aluno.ativo} ? 'Ativo' : (${aluno.isExcluido()} ? 'Excluído' : 'Pendente')"></span>
+            </td>
+        </tr>
+        <tr th:if="${alunos.isEmpty()}">
+            <td colspan="6" class="linha-vazia">Nenhum aluno cadastrado</td>
+        </tr>
+        </tbody>
+    </table>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Usuário</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="marca-topbar">
+        <span class="logo-marca">📘</span>
+        <div>
+            <strong>Trilha do Saber</strong>
+            <span>Administrador</span>
+        </div>
+    </div>
+
+    <nav class="menu-topbar">
+        <a th:href="@{/admin/inicio}" class="item-menu"><span>🏠</span> Início</a>
+        <a href="#" class="item-menu"><span>🗄️</span> Banco de Questões</a>
+        <a href="#" class="item-menu"><span>📋</span> Simulados</a>
+        <a th:href="@{/admin/coordenadores}" class="item-menu ativo"><span>👥</span> Usuários</a>
+        <a th:href="@{/admin/logs}" class="item-menu"><span>🛡️</span> Logs de Auditoria</a>
+    </nav>
+
+    <div class="perfil-topbar">
+        <div class="avatar-usuario">AD</div>
+        <div>
+            <strong th:text="${usuarioLogado != null} ? ${usuarioLogado.nome} : 'Admin Sistema'">Admin Sistema</strong>
+            <span th:text="${usuarioLogado != null} ? ${usuarioLogado.email} : 'adm@umc.br'">adm@umc.br</span>
+        </div>
+        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
+        <a th:href="@{/logout}" class="link-sair">Sair</a>
+    </div>
+</header>
+
+<main class="conteudo">
+    <div class="cartao-form">
+
+        <h1 th:if="${tipo == 'aluno'}">Editar aluno</h1>
+        <h1 th:if="${tipo == 'professor'}">Editar professor</h1>
+
+        <form th:if="${tipo == 'aluno'}" method="post" th:object="${alunoForm}"
+              th:action="@{/admin/usuarios/aluno/{id}(id=${alunoForm.id})}">
+
+            <input type="hidden" th:field="*{id}">
+
+            <label>Nome</label>
+            <input type="text" th:field="*{nome}">
+            <span class="erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
+
+            <label>Email</label>
+            <input type="email" th:field="*{email}">
+            <span class="erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+
+            <label>RGM</label>
+            <input type="text" th:field="*{rgm}">
+            <span class="erro" th:if="${#fields.hasErrors('rgm')}" th:errors="*{rgm}"></span>
+
+            <label>Curso</label>
+            <input type="text" th:field="*{curso}">
+            <span class="erro" th:if="${#fields.hasErrors('curso')}" th:errors="*{curso}"></span>
+
+            <label>Semestre</label>
+            <input type="number" th:field="*{semestre}" min="1" max="12">
+
+            <label class="campo-checkbox">
+                <input type="checkbox" th:field="*{ativo}">
+                Usuário ativo (acesso liberado)
+            </label>
+
+            <div class="acoes-form">
+                <a th:href="@{/admin/coordenadores}" class="botao-secundario">Cancelar</a>
+                <button type="submit" class="botao-primario">Salvar</button>
+            </div>
+        </form>
+
+        <form th:if="${tipo == 'professor'}" method="post" th:object="${professorForm}"
+              th:action="@{/admin/usuarios/professor/{id}(id=${professorForm.id})}">
+
+            <input type="hidden" th:field="*{id}">
+
+            <label>Nome</label>
+            <input type="text" th:field="*{nome}">
+            <span class="erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
+
+            <label>Email</label>
+            <input type="email" th:field="*{email}">
+            <span class="erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+
+            <label>Registro profissional</label>
+            <input type="text" th:field="*{registroProfissional}">
+            <span class="erro" th:if="${#fields.hasErrors('registroProfissional')}" th:errors="*{registroProfissional}"></span>
+
+            <label>Disciplina</label>
+            <input type="text" th:field="*{disciplina}" placeholder="Ainda não informado pelo professor">
+
+            <label class="campo-checkbox">
+                <input type="checkbox" th:field="*{ativo}">
+                Usuário ativo (acesso liberado)
+            </label>
+
+            <div class="acoes-form">
+                <a th:href="@{/admin/coordenadores}" class="botao-secundario">Cancelar</a>
+                <button type="submit" class="botao-primario">Salvar</button>
+            </div>
+        </form>
+
+        <div class="zona-perigo">
+            <h2>Zona de risco</h2>
+
+            <div class="linha-zona-perigo">
+                <div>
+                    <strong>Excluir usuário</strong>
+                    <p>Remove o acesso e marca como excluído. Os dados continuam no banco (histórico de simulados, por exemplo).</p>
+                </div>
+                <form th:action="@{/admin/usuarios/{tipo}/{id}/excluir(tipo=${tipo}, id=${tipo == 'aluno'} ? ${alunoForm.id} : ${professorForm.id})}" method="post">
+                    <button type="submit" class="botao-perigo" onclick="return confirm('Excluir este usuário? Os dados continuam no banco.');">Excluir</button>
+                </form>
+            </div>
+
+            <div class="linha-zona-perigo">
+                <div>
+                    <strong>Anonimizar dados (LGPD)</strong>
+                    <p>Apaga nome, email e demais dados pessoais definitivamente. Não pode ser desfeito.</p>
+                </div>
+                <form th:action="@{/admin/usuarios/{tipo}/{id}/anonimizar(tipo=${tipo}, id=${tipo == 'aluno'} ? ${alunoForm.id} : ${professorForm.id})}" method="post">
+                    <button type="submit" class="botao-perigo" onclick="return confirm('Essa ação é definitiva. Anonimizar os dados deste usuário?');">Anonimizar</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>

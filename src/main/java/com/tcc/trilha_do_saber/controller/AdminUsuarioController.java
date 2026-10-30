@@ -2,7 +2,9 @@ package com.tcc.trilha_do_saber.controller;
 
 import com.tcc.trilha_do_saber.dto.CoordenadorFormDTO;
 import com.tcc.trilha_do_saber.model.Coordenador;
+import com.tcc.trilha_do_saber.service.AlunoService;
 import com.tcc.trilha_do_saber.service.CoordenadorService;
+import com.tcc.trilha_do_saber.service.ProfessorService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -15,14 +17,20 @@ import org.springframework.web.bind.annotation.*;
 public class AdminUsuarioController {
 
     private final CoordenadorService coordenadorService;
+    private final ProfessorService professorService;
+    private final AlunoService alunoService;
 
-    public AdminUsuarioController(CoordenadorService coordenadorService){
+    public AdminUsuarioController(CoordenadorService coordenadorService, ProfessorService professorService, AlunoService alunoService){
         this.coordenadorService = coordenadorService;
+        this.professorService = professorService;
+        this.alunoService = alunoService;
     }
 
     @GetMapping
     public String listar(Model model, HttpSession session){
         model.addAttribute("coordenadores", coordenadorService.listarTodos());
+        model.addAttribute("professores", professorService.listarTodos());
+        model.addAttribute("alunos", alunoService.listarTodos());
         model.addAttribute("usuarioLogado", session.getAttribute("usuarioLogado"));
         return "admin/coordenadores";
     }
@@ -45,11 +53,11 @@ public class AdminUsuarioController {
     }
 
     @PostMapping("/{id}")
-    public String atualizar(@PathVariable Long id, @Valid @ModelAttribute("coordenadorForm") CoordenadorFormDTO form, BindingResult result){
-        if (result.hasErrors()) {
+    public String atualizar (@PathVariable Long id, @Valid @ModelAttribute("coordenadorForm") CoordenadorFormDTO form, BindingResult result){
+        if (result.hasErrors()){
             return "admin/coordenadorForm";
         }
-        coordenadorService.atualizar(id, form);
+        coordenadorService.atualizar(id,form);
         return "redirect:/admin/coordenadores";
     }
 
@@ -60,19 +68,19 @@ public class AdminUsuarioController {
     }
 
     @PostMapping("/{id}/desativar")
-    public String desativar(@PathVariable Long id){
+    public String desativar (@PathVariable Long id){
         coordenadorService.desativar(id);
         return "redirect:/admin/coordenadores";
     }
 
     @PostMapping("/{id}/excluir")
-    public String excluir(@PathVariable Long id){
+    public String excluir (@PathVariable Long id){
         coordenadorService.excluir(id);
         return "redirect:/admin/coordenadores";
     }
 
     @PostMapping("/{id}/anonimizar")
-    public String anonimizar(@PathVariable Long id){
+    public String anonimizar (@PathVariable Long id){
         coordenadorService.anonimizar(id);
         return "redirect:/admin/coordenadores";
     }

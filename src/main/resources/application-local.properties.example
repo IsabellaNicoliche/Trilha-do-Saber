@@ -1,6 +1,7 @@
 spring.datasource.url=jdbc:postgresql://localhost:5432/trilha_do_saber
-spring.datasource.username=
-spring.datasource.password=
+spring.datasource.username=postgre
+spring.datasource.password=123456
 
 
-resend.api-key=SUA_CHAVE_AQUI
+resend.api-key=SUA_CHAVE_AQU
+I
