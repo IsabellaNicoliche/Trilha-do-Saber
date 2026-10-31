@@ -25,18 +25,24 @@ public class Questao {
 
     private int numero;
 
+    private byte[] imagem;
+
     //Construtor JPA
     public Questao(){
 
     }
 
-    // Construtor da Classe
     public Questao(String enunciado, Dificuldade dificuldade, Prova prova, Fonte fonte, int numero){
         this.enunciado = enunciado;
         this.dificuldade = dificuldade;
         this.prova = prova;
         this.fonte = fonte;
         this.numero = numero;
+    }
+
+    public Questao(String enunciado, Dificuldade dificuldade, Prova prova, Fonte fonte, int numero, byte[] imagem){
+        this(enunciado, dificuldade, prova, fonte, numero);
+        this.imagem = imagem;
     }
 
     public Long getId() {
@@ -56,4 +62,6 @@ public class Questao {
     public Fonte getFonte(){return fonte;}
 
     public int getNumero(){return numero;}
+
+    public byte[] getImagem(){return imagem;}
 }

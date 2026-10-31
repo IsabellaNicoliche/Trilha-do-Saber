@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Painel de desempenho</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+    <link rel="stylesheet" th:href="@{/css/turmas.css}">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="marca-topbar">
+        <span class="logo-marca">📘</span>
+        <div>
+            <strong>Trilha do Saber</strong>
+            <span>Professor</span>
+        </div>
+    </div>
+
+    <nav class="menu-topbar">
+        <a th:href="@{/professor/inicio}" class="item-menu"><span>🏠</span> Início</a>
+        <a th:href="@{/professor/turmas}" class="item-menu"><span>👥</span> Turmas</a>
+        <a th:href="@{/professor/dashboard}" class="item-menu ativo"><span>📈</span> Desempenho</a>
+        <a href="#" class="item-menu"><span>📤</span> Conteúdo de Aula</a>
+        <a href="#" class="item-menu"><span>👤</span> Minha Conta</a>
+    </nav>
+
+    <div class="perfil-topbar">
+        <div class="avatar-usuario">PR</div>
+        <div>
+            <strong th:text="${usuario.nome}">Professor</strong>
+            <span th:text="${usuario.email}">professor@umc.br</span>
+        </div>
+        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
+        <a th:href="@{/logout}" class="link-sair">Sair</a>
+    </div>
+</header>
+
+<main class="conteudo dashboard">
+
+    <header class="topo-conteudo">
+        <h1>Painel de desempenho</h1>
+        <p class="subtitulo-pagina"
+           th:text="${semTurmas} ? 'Acompanhe como as suas turmas estão se saindo.' : ('Visão geral das suas turmas, com os simulados finalizados de ' + ${periodoDescricao} + '.')">
+            Visão geral das suas turmas.</p>
+
+        <form class="filtro-periodo" method="get" th:action="@{/professor/dashboard}" th:unless="${periodos.isEmpty()}">
+            <label for="filtro">Período letivo</label>
+            <select id="filtro" name="periodo" onchange="this.form.submit()">
+                <option th:each="p : ${periodos}" th:value="${p}" th:text="${p}"
+                        th:selected="${p == periodoSelecionado}">2026/2</option>
+            </select>
+        </form>
+
+        <div th:replace="~{professor/abas :: abas}"></div>
+    </header>
+
+    <div class="palco">
+
+        <section th:if="${semTurmas}" class="estado-vazio">
+            <span class="icone-vazio">📈</span>
+            <h2>Você ainda não tem turmas cadastradas</h2>
+            <p>A coordenação cadastra as disciplinas e os professores de cada turma. Quando as suas aparecerem, o desempenho delas fica disponível aqui.</p>
+        </section>
+
+        <th:block th:unless="${semTurmas}">
+
+            <section class="grade-kpis">
+                <div class="kpi">
+                    <span class="kpi-rotulo">Turmas no período</span>
+                    <strong class="kpi-valor" th:text="${painel.totalTurmas}">0</strong>
+                    <span class="kpi-detalhe">que você leciona</span>
+                </div>
+                <div class="kpi kpi-verde">
+                    <span class="kpi-rotulo">Alunos ativos</span>
+                    <strong class="kpi-valor" th:text="${painel.alunosAtivos}">0</strong>
+                    <span class="kpi-detalhe"
+                          th:text="${painel.alunosComSimulado} + ' já fizeram simulado'">0 já fizeram simulado</span>
+                </div>
+                <div class="kpi kpi-azul">
+                    <span class="kpi-rotulo">Adesão geral</span>
+                    <strong class="kpi-valor"
+                            th:text="${#numbers.formatDecimal(painel.adesaoGeral, 1, 1)} + '%'">0%</strong>
+                    <span class="kpi-detalhe">de todas as turmas juntas</span>
+                </div>
+                <div class="kpi kpi-ambar">
+                    <span class="kpi-rotulo">Acerto médio</span>
+                    <strong class="kpi-valor"
+                            th:text="${painel.temAcerto} ? (${#numbers.formatDecimal(painel.acertoGeral, 1, 1)} + '%') : '—'">—</strong>
+                    <span class="kpi-detalhe" th:text="${painel.temAcerto} ? 'de todas as questões respondidas' : 'Nenhum simulado no período'">de todas as questões respondidas</span>
+                </div>
+            </section>
+
+            <div class="aviso" th:if="${painel.semSimulados}">
+                <strong>Nenhum simulado finalizado ainda.</strong>
+                Incentive os alunos a fazerem o primeiro simulado do período para acompanhar o desempenho das turmas.
+            </div>
+
+            <section class="grade-dashboard" th:if="${painel.temComparativo}">
+
+                <div class="painel">
+                    <h2>Comparativo entre turmas</h2>
+                    <p class="painel-descricao">Adesão e acerto de cada turma.</p>
+                    <div class="area-grafico"><canvas id="graficoTurmas"></canvas></div>
+                </div>
+
+                <div class="painel">
+                    <h2>Destaques</h2>
+                    <p class="painel-descricao">Quem está na frente hoje.</p>
+                    <ul class="lista-insights">
+                        <li th:if="${painel.maiorAcerto != null}"
+                            th:text="'Maior acerto: ' + ${painel.maiorAcerto.turma.rotuloCompleto} + ' (' + ${#numbers.formatDecimal(painel.maiorAcerto.percentualAcerto, 1, 1)} + '%).'">Maior acerto</li>
+                        <li th:if="${painel.maiorAcerto == null}">Nenhuma turma tem simulados no período para comparar o acerto.</li>
+                        <li th:if="${painel.maiorAdesao != null}"
+                            th:text="'Maior adesão: ' + ${painel.maiorAdesao.turma.rotuloCompleto} + ' (' + ${#numbers.formatDecimal(painel.maiorAdesao.adesao, 1, 1)} + '% dos alunos).'">Maior adesão</li>
+                        <li>Os simulados não são separados por disciplina. O comparativo mostra o desempenho de cada turma nos simulados do período.</li>
+                    </ul>
+                </div>
+
+            </section>
+
+            <section class="painel painel-tabela">
+                <h2>Suas turmas</h2>
+                <p class="painel-descricao">Indicadores de cada turma. Abra uma turma para ver os detalhes e o ranking dos alunos.</p>
+                <div class="tabela-rolagem">
+                    <table class="tabela-desempenho">
+                        <thead>
+                        <tr>
+                            <th>Turma</th>
+                            <th>Disciplinas</th>
+                            <th>Alunos ativos</th>
+                            <th>Adesão</th>
+                            <th>Acerto</th>
+                            <th>Simulados por aluno</th>
+                            <th>Em branco</th>
+                            <th>Variação</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="d : ${painel.turmas}">
+                            <td>
+                                <strong th:text="${d.turma.curso}">Curso</strong>
+                                <span class="email-professor" th:text="${d.turma.rotulo}">8º semestre · Turma B · Noturno</span>
+                            </td>
+                            <td>
+                                <div class="professor-linha" th:each="disc : ${d.turma.disciplinas}" th:text="${disc}">Disciplina</div>
+                            </td>
+                            <td th:text="${d.alunosAtivos}">0</td>
+                            <td th:text="${#numbers.formatDecimal(d.adesao, 1, 1)} + '%'">0%</td>
+                            <td>
+                                <span th:if="${d.desempenhoVisivel}"
+                                      th:text="${#numbers.formatDecimal(d.percentualAcerto, 1, 1)} + '% '">0%</span>
+                                <span class="selo" th:classappend="${d.resumo.classeStatus}" th:text="${d.resumo.statusMeta}">Status</span>
+                            </td>
+                            <td th:text="${#numbers.formatDecimal(d.resumo.simuladosPorAluno, 1, 1)}">0,0</td>
+                            <td th:text="${d.desempenhoVisivel} ? (${#numbers.formatDecimal(d.resumo.percentualEmBranco, 1, 1)} + '%') : '—'">—</td>
+                            <td th:text="${d.resumo.variacaoCurta}">—</td>
+                            <td class="coluna-acao"><a class="link-editar"
+                                                       th:href="@{/professor/turma(periodo=${periodoSelecionado}, alocacao=${d.turma.alocacaoId})}">Ver turma</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </th:block>
+
+    </div>
+
+</main>
+
+<th:block th:if="${!semTurmas and painel.temComparativo}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script th:inline="javascript">
+        const rotulosTurmas = /*[[${painel.rotulosTurmas}]]*/ [];
+        const adesaoTurmas = /*[[${painel.adesaoTurmas}]]*/ [];
+        const acertoTurmas = /*[[${painel.acertoTurmas}]]*/ [];
+
+        const estilo = getComputedStyle(document.documentElement);
+        const corMarca = estilo.getPropertyValue('--marca').trim();
+        const corVerde = estilo.getPropertyValue('--verde').trim();
+        const corGrade = '#EEF0F4';
+
+        Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+        Chart.defaults.font.size = 14;
+        Chart.defaults.color = '#5F6368';
+
+        new Chart(document.getElementById('graficoTurmas'), {
+            type: 'bar',
+            data: {
+                labels: rotulosTurmas,
+                datasets: [
+                    { label: 'Adesão', data: adesaoTurmas, backgroundColor: corMarca, borderRadius: 6, maxBarThickness: 40 },
+                    { label: 'Acerto', data: acertoTurmas, backgroundColor: corVerde, borderRadius: 6, maxBarThickness: 40 }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { min: 0, max: 100, grid: { color: corGrade }, ticks: { callback: valor => valor + '%' } }
+                }
+            }
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Turmas</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+    <link rel="stylesheet" th:href="@{/css/turmas.css}">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="marca-topbar">
+        <span class="logo-marca">📘</span>
+        <div>
+            <strong>Trilha do Saber</strong>
+            <span>Professor</span>
+        </div>
+    </div>
+
+    <nav class="menu-topbar">
+        <a th:href="@{/professor/inicio}" class="item-menu"><span>🏠</span> Início</a>
+        <a th:href="@{/professor/turmas}" class="item-menu ativo"><span>👥</span> Turmas</a>
+        <a th:href="@{/professor/dashboard}" class="item-menu"><span>📈</span> Desempenho</a>
+        <a href="#" class="item-menu"><span>📤</span> Conteúdo de Aula</a>
+        <a href="#" class="item-menu"><span>👤</span> Minha Conta</a>
+    </nav>
+
+    <div class="perfil-topbar">
+        <div class="avatar-usuario">PR</div>
+        <div>
+            <strong th:text="${usuario.nome}">Professor</strong>
+            <span th:text="${usuario.email}">professor@umc.br</span>
+        </div>
+        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
+        <a th:href="@{/logout}" class="link-sair">Sair</a>
+    </div>
+</header>
+
+<main class="conteudo turmas">
+
+    <header class="topo-conteudo">
+        <h1>Turmas</h1>
+        <p class="subtitulo-pagina">As turmas em que você leciona e as disciplinas de cada uma.</p>
+    </header>
+
+    <div class="palco">
+
+        <section th:if="${turmas.isEmpty()}" class="estado-vazio">
+            <span class="icone-vazio">👥</span>
+            <h2>Você ainda não tem turmas cadastradas</h2>
+            <p>A coordenação cadastra as disciplinas e os professores de cada turma. Quando as suas aparecerem, elas ficam disponíveis aqui.</p>
+        </section>
+
+        <section class="painel painel-tabela" th:unless="${turmas.isEmpty()}">
+            <h2>Minhas turmas</h2>
+            <p class="painel-descricao">Turmas e disciplinas do período letivo escolhido.</p>
+
+            <form class="filtro-periodo" method="get" th:action="@{/professor/turmas}">
+                <label for="filtro">Período letivo</label>
+                <select id="filtro" name="periodo" onchange="this.form.submit()">
+                    <option th:each="p : ${periodos}" th:value="${p}" th:text="${p}"
+                            th:selected="${p == periodoSelecionado}">2026/2</option>
+                </select>
+            </form>
+
+            <div class="tabela-rolagem">
+                <table class="tabela-desempenho">
+                    <thead>
+                    <tr>
+                        <th>Turma</th>
+                        <th>Disciplinas</th>
+                        <th>Alunos ativos</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="t : ${turmas}">
+                        <td>
+                            <strong th:text="${t.curso}">Sistemas de Informação</strong>
+                            <span class="email-professor" th:text="${t.rotulo}">8º semestre · Turma B · Noturno</span>
+                        </td>
+                        <td>
+                            <div class="professor-linha" th:each="d : ${t.disciplinas}" th:text="${d}">Aplicativos Web</div>
+                        </td>
+                        <td th:text="${t.alunosAtivos}">0</td>
+                        <td class="coluna-acao">
+                            <a class="link-editar"
+                               th:href="@{/professor/turma(periodo=${periodoSelecionado}, alocacao=${t.alocacaoId})}">Ver desempenho</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+</main>
+
+</body>
+</html>

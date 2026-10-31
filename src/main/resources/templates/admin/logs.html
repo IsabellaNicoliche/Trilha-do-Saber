@@ -5,34 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Logs de Auditoria</title>
     <link rel="stylesheet" th:href="@{/css/painel.css}">
+    <style>
+        .conteudo {
+            max-width: 1500px;
+        }
+
+        .tabela-logs {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .tabela-logs th,
+        .tabela-logs td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--borda);
+            font-size: 13px;
+            white-space: normal;
+            word-wrap: break-word;
+            vertical-align: top;
+        }
+
+        .tabela-logs th {
+            background: var(--marca-fundo);
+            color: var(--texto-secundario);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .tabela-logs tr:last-child td {
+            border-bottom: none;
+        }
+
+        .col-data { width: 10%; }
+        .col-usuario { width: 11%; }
+        .col-tipo { width: 7%; }
+        .col-acao { width: 9%; }
+        .col-entidade { width: 9%; }
+        .col-descricao { width: 30%; color: var(--texto-secundario); line-height: 1.5; }
+        .col-ip { width: 10%; font-family: monospace; font-size: 12px; }
+        .col-duracao { width: 6%; }
+        .col-integridade { width: 8%; }
+
+        .tabela-logs-container {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
 
-<header class="topbar">
-    <div class="marca-topbar">
-        <span class="logo-marca">📘</span>
-        <div>
-            <strong>Trilha do Saber</strong>
-            <span>Administrador</span>
-        </div>
-    </div>
-
-    <nav class="menu-topbar">
-        <a th:href="@{/admin/inicio}" class="item-menu"><span>🏠</span> Início</a>
-        <a href="#" class="item-menu"><span>🗄️</span> Banco de Questões</a>
-        <a href="#" class="item-menu"><span>📋</span> Simulados</a>
-        <a th:href="@{/admin/coordenadores}" class="item-menu"><span>👥</span> Usuários</a>
-        <a th:href="@{/admin/logs}" class="item-menu ativo"><span>🛡️</span> Logs de Auditoria</a>    </nav>
-
-    <div class="perfil-topbar">
-        <div class="avatar-usuario">AD</div>
-        <div>
-            <strong th:text="${usuarioLogado.nome}">Admin Sistema</strong>
-            <span th:text="${usuarioLogado.email}">adm@umc.br</span>
-        </div>
-        <a th:href="@{/logout}" class="link-sair">Sair</a>
-    </div>
-</header>
+<header th:replace="~{fragments/navAdmin :: nav(pagina='logs', usuarioLogado=${usuarioLogado})}"></header>
 
 <main class="conteudo">
 
@@ -60,38 +87,42 @@
         <h2>Registros</h2>
     </div>
 
-    <table class="tabela-usuarios">
-        <thead>
-        <tr>
-            <th>Data/Hora</th>
-            <th>Usuário</th>
-            <th>Tipo</th>
-            <th>Ação</th>
-            <th>Entidade</th>
-            <th>IP</th>
-            <th>Duração</th>
-            <th>Integridade</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="log : ${logs}">
-            <td th:text="${#temporals.format(log.dataHora, 'dd/MM/yyyy HH:mm:ss')}"></td>
-            <td th:text="${log.usuarioNome}"></td>
-            <td th:text="${log.usuarioTipo}"></td>
-            <td th:text="${log.acao}"></td>
-            <td th:text="${log.entidadeTipo} + (${log.entidadeId} != null ? (' #' + ${log.entidadeId}) : '')"></td>
-            <td th:text="${log.ip} != null ? ${log.ip} : '-'"></td>
-            <td th:text="${log.duracaoMs} != null ? (${log.duracaoMs} + ' ms') : '-'"></td>
-            <td>
-                <span class="badge-status" th:classappend="${log.integro} ? 'badge-ativo' : 'badge-inativo'"
-                      th:text="${log.integro} ? 'Íntegro' : 'Adulterado'"></span>
-            </td>
-        </tr>
-        <tr th:if="${logs.isEmpty()}">
-            <td colspan="8" class="linha-vazia">Nenhum registro de auditoria ainda</td>
-        </tr>
-        </tbody>
-    </table>
+    <div class="tabela-logs-container">
+        <table class="tabela-logs">
+            <thead>
+            <tr>
+                <th class="col-data">Data/Hora</th>
+                <th class="col-usuario">Usuário</th>
+                <th class="col-tipo">Tipo</th>
+                <th class="col-acao">Ação</th>
+                <th class="col-entidade">Entidade</th>
+                <th class="col-descricao">Descrição</th>
+                <th class="col-ip">IP</th>
+                <th class="col-duracao">Duração</th>
+                <th class="col-integridade">Integridade</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="log : ${logs}">
+                <td class="col-data" th:text="${#temporals.format(log.dataHora, 'dd/MM/yyyy HH:mm:ss')}"></td>
+                <td class="col-usuario" th:text="${log.usuarioNome}"></td>
+                <td class="col-tipo" th:text="${log.usuarioTipo}"></td>
+                <td class="col-acao" th:text="${log.acao}"></td>
+                <td class="col-entidade" th:text="${log.entidadeTipo} + (${log.entidadeId} != null ? (' #' + ${log.entidadeId}) : '')"></td>
+                <td class="col-descricao" th:text="${log.detalhes} != null ? ${log.detalhes} : '-'"></td>
+                <td class="col-ip" th:text="${log.ip} != null ? ${log.ip} : '-'"></td>
+                <td class="col-duracao" th:text="${log.duracaoMs} != null ? (${log.duracaoMs} + ' ms') : '-'"></td>
+                <td class="col-integridade">
+                    <span class="badge-status" th:classappend="${log.integro} ? 'badge-ativo' : 'badge-inativo'"
+                          th:text="${log.integro} ? 'Íntegro' : 'Adulterado'"></span>
+                </td>
+            </tr>
+            <tr th:if="${logs.isEmpty()}">
+                <td colspan="9" class="linha-vazia">Nenhum registro de auditoria ainda</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 
 </main>
 

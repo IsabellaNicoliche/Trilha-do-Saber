@@ -8,5 +8,6 @@ public enum TipoAcao {
     EXCLUSAO,
     ANONIMIZACAO,
     LOGIN_SUCESSO,
-    LOGIN_FALHA
+    LOGIN_FALHA,
+    IMPORTACAO_PROVA
 }

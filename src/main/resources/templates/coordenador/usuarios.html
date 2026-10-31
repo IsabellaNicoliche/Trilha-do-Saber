@@ -8,33 +8,7 @@
 </head>
 <body>
 
-<header class="topbar">
-  <div class="marca-topbar">
-    <span class="logo-marca">📘</span>
-    <div>
-      <strong>Trilha do Saber</strong>
-      <span>Coordenador</span>
-    </div>
-  </div>
-
-  <nav class="menu-topbar">
-    <a th:href="@{/coordenador/inicio}" class="item-menu"><span>🏠</span> Início</a>
-    <a th:href="@{/coordenador/usuarios}" class="item-menu ativo"><span>👥</span> Usuários</a>
-    <a href="#" class="item-menu"><span>🎓</span> Turmas</a>
-    <a href="#" class="item-menu"><span>📊</span> Relatórios</a>
-    <a href="#" class="item-menu"><span>⚙️</span> Minha Conta</a>
-  </nav>
-
-  <div class="perfil-topbar">
-    <div class="avatar-usuario">CO</div>
-    <div>
-      <strong th:text="${usuarioLogado != null} ? ${usuarioLogado.nome} : 'Coordenação'">Coordenação</strong>
-      <span th:text="${usuarioLogado != null} ? ${usuarioLogado.email} : 'coordenacao@umc.br'">coordenacao@umc.br</span>
-    </div>
-    <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
-    <a th:href="@{/logout}" class="link-sair">Sair</a>
-  </div>
-</header>
+<header th:replace="~{fragments/navCoordenador :: nav(pagina='usuarios', usuarioLogado=${usuarioLogado})}"></header>
 
 <main class="conteudo">
 
@@ -74,6 +48,8 @@
       <th>RGM</th>
       <th>Curso</th>
       <th>Semestre</th>
+      <th>Turma</th>
+      <th>Período</th>
       <th>Status</th>
       <th></th>
     </tr>
@@ -85,6 +61,8 @@
       <td th:text="${aluno.rgm}"></td>
       <td th:text="${aluno.curso}"></td>
       <td th:text="${aluno.semestre}"></td>
+      <td th:text="${aluno.turma} ?: '—'"></td>
+      <td th:text="${aluno.turno} ?: '—'"></td>
       <td>
                 <span class="badge-status" th:classappend="${aluno.ativo} ? 'badge-ativo' : 'badge-inativo'"
                       th:text="${aluno.ativo} ? 'Ativo' : (${aluno.isExcluido()} ? 'Excluído' : 'Pendente')"></span>
@@ -94,7 +72,7 @@
       </td>
     </tr>
     <tr th:if="${alunos.isEmpty()}">
-      <td colspan="7" class="linha-vazia">Nenhum aluno cadastrado</td>
+      <td colspan="9" class="linha-vazia">Nenhum aluno cadastrado</td>
     </tr>
     </tbody>
   </table>

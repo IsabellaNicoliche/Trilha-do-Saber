@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav th:fragment="abas" class="abas" th:if="${!semCurso}">
+    <a th:href="@{/coordenador/dashboard}" class="aba"
+       th:classappend="${curso == null} ? 'ativa'">📊 Painel central</a>
+    <a th:each="c : ${cursos}" th:href="@{/coordenador/curso(curso=${c})}" class="aba"
+       th:classappend="${c == curso} ? 'ativa'" th:text="${c}">Curso</a>
+</nav>
+
+</body>
+</html>

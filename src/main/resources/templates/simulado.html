@@ -8,7 +8,10 @@
 </head>
 <body>
 
-<form th:action="@{'/simulado/' + ${simulado.id} + '/questao/' + ${ordem}}" method="post" class="prova">
+<form th:action="@{'/simulado/' + ${simulado.id} + '/questao/' + ${ordem}}" method="post" class="prova"
+      th:data-salvar-url="@{'/simulado/' + ${simulado.id} + '/questao/' + ${ordem} + '/salvar'}"
+      th:data-resultado-url="@{'/simulado/' + ${simulado.id} + '/resultado'}"
+      th:data-login-url="@{/login}">
 
     <header class="topo">
         <div class="topo-linha">
@@ -16,41 +19,73 @@
                 <a th:href="@{/}" class="link-sair">&larr; Sair</a>
                 <span class="divisor"></span>
                 <span class="titulo-prova" th:text="${simulado.titulo}">Simulado</span>
+                <span class="selo-modo" th:classappend="${simulado.modoProva} ? 'selo-modo-prova' : 'selo-modo-treino'"
+                      th:text="${simulado.modoProva} ? 'Modo prova' : 'Modo treino'">Modo prova</span>
             </div>
             <div class="topo-direita">
-                <span class="cronometro" id="cronometro" th:data-segundos="${segundosRestantes}">--:--:--</span>
+                <span class="cronometro" id="cronometro" th:if="${simulado.modoProva}"
+                      th:data-segundos="${segundosRestantes}">--:--:--</span>
                 <span class="contador">
-                    Questão <strong th:text="${ordem}">1</strong> de <span th:text="${total}">20</span>
-                </span>
+    Questão <span th:text="${ordem}">1</span> de <span th:text="${total}">20</span>
+</span>
             </div>
         </div>
         <div class="barra-progresso">
             <div class="barra-preenchida" th:style="'width:' + ${progresso} + '%'"></div>
         </div>
+        <div class="aviso-tempo" id="aviso-tempo" role="alert" th:if="${simulado.modoProva}" hidden>
+            <span>Faltam 5 minutos para o fim do tempo. O simulado será enviado automaticamente ao zerar.</span>
+            <button type="button" class="fechar-aviso" id="fechar-aviso" aria-label="Fechar aviso">&times;</button>
+        </div>
     </header>
+
+    <nav class="painel-navegacao" aria-label="Navegação entre as questões">
+        <div class="painel-navegacao-cartao">
+            <div class="lista-navegacao">
+                <button type="submit" name="destino" class="nav-item" th:each="item : ${navegacao}"
+                        th:value="${item.ordem}" th:text="${item.ordem}"
+                        th:title="'Ir para a questão ' + ${item.ordem}"
+                        th:classappend="${(item.atual ? 'atual ' : '') + (item.respondida ? 'respondida ' : '') + (item.marcada ? 'marcada' : '')}">1</button>
+            </div>
+            <div class="legenda-navegacao">
+                <span class="legenda-item"><span class="legenda-cor atual"></span> Questão atual</span>
+                <span class="legenda-item"><span class="legenda-cor respondida"></span> Respondida</span>
+                <span class="legenda-item"><span class="legenda-cor marcada"></span> Marcada para revisar</span>
+                <span class="legenda-item"><span class="legenda-cor"></span> Em branco</span>
+                <button type="button" class="botao-secundario botao-finalizar-painel" data-abrir-confirmacao>Finalizar simulado</button>
+            </div>
+        </div>
+    </nav>
 
     <main class="conteudo">
 
         <div class="etiquetas">
             <span class="etiqueta-ordem">Questão <span th:text="${ordem}">1</span></span>
+            <button type="submit" name="acao" value="revisar" class="botao-revisar" th:classappend="${marcada} ? 'ativo'">
+                <span>&#9873;</span>
+                <span th:text="${marcada} ? 'Marcada para revisar' : 'Marcar para revisar'">Marcar para revisar</span>
+            </button>
         </div>
 
-        <!-- Texto de apoio: so aparece quando a questao tem fonte cadastrada -->
         <div class="cartao-fonte" th:if="${questao.fonte != null}">
-            <p th:text="${questao.fonte.texto}">Texto de apoio</p>
+            <p th:text="${#strings.trim(questao.fonte.texto)}">Texto de apoio</p>
         </div>
 
         <div class="cartao-enunciado">
-            <p th:text="${questao.enunciado}">Enunciado da questão</p>
+            <p th:text="${#strings.trim(questao.enunciado)}">Enunciado da questão</p>
+        </div>
+
+        <div class="cartao-imagem" th:if="${questao.imagem != null}">
+            <img th:src="@{'/questao/' + ${questao.id} + '/imagem'}"
+                 alt="Imagem de apoio da questão" class="imagem-questao">
         </div>
 
         <div class="alternativas">
-            <!-- iter.index comeca em 0, entao a letra sai de 'ABCDE' na mesma posicao -->
             <label class="alternativa" th:each="alt, iter : ${alternativas}">
                 <input type="radio" name="alternativaId" th:value="${alt.id}"
                        th:checked="${alternativaSelecionadaId != null and alternativaSelecionadaId == alt.id}">
                 <span class="letra" th:text="${#strings.substring('ABCDE', iter.index, iter.index + 1)}">A</span>
-                <span class="texto-alternativa" th:text="${alt.texto}">Texto da alternativa</span>
+                <span class="texto-alternativa" th:text="${#strings.trim(alt.texto)}">Texto da alternativa</span>
             </label>
         </div>
 
@@ -63,17 +98,18 @@
             </button>
 
             <div class="resumo">
-                <span class="respondidas" th:text="${respondidas}">0</span> respondidas
+                <span class="respondidas" id="contador-respondidas" th:text="${respondidas}">0</span> respondidas
                 <span class="ponto">·</span>
-                <span class="em-branco" th:text="${emBranco}">0</span> em branco
+                <span class="em-branco" id="contador-branco" th:text="${emBranco}">0</span> em branco
+                <span class="ponto">·</span>
+                <span class="indicador-salvo" id="indicador-salvo" aria-live="polite"></span>
             </div>
 
             <button type="submit" name="acao" value="proxima" class="botao-primario"
                     th:if="${ordem < total}">Próxima &rarr;
             </button>
 
-            <!-- Na ultima questao o botao abre a confirmacao em vez de enviar direto -->
-            <button type="button" class="botao-primario" id="abrir-confirmacao"
+            <button type="button" class="botao-primario" data-abrir-confirmacao
                     th:if="${ordem == total}">Finalizar simulado
             </button>
         </div>
@@ -83,11 +119,15 @@
         <div class="modal">
             <h3>Finalizar simulado?</h3>
             <p>
-                Você respondeu <strong th:text="${respondidas}">0</strong> de
+                Você respondeu <strong id="modal-respondidas" th:text="${respondidas}">0</strong> de
                 <strong th:text="${total}">20</strong> questões.
-                <span th:if="${emBranco > 0}">
-                    <span th:text="${emBranco}">0</span> ficarão em branco.
+                <span id="modal-branco-texto" th:hidden="${emBranco == 0}">
+                    <span id="modal-branco" th:text="${emBranco}">0</span> ficarão em branco.
                 </span>
+            </p>
+            <p class="alerta-marcadas" th:if="${totalMarcadas > 0}">
+                Você marcou <strong th:text="${totalMarcadas}">1</strong>
+                <span th:text="${totalMarcadas == 1} ? 'questão' : 'questões'">questão</span> para revisar.
             </p>
             <div class="modal-botoes">
                 <button type="button" class="botao-secundario" id="fechar-confirmacao">Continuar revisando</button>
@@ -99,35 +139,113 @@
 </form>
 
 <script>
-    // Cronometro visual. A validacao de tempo que vale e a do servidor.
-    const elemento = document.getElementById("cronometro");
-    let restante = Number(elemento.dataset.segundos);
+    (function () {
+        const formulario = document.querySelector("form.prova");
+        const urlSalvar = formulario.dataset.salvarUrl;
+        const urlResultado = formulario.dataset.resultadoUrl;
+        const urlLogin = formulario.dataset.loginUrl;
 
-    function mostrar() {
-        const h = String(Math.floor(restante / 3600)).padStart(2, "0");
-        const m = String(Math.floor((restante % 3600) / 60)).padStart(2, "0");
-        const s = String(restante % 60).padStart(2, "0");
-        elemento.textContent = h + ":" + m + ":" + s;
-        elemento.classList.toggle("urgente", restante < 900);
-    }
+        const cronometro = document.getElementById("cronometro");
+        if (cronometro) {
+            const aviso = document.getElementById("aviso-tempo");
+            const fim = Date.now() + Number(cronometro.dataset.segundos) * 1000;
+            let avisoMostrado = false;
+            let intervalo = null;
 
-    mostrar();
-    setInterval(function () {
-        if (restante > 0) {
-            restante--;
-            mostrar();
+            function atualizar() {
+                const restante = Math.max(0, Math.round((fim - Date.now()) / 1000));
+                const h = String(Math.floor(restante / 3600)).padStart(2, "0");
+                const m = String(Math.floor((restante % 3600) / 60)).padStart(2, "0");
+                const s = String(restante % 60).padStart(2, "0");
+                cronometro.textContent = h + ":" + m + ":" + s;
+                cronometro.classList.toggle("urgente", restante < 900);
+
+                if (!avisoMostrado && restante <= 300 && restante > 0) {
+                    aviso.hidden = false;
+                    avisoMostrado = true;
+                }
+
+                if (restante === 0) {
+                    clearInterval(intervalo);
+                    window.location.href = urlResultado;
+                }
+            }
+
+            intervalo = setInterval(atualizar, 1000);
+            atualizar();
+
+            document.getElementById("fechar-aviso").addEventListener("click", function () {
+                aviso.hidden = true;
+            });
         }
-    }, 1000);
 
-    // Abre e fecha a confirmacao de envio
-    const modal = document.getElementById("modal");
-    const abrir = document.getElementById("abrir-confirmacao");
-    const fechar = document.getElementById("fechar-confirmacao");
+        const modal = document.getElementById("modal");
+        document.querySelectorAll("[data-abrir-confirmacao]").forEach(function (botao) {
+            botao.addEventListener("click", function () {
+                modal.hidden = false;
+            });
+        });
+        document.getElementById("fechar-confirmacao").addEventListener("click", function () {
+            modal.hidden = true;
+        });
 
-    if (abrir) {
-        abrir.addEventListener("click", () => modal.hidden = false);
-        fechar.addEventListener("click", () => modal.hidden = true);
-    }
+        const contadorRespondidas = document.getElementById("contador-respondidas");
+        const contadorBranco = document.getElementById("contador-branco");
+        const modalRespondidas = document.getElementById("modal-respondidas");
+        const modalBranco = document.getElementById("modal-branco");
+        const modalBrancoTexto = document.getElementById("modal-branco-texto");
+        const itemAtual = document.querySelector(".nav-item.atual");
+        const indicador = document.getElementById("indicador-salvo");
+
+        function avisar(texto, erro) {
+            indicador.textContent = texto;
+            indicador.classList.toggle("erro", erro);
+        }
+
+        document.querySelectorAll('input[name="alternativaId"]').forEach(function (radio) {
+            radio.addEventListener("change", function () {
+                avisar("Salvando...", false);
+
+                fetch(urlSalvar, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                    body: new URLSearchParams({alternativaId: radio.value})
+                })
+                    .then(function (resposta) {
+                        if (resposta.status === 409) {
+                            window.location.href = urlResultado;
+                            return null;
+                        }
+                        if (resposta.status === 401) {
+                            window.location.href = urlLogin;
+                            return null;
+                        }
+                        if (!resposta.ok) {
+                            throw new Error("falha ao salvar");
+                        }
+                        return resposta.json();
+                    })
+                    .then(function (dados) {
+                        if (!dados) {
+                            return;
+                        }
+                        contadorRespondidas.textContent = dados.respondidas;
+                        contadorBranco.textContent = dados.emBranco;
+                        modalRespondidas.textContent = dados.respondidas;
+                        modalBranco.textContent = dados.emBranco;
+                        modalBrancoTexto.hidden = dados.emBranco === 0;
+                        if (itemAtual) {
+                            itemAtual.classList.add("respondida");
+                        }
+                        avisar("Resposta salva", false);
+                    })
+                    .catch(function () {
+                        avisar("Não foi possível salvar agora. Ela será enviada ao mudar de questão.", true);
+                    });
+            });
+        });
+    })();
 </script>
 
 </body>

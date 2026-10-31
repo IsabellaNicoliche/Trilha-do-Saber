@@ -52,6 +52,27 @@
             </select>
             <span class="erro" th:if="${#fields.hasErrors('curso')}" th:errors="*{curso}"></span>
 
+            <div class="linha-dois-campos">
+                <div>
+                    <label>Turma</label>
+                    <select th:field="*{turma}">
+                        <option value="">Selecionar</option>
+                        <option th:each="t : ${T(com.tcc.trilha_do_saber.model.Turma).values()}"
+                                th:value="${t.nomeExibicao}" th:text="${t.nomeExibicao}"></option>
+                    </select>
+                    <span class="erro" th:if="${#fields.hasErrors('turma')}" th:errors="*{turma}"></span>
+                </div>
+                <div>
+                    <label>Período de estudo</label>
+                    <select th:field="*{turno}">
+                        <option value="">Selecionar</option>
+                        <option th:each="p : ${T(com.tcc.trilha_do_saber.model.Turno).values()}"
+                                th:value="${p.nomeExibicao}" th:text="${p.nomeExibicao}"></option>
+                    </select>
+                    <span class="erro" th:if="${#fields.hasErrors('turno')}" th:errors="*{turno}"></span>
+                </div>
+            </div>
+
             <label>Senha</label>
             <input type="password" th:field="*{senha}" placeholder="Mínimo 8 caracteres">
             <span class="erro" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></span>

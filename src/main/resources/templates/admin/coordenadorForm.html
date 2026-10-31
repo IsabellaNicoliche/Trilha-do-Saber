@@ -22,7 +22,7 @@
     <a href="#" class="item-menu"><span>🗄️</span> Banco de Questões</a>
     <a href="#" class="item-menu"><span>📋</span> Simulados</a>
     <a th:href="@{/admin/coordenadores}" class="item-menu ativo"><span>👥</span> Usuários</a>
-    <a href="#" class="item-menu"><span>🛡️</span> Logs de Auditoria</a>
+    <a th:href="@{/admin/logs}" class="item-menu"><span>🛡️</span> Logs de Auditoria</a>
   </nav>
 
   <div class="perfil-topbar">
@@ -58,9 +58,28 @@
       <input type="text" th:field="*{registroFuncional}">
       <span class="erro" th:if="${#fields.hasErrors('registroFuncional')}" th:errors="*{registroFuncional}"></span>
 
-      <label>Curso</label>
-      <input type="text" th:field="*{curso}">
+      <label>Curso principal</label>
+      <select th:field="*{curso}" id="curso">
+        <option value="">Selecionar curso</option>
+        <option th:each="c : ${T(com.tcc.trilha_do_saber.model.Curso).values()}"
+                th:value="${c.nomeExibicao}" th:text="${c.nomeExibicao}"></option>
+      </select>
       <span class="erro" th:if="${#fields.hasErrors('curso')}" th:errors="*{curso}"></span>
+
+      <label class="opcao-curso">
+        <input type="checkbox" id="outrosCursos"
+               th:checked="${!#lists.isEmpty(coordenadorForm.cursosAdicionais)}">
+        <span>Coordena outros cursos</span>
+      </label>
+
+      <div id="blocoOutrosCursos" class="bloco-outros-cursos"
+           th:classappend="${#lists.isEmpty(coordenadorForm.cursosAdicionais)} ? 'oculto'">
+        <label>Marque os outros cursos</label>
+        <label class="opcao-curso" th:each="c : ${T(com.tcc.trilha_do_saber.model.Curso).values()}">
+          <input type="checkbox" th:field="*{cursosAdicionais}" th:value="${c.nomeExibicao}">
+          <span th:text="${c.nomeExibicao}"></span>
+        </label>
+      </div>
 
       <label class="campo-checkbox">
         <input type="checkbox" th:field="*{ativo}">
@@ -99,6 +118,31 @@
 
   </div>
 </main>
+
+<script>
+    const cursoPrincipal = document.getElementById('curso');
+    const outrosCursos = document.getElementById('outrosCursos');
+    const bloco = document.getElementById('blocoOutrosCursos');
+
+    function atualizar() {
+        bloco.classList.toggle('oculto', !outrosCursos.checked);
+
+        bloco.querySelectorAll('input[type=checkbox]').forEach(caixa => {
+            // O curso ja escolhido no select nao aparece de novo na lista
+            const repetido = caixa.value === cursoPrincipal.value;
+            caixa.closest('label').classList.toggle('oculto', repetido);
+
+            // Desmarcou "outros cursos" ou e o mesmo do select: nao pode ir marcado pro servidor
+            if (repetido || !outrosCursos.checked) {
+                caixa.checked = false;
+            }
+        });
+    }
+
+    outrosCursos.addEventListener('change', atualizar);
+    cursoPrincipal.addEventListener('change', atualizar);
+    atualizar();
+</script>
 
 </body>
 </html>

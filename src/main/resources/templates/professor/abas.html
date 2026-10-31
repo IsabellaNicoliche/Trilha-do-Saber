@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav th:fragment="abas" class="abas" th:unless="${semTurmas}">
+  <a th:href="@{/professor/dashboard(periodo=${periodoSelecionado})}" class="aba"
+     th:classappend="${turmaEscolhida == null} ? 'ativa'">📊 Painel central</a>
+  <a th:each="t : ${turmas}" th:href="@{/professor/turma(periodo=${periodoSelecionado}, alocacao=${t.alocacaoId})}"
+     class="aba" th:classappend="${turmaEscolhida != null and t.alocacaoId == turmaEscolhida.alocacaoId} ? 'ativa'"
+     th:text="${t.rotuloCurto}">SI · 8º B · Noturno</a>
+</nav>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Esqueci minha senha</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+
+<div class="pagina-cadastro">
+    <div class="cartao-cadastro">
+
+        <a th:href="@{/login}" class="link-voltar">‹ Voltar para o login</a>
+
+        <span class="icone-cadeado">🔑</span>
+
+        <h1>Esqueci minha senha</h1>
+        <p class="subtitulo">Informe o e-mail da sua conta e enviaremos um link para você criar uma nova senha.</p>
+
+        <span class="aviso-info" th:if="${param.enviado}">Se o e-mail estiver cadastrado e o acesso estiver ativo, você receberá um link para redefinir a senha. Ele vale por 1 hora. Confira também a caixa de spam.</span>
+
+        <form method="post" th:action="@{/esqueci-senha}" id="formEsqueci">
+
+            <label>E-mail</label>
+            <input type="email" name="email" th:value="${email}" placeholder="seu@email.edu.br" required autofocus>
+            <span class="erro" th:if="${erroEmail}" th:text="${erroEmail}"></span>
+
+            <button type="submit" class="botao-primario botao-largo" id="botaoEnviar">Enviar link</button>
+        </form>
+
+        <p class="rodape-login">Lembrou a senha? <a th:href="@{/login}">Entrar</a></p>
+
+    </div>
+</div>
+
+<script>
+    const formEsqueci = document.getElementById("formEsqueci");
+    const botaoEnviar = document.getElementById("botaoEnviar");
+    formEsqueci.addEventListener("submit", () => {
+        botaoEnviar.disabled = true;
+        botaoEnviar.textContent = "Enviando...";
+    });
+</script>
+
+</body>
+</html>

@@ -40,6 +40,28 @@
                 <option value="Análise e Desenvolvimento de Sistemas">Análise e Desenvolvimento de Sistemas</option>
             </select>
             <span class="erro" th:if="${#fields.hasErrors('curso')}" th:errors="*{curso}"></span>
+            <label class="opcao-curso">
+                <input type="checkbox" id="outrosCursos"
+                       th:checked="${!#lists.isEmpty(cadastroCoordenador.cursosAdicionais)}">
+                <span>Coordeno outros cursos</span>
+            </label>
+
+            <div id="blocoOutrosCursos" class="bloco-outros-cursos"
+                 th:classappend="${#lists.isEmpty(cadastroCoordenador.cursosAdicionais)} ? 'oculto'">
+                <label>Marque os outros cursos</label>
+                <label class="opcao-curso">
+                    <input type="checkbox" th:field="*{cursosAdicionais}" value="Sistemas de Informação">
+                    <span>Sistemas de Informação</span>
+                </label>
+                <label class="opcao-curso">
+                    <input type="checkbox" th:field="*{cursosAdicionais}" value="Engenharia de Software">
+                    <span>Engenharia de Software</span>
+                </label>
+                <label class="opcao-curso">
+                    <input type="checkbox" th:field="*{cursosAdicionais}" value="Análise e Desenvolvimento de Sistemas">
+                    <span>Análise e Desenvolvimento de Sistemas</span>
+                </label>
+            </div>
 
             <label>Senha</label>
             <input type="password" th:field="*{senha}" placeholder="Mínimo 8 caracteres">
@@ -61,6 +83,29 @@
 
     </div>
 </div>
+<script>
+    const cursoPrincipal = document.getElementById('curso');
+    const outrosCursos = document.getElementById('outrosCursos');
+    const bloco = document.getElementById('blocoOutrosCursos');
 
+    function atualizar() {
+        bloco.classList.toggle('oculto', !outrosCursos.checked);
+
+        bloco.querySelectorAll('input[type=checkbox]').forEach(caixa => {
+            // O curso ja escolhido no select nao aparece de novo na lista
+            const repetido = caixa.value === cursoPrincipal.value;
+            caixa.closest('label').classList.toggle('oculto', repetido);
+
+            // Desmarcou "outros cursos" ou e o mesmo do select: nao pode ir marcado pro servidor
+            if (repetido || !outrosCursos.checked) {
+                caixa.checked = false;
+            }
+        });
+    }
+
+    outrosCursos.addEventListener('change', atualizar);
+    cursoPrincipal.addEventListener('change', atualizar);
+    atualizar();
+</script>
 </body>
 </html>

@@ -4,53 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Importar Prova</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
     <link rel="stylesheet" th:href="@{/css/simulado.css}">
 </head>
 <body>
 
-<div class="conclusao">
-    <div class="cartao-conclusao">
+<th:block th:if="${ehAdmin}">
+    <header th:replace="~{fragments/navAdmin :: nav(pagina='importar', usuarioLogado=${usuarioLogado})}"></header>
+</th:block>
+<th:block th:unless="${ehAdmin}">
+    <header th:replace="~{fragments/navCoordenador :: nav(pagina='importar', usuarioLogado=${usuarioLogado})}"></header>
+</th:block>
 
-        <h1>Importar prova e gabarito</h1>
-        <p class="subtitulo">Envie os dois PDFs para importar as questões no banco</p>
+<main class="conteudo">
 
-        <div class="mensagem-sucesso" th:if="${sucesso == true}">
-            <span th:text="${questoesImportadas}"></span> questões importadas,
-            <span th:text="${alternativasCorrigidas}"></span> alternativas corrigidas.
+    <div class="conclusao">
+        <div class="cartao-conclusao">
+
+            <h1>Importar prova e gabarito</h1>
+            <p class="subtitulo">Envie os dois PDFs para importar as questões no banco</p>
+
+            <div class="mensagem-sucesso" th:if="${sucesso == true}">
+                <span th:text="${questoesImportadas}"></span> questões importadas,
+                <span th:text="${alternativasCorrigidas}"></span> alternativas corrigidas.
+            </div>
+
+            <div class="mensagem-erro" th:if="${sucesso == false}">
+                <span th:text="${erro}"></span>
+            </div>
+
+            <form action="/arquivoPDF" method="post" enctype="multipart/form-data" class="form-importacao">
+
+                <div class="campo">
+                    <label for="curso">Curso</label>
+                    <select id="curso" name="curso" required>
+                        <option value="">Selecionar curso</option>
+                        <option th:each="c : ${T(com.tcc.trilha_do_saber.model.Curso).values()}"
+                                th:value="${c.nomeExibicao}" th:text="${c.nomeExibicao}"></option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="ano">Ano</label>
+                    <input type="number" id="ano" name="ano" required>
+                </div>
+
+                <div class="campo">
+                    <label for="prova">Prova (PDF)</label>
+                    <input type="file" id="prova" name="prova" accept="application/pdf" required>
+                </div>
+
+                <div class="campo">
+                    <label for="gabarito">Gabarito (PDF)</label>
+                    <input type="file" id="gabarito" name="gabarito" accept="application/pdf" required>
+                </div>
+
+                <button type="submit" class="botao-primario bloco">Importar</button>
+
+            </form>
+
         </div>
-
-        <div class="mensagem-erro" th:if="${sucesso == false}">
-            <span th:text="${erro}"></span>
-        </div>
-
-        <form action="/arquivoPDF" method="post" enctype="multipart/form-data" class="form-importacao">
-
-            <div class="campo">
-                <label for="curso">Curso</label>
-                <input type="text" id="curso" name="curso" required>
-            </div>
-
-            <div class="campo">
-                <label for="ano">Ano</label>
-                <input type="number" id="ano" name="ano" required>
-            </div>
-
-            <div class="campo">
-                <label for="prova">Prova (PDF)</label>
-                <input type="file" id="prova" name="prova" accept="application/pdf" required>
-            </div>
-
-            <div class="campo">
-                <label for="gabarito">Gabarito (PDF)</label>
-                <input type="file" id="gabarito" name="gabarito" accept="application/pdf" required>
-            </div>
-
-            <button type="submit" class="botao-primario bloco">Importar</button>
-
-        </form>
-
     </div>
-</div>
+
+</main>
 
 </body>
 </html>

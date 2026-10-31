@@ -14,7 +14,6 @@ public class CadastroAlunoDTO {
     @Email(message = "Email inválido")
     private String email;
 
-
     @Pattern(
             regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$",
             message = "A senha precisa ter no mínimo 8 caracteres, com letra, número e caractere especial"
@@ -31,6 +30,14 @@ public class CadastroAlunoDTO {
     private String curso;
 
     private Integer semestre;
+
+    @NotBlank(message = "Turma é obrigatória")
+    @Pattern(regexp = "^(A|B|C|D)?$", message = "Turma inválida")
+    private String turma;
+
+    @NotBlank(message = "Período de estudo é obrigatório")
+    @Pattern(regexp = "^(Matutino|Noturno|Integral)?$", message = "Período de estudo inválido")
+    private String turno;
 
     @AssertTrue(message = "É necessário aceitar o termo de consentimento (LGPD) para continuar")
     private boolean aceitouTermos;
@@ -56,6 +63,12 @@ public class CadastroAlunoDTO {
     public Integer getSemestre(){ return semestre; }
     public void setSemestre(Integer semestre){ this.semestre = semestre; }
 
+    public String getTurma(){ return turma; }
+    public void setTurma(String turma){ this.turma = turma; }
+
+    public String getTurno(){ return turno; }
+    public void setTurno(String turno){ this.turno = turno; }
+
     public boolean isAceitouTermos(){ return aceitouTermos; }
     public void setAceitouTermos(boolean aceitouTermos){ this.aceitouTermos = aceitouTermos; }
 
@@ -63,4 +76,3 @@ public class CadastroAlunoDTO {
         return senha != null && senha.equals(confirmarSenha);
     }
 }
-

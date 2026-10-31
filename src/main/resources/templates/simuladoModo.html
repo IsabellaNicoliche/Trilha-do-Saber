@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Escolha o modo do simulado</title>
+    <link rel="stylesheet" th:href="@{/css/simulado.css}">
+</head>
+<body>
+
+<main class="pagina-modo">
+
+    <header class="cabecalho-modo">
+        <a th:href="@{/aluno/dashboard}" class="link-sair">&larr; Voltar</a>
+        <h1>Como você quer fazer o simulado?</h1>
+        <p class="subtitulo">Escolha o modo antes de começar. As questões são sorteadas do banco do seu curso.</p>
+    </header>
+
+    <section class="cartoes-modo">
+
+        <article class="cartao-modo">
+            <span class="selo-modo selo-modo-treino">Treino</span>
+            <h2>Modo treino</h2>
+            <p>Sem limite de tempo. Ideal para estudar com calma, voltar nas questões e marcar as que você quer revisar.</p>
+            <ul>
+                <li th:text="'Até ' + ${questoes} + ' questões'">Até 5 questões</li>
+                <li>Sem cronômetro</li>
+                <li>Gabarito de cada questão ao final</li>
+            </ul>
+            <a class="botao-secundario bloco" th:href="@{/simulado/iniciar(modo='treino')}">Começar treino</a>
+        </article>
+
+        <article class="cartao-modo destaque">
+            <span class="selo-modo selo-modo-prova">Prova</span>
+            <h2>Modo prova</h2>
+            <p>Tempo limite proporcional ao do ENADE: <strong th:text="${minutosPorQuestao}">6</strong> minutos por questão.</p>
+            <ul>
+                <li th:text="'Até ' + ${questoes} + ' questões em ' + ${minutosProva} + ' minutos'">Até 5 questões em 30 minutos</li>
+                <li>O tempo é controlado pelo servidor</li>
+                <li>Ao zerar o tempo, o simulado é enviado automaticamente</li>
+            </ul>
+            <a class="botao-primario bloco" th:href="@{/simulado/iniciar(modo='prova')}">Começar prova</a>
+        </article>
+
+    </section>
+
+</main>
+
+</body>
+</html>

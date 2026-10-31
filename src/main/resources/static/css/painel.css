@@ -365,6 +365,50 @@ body {
     width: auto;
 }
 
+.cartao-form input:not([type="checkbox"]),
+.cartao-form select {
+    display: block;
+    width: 100%;
+    height: 42px;
+    padding: 10px 12px;
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    background-color: #fff;
+    color: var(--texto);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+.cartao-form select {
+    appearance: none;
+    padding-right: 40px;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235F6368' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+}
+
+.cartao-form input:not([type="checkbox"]):focus,
+.cartao-form select:focus {
+    outline: none;
+    border-color: var(--marca);
+    box-shadow: 0 0 0 3px var(--marca-clara);
+}
+
+.alerta-erro {
+    background: var(--vermelho-fundo);
+    border: 1px solid var(--vermelho);
+    border-left-width: 4px;
+    border-radius: 8px;
+    color: var(--texto);
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+
 /* ---------- Zona de risco (excluir/anonimizar) ---------- */
 
 .zona-perigo {
@@ -423,4 +467,415 @@ body {
     .grade-cards {
         grid-template-columns: repeat(2, 1fr);
     }
+}
+
+/* Tabela de Logs de Auditoria: mais colunas com dados variados, entao usa largura por conteudo em vez de largura fixa igual pra todas */
+.tabela-logs {
+    table-layout: auto;
+}
+
+.tabela-logs td,
+.tabela-logs th {
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+/* ---------- Dashboard do aluno ---------- */
+
+.dashboard {
+    max-width: 1280px;
+    --palco: #E8EBF2;
+}
+
+.dashboard .topo-conteudo h1 {
+    font-size: 30px;
+    margin-bottom: 8px;
+}
+
+.dashboard .subtitulo-pagina {
+    font-size: 16px;
+}
+
+/* Bloco cinza atras do dashboard */
+.palco {
+    background: var(--palco);
+    border-radius: 20px;
+    padding: 28px;
+    margin-top: 28px;
+}
+
+/* Sem simulados */
+.estado-vazio {
+    background: #fff;
+    border-radius: 16px;
+    padding: 64px 32px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(32, 33, 36, 0.06);
+}
+
+.estado-vazio .icone-vazio {
+    display: block;
+    font-size: 56px;
+    margin-bottom: 16px;
+}
+
+.estado-vazio h2 {
+    font-size: 26px;
+    margin: 0 0 12px;
+}
+
+.estado-vazio p {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--texto-secundario);
+    max-width: 480px;
+    margin: 0 auto 32px;
+}
+
+.estado-vazio .botao-primario {
+    display: inline-block;
+    font-size: 16px;
+    padding: 14px 28px;
+}
+
+/* Cards de indicadores, cada um com sua cor */
+.grade-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.kpi {
+    --cor: var(--marca);
+    background: #fff;
+    border-radius: 14px;
+    border-top: 5px solid var(--cor);
+    padding: 22px 24px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(32, 33, 36, 0.06);
+}
+
+.kpi-verde { --cor: #16A34A; }
+.kpi-azul { --cor: #2563EB; }
+.kpi-ambar { --cor: #D97706; }
+
+.kpi-rotulo {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--texto-secundario);
+    margin-bottom: 10px;
+}
+
+.kpi-valor {
+    display: block;
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--cor);
+}
+
+.kpi-detalhe {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--texto-secundario);
+}
+
+.kpi-detalhe.positivo {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.kpi-detalhe.negativo {
+    color: #b91c1c;
+    font-weight: 600;
+}
+
+/* Grid dos graficos: duas colunas iguais */
+.grade-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.painel {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(32, 33, 36, 0.06);
+}
+
+.painel h2 {
+    font-size: 18px;
+    margin: 0 0 4px;
+    text-align: center;
+}
+
+.painel-descricao {
+    font-size: 14px;
+    color: var(--texto-secundario);
+    margin: 0 0 20px;
+    text-align: center;
+}
+
+.area-grafico {
+    position: relative;
+    height: 320px;
+}
+
+/* Insights */
+.lista-insights {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.lista-insights li {
+    background: var(--marca-fundo);
+    border-left: 4px solid var(--marca);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* Tabela, no mesmo estilo da tela de logs */
+.painel-tabela {
+    margin-top: 20px;
+}
+
+.tabela-rolagem {
+    overflow-x: auto;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+}
+
+.tabela-desempenho {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+.tabela-desempenho th,
+.tabela-desempenho td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--borda);
+}
+
+.tabela-desempenho th {
+    background: var(--marca-fundo);
+    color: var(--texto-secundario);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.tabela-desempenho tr:last-child td {
+    border-bottom: none;
+}
+
+.tabela-desempenho a {
+    color: var(--marca);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.tabela-desempenho a:hover {
+    text-decoration: underline;
+}
+
+.selo {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.selo-acima {
+    background: var(--verde-fundo);
+    color: #15803d;
+}
+
+.selo-abaixo {
+    background: var(--vermelho-fundo);
+    color: #b91c1c;
+}
+
+.selo-igual {
+    background: var(--marca-clara);
+    color: var(--marca);
+}
+
+@media (max-width: 1000px) {
+    .grade-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grade-dashboard {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .palco {
+        padding: 16px;
+    }
+
+    .grade-kpis {
+        grid-template-columns: 1fr;
+    }
+}
+/* Aviso dentro do palco */
+.aviso {
+    background: #fff;
+    border-left: 5px solid #D97706;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 20px;
+    font-size: 15px;
+    line-height: 1.5;
+    box-shadow: 0 2px 8px rgba(32, 33, 36, 0.06);
+}
+
+/* Barra da taxa de erro na tabela de questoes */
+.barra {
+    height: 8px;
+    min-width: 120px;
+    margin-top: 6px;
+    background: var(--borda);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.barra-preenchida {
+    height: 100%;
+    background: var(--vermelho);
+}
+
+.grade-kpis-seis {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.kpi-vermelho {
+    --cor: #DC2626;
+}
+
+.kpi-ciano {
+    --cor: #0891B2;
+}
+
+.kpi-valor.positivo {
+    color: #15803d;
+}
+
+.kpi-valor.negativo {
+    color: #b91c1c;
+}
+
+.kpi-detalhe .selo {
+    margin-right: 6px;
+}
+
+@media (max-width: 1000px) {
+    .grade-kpis-seis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .grade-kpis-seis {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+.link-voltar-painel {
+    display: inline-block;
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--marca);
+    text-decoration: none;
+}
+
+.link-voltar-painel:hover {
+    text-decoration: underline;
+}
+
+.tabela-desempenho td.coluna-posicao {
+    width: 64px;
+    font-size: 22px;
+    text-align: center;
+}
+
+.barra-verde {
+    background: var(--verde);
+}
+
+.abas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.aba {
+    padding: 10px 18px;
+    background: #fff;
+    border: 1px solid var(--borda);
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--texto-secundario);
+    text-decoration: none;
+}
+
+.aba:hover {
+    border-color: var(--marca);
+    color: var(--marca);
+}
+
+.aba.ativa {
+    background: var(--marca);
+    border-color: var(--marca);
+    color: #fff;
+}
+
+/* ---------- Cursos adicionais do coordenador (form de edicao do admin) ---------- */
+
+.opcao-curso {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--texto);
+    cursor: pointer;
+}
+
+.opcao-curso input {
+    width: auto;
+    flex-shrink: 0;
+}
+
+.bloco-outros-cursos {
+    margin-top: 10px;
+    padding: 2px 16px 14px;
+    background: var(--fundo);
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+}
+
+.oculto {
+    display: none !important;
 }

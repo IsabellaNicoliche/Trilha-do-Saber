@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>Criar nova senha</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+
+<div class="pagina-cadastro">
+    <div class="cartao-cadastro">
+
+        <th:block th:if="${tokenValido}">
+
+            <a th:href="@{/login}" class="link-voltar">‹ Voltar para o login</a>
+
+            <span class="icone-cadeado">🔒</span>
+
+            <h1>Criar nova senha</h1>
+            <p class="subtitulo">Escolha uma senha forte. Ela substitui a senha atual da sua conta.</p>
+
+            <span class="erro-geral" th:if="${erroSenha}" th:text="${erroSenha}"></span>
+
+            <form method="post" th:action="@{/redefinir-senha}" id="formRedefinir">
+
+                <input type="hidden" name="token" th:value="${token}">
+
+                <label>Nova senha</label>
+                <input type="password" name="senha" placeholder="••••••••" autocomplete="new-password" minlength="8" required>
+                <span class="dica-senha">Mínimo de 8 caracteres, com letra, número e caractere especial.</span>
+
+                <label>Confirmar nova senha</label>
+                <input type="password" name="confirmarSenha" placeholder="••••••••" autocomplete="new-password" minlength="8" required>
+
+                <button type="submit" class="botao-primario botao-largo" id="botaoSalvar">Salvar nova senha</button>
+            </form>
+
+        </th:block>
+
+        <th:block th:unless="${tokenValido}">
+
+            <a th:href="@{/login}" class="link-voltar">‹ Voltar para o login</a>
+
+            <span class="icone-cadeado">⚠️</span>
+
+            <h1>Link inválido ou expirado</h1>
+            <p class="subtitulo">Este link já foi usado ou passou de 1 hora. Peça um novo link para continuar.</p>
+
+            <form method="get" th:action="@{/esqueci-senha}">
+                <button type="submit" class="botao-primario botao-largo">Pedir um novo link</button>
+            </form>
+
+        </th:block>
+
+    </div>
+</div>
+
+<script th:if="${tokenValido}">
+    const formRedefinir = document.getElementById("formRedefinir");
+    const botaoSalvar = document.getElementById("botaoSalvar");
+    formRedefinir.addEventListener("submit", () => {
+        botaoSalvar.disabled = true;
+        botaoSalvar.textContent = "Salvando...";
+    });
+</script>
+
+</body>
+</html>

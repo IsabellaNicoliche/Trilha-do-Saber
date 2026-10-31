@@ -8,6 +8,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
+import com.tcc.trilha_do_saber.exception.ArquivoInvalidoException;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,6 +51,10 @@ public class GabaritoService {
 
                     if (partes.length == 3){
 
+                        if (!partes[1].matches("\\d+")){
+                            continue;
+                        }
+
                         int numeroQuestao = Integer.parseInt(partes[1]);
                         String letraAlternativa = partes[2];
 
@@ -85,6 +90,9 @@ public class GabaritoService {
 
             doc.close();
 
+            if (contador == 0) {
+                throw new ArquivoInvalidoException("Nenhuma correção foi aplicada a partir do arquivo enviado como gabarito. Verifique se os arquivos de prova e gabarito não foram trocados.");
+            }
 
         } catch (IOException e) {
             System.out.println("Erro ao ler PDF do gabarito");

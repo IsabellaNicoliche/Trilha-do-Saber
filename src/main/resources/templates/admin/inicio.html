@@ -8,32 +8,7 @@
 </head>
 <body>
 
-<header class="topbar">
-    <div class="marca-topbar">
-        <span class="logo-marca">📘</span>
-        <div>
-            <strong>Trilha do Saber</strong>
-            <span>Administrador</span>
-        </div>
-    </div>
-
-    <nav class="menu-topbar">
-        <a th:href="@{/admin/inicio}" class="item-menu ativo"><span>🏠</span> Início</a>
-        <a href="#" class="item-menu"><span>🗄️</span> Banco de Questões</a>
-        <a href="#" class="item-menu"><span>📋</span> Simulados</a>
-        <a th:href="@{/admin/coordenadores}" class="item-menu"><span>👥</span> Usuários</a>
-        <a th:href="@{/admin/logs}" class="item-menu"><span>🛡️</span> Logs de Auditoria</a>
-    </nav>
-
-    <div class="perfil-topbar">
-        <div class="avatar-usuario">AD</div>
-        <div>
-            <strong th:text="${usuario.nome}">Admin Sistema</strong>
-            <span th:text="${usuario.email}">adm@umc.br</span>
-        </div>
-        <a th:href="@{/logout}" class="link-sair">Sair</a>
-    </div>
-</header>
+<header th:replace="~{fragments/navAdmin :: nav(pagina='inicio', usuarioLogado=${usuario})}"></header>
 
 <main class="conteudo">
 

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Painel de desempenho</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+</head>
+<body>
+
+<header th:replace="~{fragments/navCoordenador :: nav(pagina='dashboard', usuarioLogado=${usuario})}"></header>
+
+<main class="conteudo dashboard">
+
+    <header class="topo-conteudo">
+        <h1>Painel de desempenho</h1>
+        <p class="subtitulo-pagina"
+           th:text="${semCurso} ? 'Acompanhe como os cursos estão se saindo no ENADE.' : (${central.temComparativo} ? 'Visão geral dos cursos que você coordena.' : 'Visão geral do seu curso.')">
+            Visão geral dos cursos que você coordena.</p>
+        <div th:replace="~{coordenador/abas :: abas}"></div>
+    </header>
+
+    <div class="palco">
+
+        <section th:if="${semCurso}" class="estado-vazio">
+            <span class="icone-vazio">🎓</span>
+            <h2>Seu cadastro não tem um curso vinculado</h2>
+            <p>Para ver o desempenho, o curso precisa estar no seu cadastro. Fale com o administrador do sistema.</p>
+        </section>
+
+        <th:block th:unless="${semCurso}">
+
+            <section class="grade-kpis">
+                <div class="kpi">
+                    <span class="kpi-rotulo">Cursos coordenados</span>
+                    <strong class="kpi-valor" th:text="${central.cursos.size()}">0</strong>
+                    <span class="kpi-detalhe">no seu cadastro</span>
+                </div>
+                <div class="kpi kpi-verde">
+                    <span class="kpi-rotulo">Alunos ativos</span>
+                    <strong class="kpi-valor" th:text="${central.totalAlunosAtivos}">0</strong>
+                    <span class="kpi-detalhe"
+                          th:text="${central.totalAlunosComSimulado} + ' já fizeram simulado'">0 já fizeram simulado</span>
+                </div>
+                <div class="kpi kpi-azul">
+                    <span class="kpi-rotulo">Adesão geral</span>
+                    <strong class="kpi-valor"
+                            th:text="${#numbers.formatDecimal(central.adesaoGeral, 1, 1)} + '%'">0%</strong>
+                    <span class="kpi-detalhe">de todos os cursos juntos</span>
+                </div>
+                <div class="kpi kpi-ambar">
+                    <span class="kpi-rotulo">Alunos no ranking</span>
+                    <strong class="kpi-valor" th:text="${central.ranking.size()}">0</strong>
+                    <span class="kpi-detalhe"
+                          th:text="'de até ' + ${central.tamanhoRanking} + ' vagas'">de até 10 vagas</span>
+                </div>
+            </section>
+
+            <div class="aviso" th:if="${central.semSimulados}">
+                <strong>Nenhum simulado finalizado ainda.</strong>
+                Incentive os alunos a fazerem o primeiro simulado para acompanhar o desempenho dos cursos.
+            </div>
+
+            <section class="grade-dashboard" th:if="${central.temComparativo}">
+
+                <div class="painel">
+                    <h2>Comparativo entre cursos</h2>
+                    <p class="painel-descricao">Adesão e acerto de cada curso.</p>
+                    <div class="area-grafico"><canvas id="graficoCursos"></canvas></div>
+                </div>
+
+                <div class="painel">
+                    <h2>Destaques</h2>
+                    <p class="painel-descricao">Quem está na frente hoje.</p>
+                    <ul class="lista-insights">
+                        <li th:if="${central.maiorAcerto != null}"
+                            th:text="'Maior acerto: ' + ${central.maiorAcerto.curso} + ' (' + ${#numbers.formatDecimal(central.maiorAcerto.percentualAcerto, 1, 1)} + '%).'">Maior acerto</li>
+                        <li th:if="${central.maiorAcerto == null}"
+                            th:text="'Nenhum curso tem ' + ${central.minimoAlunos} + ' alunos participantes ainda para comparar o acerto.'">Sem dados</li>
+                        <li th:if="${central.maiorAdesao != null}"
+                            th:text="'Maior adesão: ' + ${central.maiorAdesao.curso} + ' (' + ${#numbers.formatDecimal(central.maiorAdesao.adesao, 1, 1)} + '% dos alunos).'">Maior adesão</li>
+                        <li>Cada curso responde a questões de provas diferentes. O comparativo mostra o desempenho de cada curso em relação ao próprio conteúdo.</li>
+                    </ul>
+                </div>
+
+            </section>
+
+            <section class="painel painel-tabela">
+                <h2>Seus cursos</h2>
+                <p class="painel-descricao">Indicadores de cada curso. Abra um curso para ver os detalhes.</p>
+                <div class="tabela-rolagem">
+                    <table class="tabela-desempenho">
+                        <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th>Alunos ativos</th>
+                            <th>Adesão</th>
+                            <th>Acerto</th>
+                            <th>Simulados por aluno</th>
+                            <th>Em branco</th>
+                            <th>Variação</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="c : ${central.cursos}">
+                            <td th:text="${c.curso}">Curso</td>
+                            <td th:text="${c.alunosAtivos}">0</td>
+                            <td th:text="${#numbers.formatDecimal(c.adesao, 1, 1)} + '%'">0%</td>
+                            <td>
+                                <span th:if="${c.desempenhoVisivel}"
+                                      th:text="${#numbers.formatDecimal(c.percentualAcerto, 1, 1)} + '% '">0%</span>
+                                <span class="selo" th:classappend="${c.classeStatus}" th:text="${c.statusMeta}">Status</span>
+                            </td>
+                            <td th:text="${#numbers.formatDecimal(c.simuladosPorAluno, 1, 1)}">0,0</td>
+                            <td th:text="${c.desempenhoVisivel} ? (${#numbers.formatDecimal(c.percentualEmBranco, 1, 1)} + '%') : '—'">—</td>
+                            <td th:text="${c.variacaoCurta}">—</td>
+                            <td><a th:href="@{/coordenador/curso(curso=${c.curso})}">Ver curso</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="painel painel-tabela">
+                <h2>🏆 Ranking de destaque</h2>
+                <p class="painel-descricao"
+                   th:text="'Os ' + ${central.tamanhoRanking} + ' alunos com maior % de acerto, com pelo menos ' + ${central.minimoQuestoesRanking} + ' questões respondidas. Visível só para você.'">
+                    Os 10 alunos com maior % de acerto.</p>
+
+                <p class="painel-descricao" th:unless="${central.temRanking}"
+                   th:text="'Ainda não há alunos com ' + ${central.minimoQuestoesRanking} + ' ou mais questões respondidas.'">
+                    Ainda não há alunos no ranking.</p>
+
+                <div class="tabela-rolagem" th:if="${central.temRanking}">
+                    <table class="tabela-desempenho">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Aluno</th>
+                            <th>Curso</th>
+                            <th>Semestre</th>
+                            <th>% de acerto</th>
+                            <th>Acertos</th>
+                            <th>Simulados</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="r : ${central.ranking}">
+                            <td class="coluna-posicao"
+                                th:text="${r.posicao == 1 ? '🥇' : (r.posicao == 2 ? '🥈' : (r.posicao == 3 ? '🥉' : r.posicao))}">1</td>
+                            <td th:text="${r.nome}">Nome</td>
+                            <td th:text="${r.curso}">Curso</td>
+                            <td th:text="${r.semestre} + 'º'">8º</td>
+                            <td>
+                                <span th:text="${#numbers.formatDecimal(r.percentual, 1, 1)} + '%'">0%</span>
+                                <div class="barra">
+                                    <div class="barra-preenchida barra-verde" th:style="'width:' + ${r.percentual} + '%'"></div>
+                                </div>
+                            </td>
+                            <td th:text="${r.acertos} + ' de ' + ${r.questoes}">0 de 0</td>
+                            <td th:text="${r.simulados}">0</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </th:block>
+
+    </div>
+
+</main>
+
+<th:block th:if="${!semCurso and central.temComparativo}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script th:inline="javascript">
+        const rotulosCursos = /*[[${central.rotulosCursos}]]*/ [];
+        const adesaoCursos = /*[[${central.adesaoCursos}]]*/ [];
+        const acertoCursos = /*[[${central.acertoCursos}]]*/ [];
+
+        const estilo = getComputedStyle(document.documentElement);
+        const corMarca = estilo.getPropertyValue('--marca').trim();
+        const corVerde = estilo.getPropertyValue('--verde').trim();
+        const corGrade = '#EEF0F4';
+
+        Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+        Chart.defaults.font.size = 14;
+        Chart.defaults.color = '#5F6368';
+
+        new Chart(document.getElementById('graficoCursos'), {
+            type: 'bar',
+            data: {
+                labels: rotulosCursos,
+                datasets: [
+                    { label: 'Adesão', data: adesaoCursos, backgroundColor: corMarca, borderRadius: 6, maxBarThickness: 40 },
+                    { label: 'Acerto', data: acertoCursos, backgroundColor: corVerde, borderRadius: 6, maxBarThickness: 40 }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { min: 0, max: 100, grid: { color: corGrade }, ticks: { callback: valor => valor + '%' } }
+                }
+            }
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

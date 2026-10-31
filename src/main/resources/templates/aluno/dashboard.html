@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Meu Desempenho</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+    <link rel="stylesheet" th:href="@{/css/ranking.css}">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="marca-topbar">
+        <span class="logo-marca">📘</span>
+        <div>
+            <strong>Trilha do Saber</strong>
+            <span>Aluno</span>
+        </div>
+    </div>
+
+    <nav class="menu-topbar">
+        <a th:href="@{/aluno/inicio}" class="item-menu"><span>🏠</span> Início</a>
+        <a th:href="@{/simulado/iniciar}" class="item-menu"><span>📝</span> Simulados</a>
+        <a th:href="@{/aluno/dashboard}" class="item-menu ativo"><span>📈</span> Meu Desempenho</a>
+        <a href="#" class="item-menu"><span>👤</span> Minha Conta</a>
+    </nav>
+
+    <div class="perfil-topbar">
+        <div class="avatar-usuario">AL</div>
+        <div>
+            <strong th:text="${usuario.nome}">Aluno</strong>
+            <span th:text="${usuario.email}">aluno@umc.br</span>
+        </div>
+        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
+        <a th:href="@{/logout}" class="link-sair">Sair</a>
+    </div>
+</header>
+
+<main class="conteudo dashboard">
+
+    <header class="topo-conteudo">
+        <h1>Meu Desempenho</h1>
+        <p class="subtitulo-pagina">Acompanhe sua evolução nos simulados finalizados.</p>
+    </header>
+
+    <div class="palco">
+
+        <div class="alerta-erro" th:if="${erroSimulado}" th:text="${erroSimulado}"></div>
+
+        <section th:if="${dashboard.semSimulados}" class="estado-vazio">
+            <span class="icone-vazio">📝</span>
+            <h2>Você ainda não realizou nenhum simulado</h2>
+            <p>Faça seu primeiro simulado para começar a acompanhar seu desempenho.</p>
+            <a th:href="@{/simulado/iniciar}" class="botao-primario">Fazer meu primeiro simulado</a>
+        </section>
+
+        <th:block th:unless="${dashboard.semSimulados}">
+
+            <section class="grade-kpis">
+                <div class="kpi">
+                    <span class="kpi-rotulo">Simulados realizados</span>
+                    <strong class="kpi-valor" th:text="${dashboard.totalSimulados}">0</strong>
+                    <span class="kpi-detalhe" th:text="${dashboard.totalQuestoes} + ' questões no total'">0 questões</span>
+                </div>
+                <div class="kpi kpi-verde">
+                    <span class="kpi-rotulo">Acerto geral</span>
+                    <strong class="kpi-valor"
+                            th:text="${#numbers.formatDecimal(dashboard.percentualGeral, 1, 1)} + '%'">0%</strong>
+                    <span class="kpi-detalhe"
+                          th:text="${dashboard.totalAcertos} + ' acertos · ' + ${dashboard.totalErros} + ' erros'">0 acertos</span>
+                </div>
+                <div class="kpi kpi-azul">
+                    <span class="kpi-rotulo">Último simulado</span>
+                    <strong class="kpi-valor"
+                            th:text="${#numbers.formatDecimal(dashboard.percentualUltimo, 1, 1)} + '%'">0%</strong>
+                    <span class="kpi-detalhe" th:classappend="${dashboard.classeVariacao}"
+                          th:text="${dashboard.textoVariacao}">Primeiro simulado</span>
+                </div>
+                <div class="kpi kpi-ambar">
+                    <span class="kpi-rotulo">Questões em branco</span>
+                    <strong class="kpi-valor" th:text="${dashboard.totalEmBranco}">0</strong>
+                    <span class="kpi-detalhe"
+                          th:text="${#numbers.formatDecimal(dashboard.percentualEmBranco, 1, 1)} + '% do total'">0% do total</span>
+                </div>
+            </section>
+
+            <section class="painel painel-ranking" th:if="${ranking != null}">
+
+                <div class="ranking-bloco" th:if="${ranking.classificado}">
+                    <span class="ranking-medalha">🏆</span>
+                    <div>
+                        <span class="ranking-rotulo">Sua posição na turma</span>
+                        <strong class="ranking-valor"
+                                th:text="${ranking.textoPosicao} + ' de ' + ${ranking.totalParticipantes}">4º de 20</strong>
+                        <span class="ranking-detalhe"
+                              th:text="${#numbers.formatDecimal(ranking.percentual, 1, 1)} + '% de acerto em ' + ${ranking.simuladosFeitos} + ' simulados · ' + ${ranking.turma}">72,5% de acerto em 5 simulados</span>
+                    </div>
+                </div>
+
+                <div class="ranking-bloco" th:if="${ranking.insuficiente}">
+                    <span class="ranking-medalha">🎯</span>
+                    <div>
+                        <span class="ranking-rotulo">Sua posição na turma</span>
+                        <strong class="ranking-valor ranking-valor-texto">Ainda sem posição</strong>
+                        <span class="ranking-detalhe"
+                              th:text="'Faça mais ' + ${ranking.faltam} + (${ranking.faltam == 1} ? ' simulado' : ' simulados') + ' para entrar no ranking. Você tem ' + ${ranking.simuladosFeitos} + ' de ' + ${ranking.minimoSimulados} + '.'">Faça mais 1 simulado para entrar no ranking.</span>
+                        <div class="ranking-progresso">
+                            <div class="ranking-progresso-preenchido" th:style="'width:' + ${ranking.progresso} + '%'"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ranking-bloco" th:if="${ranking.semTurma}">
+                    <span class="ranking-medalha">ℹ️</span>
+                    <div>
+                        <span class="ranking-rotulo">Sua posição na turma</span>
+                        <strong class="ranking-valor ranking-valor-texto">Turma não informada</strong>
+                        <span class="ranking-detalhe">Seu cadastro não tem curso, semestre, turma e turno completos. Peça à coordenação para atualizar.</span>
+                    </div>
+                </div>
+
+                <p class="ranking-nota">
+                    O ranking considera os alunos da sua turma com 3 ou mais simulados finalizados.
+                    Você vê apenas a sua posição, sem o nome dos colegas.
+                </p>
+
+            </section>
+
+            <section class="grade-dashboard">
+
+                <div class="painel">
+                    <h2>Evolução do acerto</h2>
+                    <p class="painel-descricao">Cada simulado em relação à sua média geral.</p>
+                    <div class="area-grafico"><canvas id="graficoEvolucao"></canvas></div>
+                </div>
+
+                <div class="painel">
+                    <h2>Composição das respostas</h2>
+                    <p class="painel-descricao">Todos os simulados somados.</p>
+                    <div class="area-grafico"><canvas id="graficoGeral"></canvas></div>
+                </div>
+
+                <div class="painel">
+                    <h2>Resultado por simulado</h2>
+                    <p class="painel-descricao">Acertos, erros e questões em branco.</p>
+                    <div class="area-grafico"><canvas id="graficoPorSimulado"></canvas></div>
+                </div>
+
+                <div class="painel">
+                    <h2>Pontos de atenção</h2>
+                    <p class="painel-descricao">O que os seus números mostram.</p>
+                    <ul class="lista-insights">
+                        <li th:each="insight : ${dashboard.insights}" th:text="${insight}">Insight</li>
+                    </ul>
+                </div>
+
+            </section>
+
+            <section class="painel painel-tabela">
+                <h2>Simulados realizados</h2>
+                <p class="painel-descricao">Detalhe de cada simulado finalizado.</p>
+                <div class="tabela-rolagem">
+                    <table class="tabela-desempenho">
+                        <thead>
+                        <tr>
+                            <th>Simulado</th>
+                            <th>Finalizado em</th>
+                            <th>Acertos</th>
+                            <th>Erros</th>
+                            <th>Em branco</th>
+                            <th>% de acerto</th>
+                            <th>Comparado à média</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="s, iter : ${dashboard.simulados}">
+                            <td th:text="'Simulado ' + ${iter.count}">Simulado 1</td>
+                            <td th:text="${#temporals.format(s.dataFim, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                            <td th:text="${s.acertos} + ' de ' + ${s.totalQuestoes}">0 de 0</td>
+                            <td th:text="${s.errosMarcados}">0</td>
+                            <td th:text="${s.emBranco}">0</td>
+                            <td th:text="${#numbers.formatDecimal(s.percentual, 1, 1)} + '%'">0%</td>
+                            <td><span class="selo" th:classappend="${dashboard.classeSelo(s)}"
+                                      th:text="${dashboard.situacao(s)}">Na média</span></td>
+                            <td><a th:href="@{/simulado/{id}/resultado(id=${s.simuladoId})}">Ver resultado</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </th:block>
+
+    </div>
+
+</main>
+
+<th:block th:unless="${dashboard.semSimulados}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script th:inline="javascript">
+        const rotulos = /*[[${dashboard.rotulosGrafico}]]*/ [];
+        const percentuais = /*[[${dashboard.percentuaisGrafico}]]*/ [];
+        const media = /*[[${dashboard.mediaGrafico}]]*/ [];
+        const acertosPorSimulado = /*[[${dashboard.acertosGrafico}]]*/ [];
+        const errosPorSimulado = /*[[${dashboard.errosMarcadosGrafico}]]*/ [];
+        const emBrancoPorSimulado = /*[[${dashboard.emBrancoGrafico}]]*/ [];
+        const totalAcertos = /*[[${dashboard.totalAcertos}]]*/ 0;
+        const totalErros = /*[[${dashboard.totalErrosMarcados}]]*/ 0;
+        const totalEmBranco = /*[[${dashboard.totalEmBranco}]]*/ 0;
+        const percentualGeral = /*[[${#numbers.formatDecimal(dashboard.percentualGeral, 1, 1)}]]*/ '0,0';
+
+        const estilo = getComputedStyle(document.documentElement);
+        const corMarca = estilo.getPropertyValue('--marca').trim();
+        const corVerde = estilo.getPropertyValue('--verde').trim();
+        const corVermelho = estilo.getPropertyValue('--vermelho').trim();
+        const corAmbar = '#F59E0B';
+        const corGrade = '#EEF0F4';
+
+        Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+        Chart.defaults.font.size = 14;
+        Chart.defaults.color = '#5F6368';
+
+        const legenda = { position: 'bottom', labels: { usePointStyle: true, padding: 16 } };
+
+        const canvasEvolucao = document.getElementById('graficoEvolucao');
+        const degrade = canvasEvolucao.getContext('2d').createLinearGradient(0, 0, 0, 320);
+        degrade.addColorStop(0, 'rgba(108, 76, 232, 0.35)');
+        degrade.addColorStop(1, 'rgba(108, 76, 232, 0)');
+
+        new Chart(canvasEvolucao, {
+            type: 'line',
+            data: {
+                labels: rotulos,
+                datasets: [
+                    {
+                        label: '% de acerto',
+                        data: percentuais,
+                        borderColor: corMarca,
+                        backgroundColor: degrade,
+                        fill: true,
+                        borderWidth: 3,
+                        tension: 0.35,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: corMarca,
+                        pointBorderWidth: 3
+                    },
+                    {
+                        label: 'Média geral',
+                        data: media,
+                        borderColor: corAmbar,
+                        borderDash: [6, 6],
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: legenda },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        min: 0,
+                        max: 100,
+                        grid: { color: corGrade },
+                        ticks: { callback: valor => valor + '%' }
+                    }
+                }
+            }
+        });
+
+        const textoCentro = {
+            id: 'textoCentro',
+            afterDraw(grafico) {
+                const area = grafico.chartArea;
+                const x = (area.left + area.right) / 2;
+                const y = (area.top + area.bottom) / 2;
+                const ctx = grafico.ctx;
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = corMarca;
+                ctx.font = '700 32px Inter, system-ui, sans-serif';
+                ctx.fillText(percentualGeral + '%', x, y - 8);
+                ctx.fillStyle = '#5F6368';
+                ctx.font = '500 14px Inter, system-ui, sans-serif';
+                ctx.fillText('de acerto', x, y + 20);
+                ctx.restore();
+            }
+        };
+
+        new Chart(document.getElementById('graficoGeral'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Acertos', 'Erros', 'Em branco'],
+                datasets: [{
+                    data: [totalAcertos, totalErros, totalEmBranco],
+                    backgroundColor: [corVerde, corVermelho, corAmbar],
+                    borderColor: '#fff',
+                    borderWidth: 4,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: { legend: legenda }
+            },
+            plugins: [textoCentro]
+        });
+
+        new Chart(document.getElementById('graficoPorSimulado'), {
+            type: 'bar',
+            data: {
+                labels: rotulos,
+                datasets: [
+                    { label: 'Acertos', data: acertosPorSimulado, backgroundColor: corVerde, borderRadius: 6, maxBarThickness: 56 },
+                    { label: 'Erros', data: errosPorSimulado, backgroundColor: corVermelho, borderRadius: 6, maxBarThickness: 56 },
+                    { label: 'Em branco', data: emBrancoPorSimulado, backgroundColor: corAmbar, borderRadius: 6, maxBarThickness: 56 }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: legenda },
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: { stacked: true, grid: { color: corGrade }, ticks: { precision: 0 } }
+                }
+            }
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

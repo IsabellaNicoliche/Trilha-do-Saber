@@ -20,7 +20,8 @@
     <nav class="menu-topbar">
         <a th:href="@{/professor/inicio}" class="item-menu ativo"><span>🏠</span> Início</a>
         <a th:href="@{/professor/alunos}" class="item-menu"><span>👥</span> Alunos</a>
-        <a href="#" class="item-menu"><span>📈</span> Desempenho da Turma</a>
+        <a th:href="@{/professor/turmas}" class="item-menu"><span>👥</span> Turmas</a>
+        <a th:href="@{/professor/dashboard}" class="item-menu"><span>📈</span> Desempenho</a>
         <a href="#" class="item-menu"><span>📤</span> Conteúdo de Aula</a>
         <a href="#" class="item-menu"><span>👤</span> Minha Conta</a>
     </nav>
@@ -40,27 +41,36 @@
 
     <header class="topo-conteudo">
         <h1>Início</h1>
-        <p class="subtitulo-pagina" th:text="'Visão geral da turma — ' + ${usuario.nome}">Visão geral da turma</p>
+        <p class="subtitulo-pagina"
+           th:text="${periodoSelecionado != null} ? ('Visão geral das suas turmas no período ' + ${periodoSelecionado}) : 'Visão geral das suas turmas'">
+            Visão geral das suas turmas</p>
     </header>
 
     <section class="grade-cards">
         <div class="card-estatistica">
             <span class="rotulo-card">Alunos ativos</span>
-            <strong class="numero-card">-</strong>
+            <strong class="numero-card" th:text="${painel.alunosAtivos}">0</strong>
         </div>
         <div class="card-estatistica">
-            <span class="rotulo-card">Média geral da turma</span>
-            <strong class="numero-card">-</strong>
+            <span class="rotulo-card">Acerto médio das turmas</span>
+            <strong class="numero-card"
+                    th:text="${painel.temAcerto} ? (${#numbers.formatDecimal(painel.acertoGeral, 1, 1)} + '%') : '-'">-</strong>
         </div>
         <div class="card-estatistica">
             <span class="rotulo-card">Simulados concluídos</span>
-            <strong class="numero-card">-</strong>
+            <strong class="numero-card" th:text="${painel.totalSimulados}">0</strong>
         </div>
         <div class="card-estatistica">
-            <span class="rotulo-card">Temas críticos</span>
-            <strong class="numero-card">-</strong>
+            <span class="rotulo-card">Turmas no período</span>
+            <strong class="numero-card" th:text="${painel.totalTurmas}">0</strong>
         </div>
     </section>
+
+    <div class="cabecalho-usuarios">
+        <h2>Acesso rápido</h2>
+    </div>
+    <a th:href="@{/professor/turmas}" class="botao-primario">Minhas turmas</a>
+    <a th:href="@{/professor/dashboard}" class="botao-primario">Painel de desempenho</a>
 
 </main>
 

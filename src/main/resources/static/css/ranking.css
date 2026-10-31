@@ -1,0 +1,74 @@
+.painel-ranking {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 32px;
+    margin: 20px 0 0;
+    padding: 20px 24px;
+}
+
+.ranking-bloco {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.ranking-medalha {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: var(--marca-clara);
+    font-size: 28px;
+}
+
+.ranking-rotulo {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--texto-secundario);
+}
+
+.ranking-valor {
+    display: block;
+    font-size: 30px;
+    line-height: 1.2;
+    color: var(--marca);
+}
+
+.ranking-valor-texto {
+    font-size: 20px;
+}
+
+.ranking-detalhe {
+    display: block;
+    font-size: 13px;
+    color: var(--texto-secundario);
+}
+
+.ranking-progresso {
+    width: 100%;
+    max-width: 280px;
+    height: 8px;
+    margin-top: 8px;
+    border-radius: 999px;
+    background: var(--borda);
+    overflow: hidden;
+}
+
+.ranking-progresso-preenchido {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--marca);
+}
+
+.ranking-nota {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 12px;
+    color: var(--texto-secundario);
+}

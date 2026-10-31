@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Adicionar disciplina</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+    <link rel="stylesheet" th:href="@{/css/turmas.css}">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="marca-topbar">
+        <span class="logo-marca">📘</span>
+        <div>
+            <strong>Trilha do Saber</strong>
+            <span th:text="${ehAdmin} ? 'Administrador' : 'Coordenador'">Coordenador</span>
+        </div>
+    </div>
+
+    <nav class="menu-topbar" th:if="${ehAdmin}">
+        <a th:href="@{/admin/inicio}" class="item-menu"><span>🏠</span> Início</a>
+        <a href="#" class="item-menu"><span>🗄️</span> Banco de Questões</a>
+        <a href="#" class="item-menu"><span>📋</span> Simulados</a>
+        <a th:href="@{/admin/coordenadores}" class="item-menu"><span>👥</span> Usuários</a>
+        <a th:href="@{/admin/turmas}" class="item-menu ativo"><span>🎓</span> Turmas</a>
+        <a th:href="@{/admin/logs}" class="item-menu"><span>🛡️</span> Logs de Auditoria</a>
+    </nav>
+
+    <nav class="menu-topbar" th:unless="${ehAdmin}">
+        <a th:href="@{/coordenador/inicio}" class="item-menu"><span>🏠</span> Início</a>
+        <a th:href="@{/coordenador/usuarios}" class="item-menu"><span>👥</span> Usuários</a>
+        <a th:href="@{/coordenador/turmas}" class="item-menu ativo"><span>🎓</span> Turmas</a>
+        <a href="#" class="item-menu"><span>📊</span> Relatórios</a>
+        <a href="#" class="item-menu"><span>⚙️</span> Minha Conta</a>
+    </nav>
+
+    <div class="perfil-topbar">
+        <div class="avatar-usuario" th:text="${ehAdmin} ? 'AD' : 'CO'">CO</div>
+        <div>
+            <strong th:text="${usuario.nome}">Coordenação</strong>
+            <span th:text="${usuario.email}">coordenacao@umc.br</span>
+        </div>
+        <a th:href="@{/logout}" class="link-sair">Sair</a>
+    </div>
+</header>
+
+<main class="conteudo">
+    <div class="cartao-form">
+
+        <h1>Adicionar disciplina à turma</h1>
+        <p class="subtitulo-pagina">Cada disciplina é cadastrada separadamente. Use <strong>Salvar e adicionar outra</strong> para lançar várias disciplinas da mesma turma.</p>
+
+        <div class="alerta-sucesso" th:if="${mensagem}" th:text="${mensagem}">Disciplina Redes adicionada à turma B do 8º semestre de Sistemas de Informação.</div>
+
+        <div class="alerta-importacao" th:if="${erro}" th:text="${erro}">Já existe a disciplina Redes nesta turma.</div>
+
+        <form method="post" th:object="${form}" th:action="@{|${base}/nova|}">
+
+            <label>Período letivo</label>
+            <input type="text" th:field="*{periodoLetivo}" placeholder="2026/2">
+            <span class="erro" th:if="${#fields.hasErrors('periodoLetivo')}" th:errors="*{periodoLetivo}"></span>
+
+            <label>Curso</label>
+            <select th:field="*{curso}">
+                <option value="">Selecionar curso</option>
+                <option th:each="c : ${cursos}" th:value="${c}" th:text="${c}"></option>
+            </select>
+            <span class="erro" th:if="${#fields.hasErrors('curso')}" th:errors="*{curso}"></span>
+
+            <label>Semestre</label>
+            <input type="number" th:field="*{semestre}" min="1" max="12">
+            <span class="erro" th:if="${#fields.hasErrors('semestre')}" th:errors="*{semestre}"></span>
+
+            <label>Turma</label>
+            <select th:field="*{turma}">
+                <option value="">Selecionar</option>
+                <option th:each="t : ${T(com.tcc.trilha_do_saber.model.Turma).values()}"
+                        th:value="${t.nomeExibicao}" th:text="${t.nomeExibicao}"></option>
+            </select>
+            <span class="erro" th:if="${#fields.hasErrors('turma')}" th:errors="*{turma}"></span>
+
+            <label>Período de estudo</label>
+            <select th:field="*{turno}">
+                <option value="">Selecionar</option>
+                <option th:each="p : ${T(com.tcc.trilha_do_saber.model.Turno).values()}"
+                        th:value="${p.nomeExibicao}" th:text="${p.nomeExibicao}"></option>
+            </select>
+            <span class="erro" th:if="${#fields.hasErrors('turno')}" th:errors="*{turno}"></span>
+
+            <label>Disciplina</label>
+            <input type="text" th:field="*{disciplina}">
+            <span class="erro" th:if="${#fields.hasErrors('disciplina')}" th:errors="*{disciplina}"></span>
+
+            <label>Professores</label>
+            <div class="lista-professores">
+                <label class="opcao-professor" th:each="p : ${professores}">
+                    <input type="checkbox" th:field="*{professorIds}" th:value="${p.id}">
+                    <span th:text="${p.nome} + ' (' + ${p.email} + ')'">Ana Souza (ana@umc.br)</span>
+                </label>
+            </div>
+            <span class="dica-professores">Marque mais de um professor quando a disciplina for dividida entre eles (por exemplo, quarta-feira com um e sexta-feira com outro).</span>
+            <span class="erro" th:if="${#fields.hasErrors('professorIds')}" th:errors="*{professorIds}"></span>
+
+            <div class="acoes-nova">
+                <button type="submit" name="acao" value="salvar" class="botao-primario">Salvar</button>
+                <button type="submit" name="acao" value="outra" class="botao-secundario">Salvar e adicionar outra</button>
+                <a th:href="@{|${base}?periodo=${form.periodoLetivo}|}" class="botao-secundario">Cancelar</a>
+            </div>
+        </form>
+
+    </div>
+</main>
+
+</body>
+</html>

@@ -1,13 +1,26 @@
 package com.tcc.trilha_do_saber.controller;
 
+import com.tcc.trilha_do_saber.dto.TurmaDoProfessorDTO;
 import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
+import com.tcc.trilha_do_saber.service.ProfessorPainelService;
+import com.tcc.trilha_do_saber.service.ProfessorTurmaService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.List;
+
 @Controller
 public class HomeController {
+
+    private final ProfessorTurmaService professorTurmaService;
+    private final ProfessorPainelService professorPainelService;
+
+    public HomeController(ProfessorTurmaService professorTurmaService, ProfessorPainelService professorPainelService) {
+        this.professorTurmaService = professorTurmaService;
+        this.professorPainelService = professorPainelService;
+    }
 
     @GetMapping("/aluno/inicio")
     public String inicioAluno(HttpSession session, Model model){
@@ -25,7 +38,13 @@ public class HomeController {
         if (usuario == null) {
             return "redirect:/login";
         }
+        List<String> periodos = professorTurmaService.periodos(usuario.getId());
+        String periodo = professorTurmaService.escolherPeriodo(periodos, null);
+        List<TurmaDoProfessorDTO> turmas = professorTurmaService.turmas(usuario.getId(), periodo);
+
         model.addAttribute("usuario", usuario);
+        model.addAttribute("periodoSelecionado", periodo);
+        model.addAttribute("painel", professorPainelService.montar(turmas, periodo));
         return "professor/inicio";
     }
 

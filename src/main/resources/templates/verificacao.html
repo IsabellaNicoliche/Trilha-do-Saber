@@ -16,9 +16,9 @@
         <span class="icone-cadeado">🔒</span>
 
         <h1>Verificação em duas etapas</h1>
-        <<p class="subtitulo">Enviamos um código de 6 dígitos para o seu e-mail. Digite-o abaixo para continuar.</p>
+        <p class="subtitulo">Enviamos um código de 6 dígitos para o seu e-mail. Digite-o abaixo para continuar.</p>
 
-        <span class="aviso-info" th:if="${codigoGerado}"> Não foi possível enviar por e-mail agora. Seu código de verificação:<strong th:text="${codigoGerado}"></strong></span>
+        <span class="aviso-info" th:if="${emailIndisponivel}">Não foi possível enviar o código por e-mail agora. Aguarde alguns instantes e clique em "Reenviar código".</span>
         <span class="erro-geral" th:if="${erroVerificacao}" th:text="${erroVerificacao}"></span>
         <form method="post" th:action="@{/verificacao}">
 

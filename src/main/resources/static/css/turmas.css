@@ -1,0 +1,306 @@
+.turmas .painel {
+    margin-top: 24px;
+}
+
+.formato {
+    display: block;
+    max-width: 100%;
+    margin: 0 0 8px;
+    padding: 10px 14px;
+    background: var(--marca-fundo);
+    border: 1px solid var(--marca-clara);
+    border-radius: 8px;
+    color: var(--texto);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 13px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.link-modelo {
+    display: inline-block;
+    margin-top: 4px;
+    color: var(--marca);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.link-modelo:hover {
+    text-decoration: underline;
+}
+
+.form-importacao {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.form-importacao .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-importacao .campo-arquivo {
+    flex: 1;
+    min-width: 240px;
+}
+
+.form-importacao label,
+.filtro-periodo label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--texto-secundario);
+}
+
+.form-importacao input[type="text"],
+.form-importacao input[type="file"],
+.filtro-periodo select {
+    height: 42px;
+    padding: 9px 12px;
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--texto);
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.form-importacao input[type="text"] {
+    width: 140px;
+}
+
+.form-importacao input[type="file"] {
+    width: 100%;
+}
+
+.form-importacao input:focus,
+.filtro-periodo select:focus {
+    outline: none;
+    border-color: var(--marca);
+    box-shadow: 0 0 0 3px var(--marca-clara);
+}
+
+.form-importacao .botao-primario {
+    height: 42px;
+}
+
+.alerta-importacao {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: var(--vermelho-fundo);
+    border: 1px solid var(--vermelho);
+    border-left-width: 4px;
+    border-radius: 8px;
+    color: var(--texto);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.nota-cursos {
+    margin: 16px 0 0;
+    color: var(--texto-secundario);
+    font-size: 13px;
+}
+
+.resumo-importacao {
+    margin: 0 0 20px;
+}
+
+.conteudo-linha {
+    max-width: 340px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 13px;
+}
+
+.filtro-periodo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.filtro-periodo select {
+    padding-right: 32px;
+}
+
+.email-professor {
+    display: block;
+    color: var(--texto-secundario);
+    font-size: 13px;
+}
+
+.valores-aceitos {
+    margin: 12px 0 8px;
+    padding: 0 0 0 20px;
+    color: var(--texto-secundario);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.valores-aceitos strong {
+    color: var(--texto);
+}
+
+.guia-csv {
+    margin-top: 16px;
+    background: var(--marca-fundo);
+    border: 1px solid var(--marca-clara);
+    border-radius: 12px;
+    padding: 4px 18px 16px;
+}
+
+.guia-csv summary {
+    padding: 12px 0;
+    color: var(--marca);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.guia-passos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.guia-coluna h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+}
+
+.guia-coluna ol {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--texto);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.guia-coluna li + li {
+    margin-top: 6px;
+}
+
+.guia-dica {
+    margin: 14px 0 0;
+    color: var(--texto-secundario);
+    font-size: 13px;
+}
+
+.alerta-sucesso {
+    margin-top: 24px;
+    padding: 12px 16px;
+    background: var(--verde-fundo);
+    border: 1px solid var(--verde);
+    border-left-width: 4px;
+    border-radius: 8px;
+    color: var(--texto);
+    font-size: 14px;
+}
+
+.coluna-acao {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.link-editar {
+    color: var(--marca);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.link-editar:hover {
+    text-decoration: underline;
+}
+
+.dados-fixos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin: 0 0 8px;
+    color: var(--texto-secundario);
+    font-size: 14px;
+}
+
+.dados-fixos strong {
+    color: var(--texto);
+}
+
+@media (max-width: 800px) {
+    .resumo-importacao {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .guia-passos {
+        grid-template-columns: 1fr;
+    }
+}
+
+.barra-turmas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.barra-turmas .filtro-periodo {
+    margin-bottom: 0;
+}
+
+.botao-adicionar {
+    display: inline-block;
+    padding: 10px 18px;
+    text-decoration: none;
+}
+
+.acoes-nova {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.acoes-nova .botao-secundario,
+.acoes-nova .botao-primario {
+    padding: 10px 14px;
+}
+
+.acoes-nova .botao-secundario {
+    order: 1;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.acoes-nova button.botao-secundario {
+    order: 2;
+}
+
+.acoes-nova .botao-primario {
+    order: 3;
+}
+
+.nota-turma {
+    margin: 0 0 16px;
+    color: var(--texto-secundario);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.nota-turma strong {
+    color: var(--texto);
+}
+
+.topo-conteudo .filtro-periodo {
+    margin: 12px 0 4px;
+}

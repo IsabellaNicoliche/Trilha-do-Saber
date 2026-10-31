@@ -20,8 +20,8 @@
     <nav class="menu-topbar">
         <a th:href="@{/coordenador/inicio}" class="item-menu"><span>🏠</span> Início</a>
         <a th:href="@{/coordenador/usuarios}" class="item-menu ativo"><span>👥</span> Usuários</a>
-        <a href="#" class="item-menu"><span>🎓</span> Turmas</a>
-        <a href="#" class="item-menu"><span>📊</span> Relatórios</a>
+        <a th:href="@{/coordenador/turmas}" class="item-menu"><span>🎓</span> Turmas</a>
+        <a th:href="@{/coordenador/dashboard}" class="item-menu"><span>📊</span> Desempenho</a>
         <a href="#" class="item-menu"><span>⚙️</span> Minha Conta</a>
     </nav>
 
@@ -42,7 +42,6 @@
         <h1 th:if="${tipo == 'aluno'}">Editar aluno</h1>
         <h1 th:if="${tipo == 'professor'}">Editar professor</h1>
 
-        <!-- FORM DE ALUNO -->
         <form th:if="${tipo == 'aluno'}" method="post" th:object="${alunoForm}"
               th:action="@{/coordenador/usuarios/aluno/{id}(id=${alunoForm.id})}">
 
@@ -61,16 +60,37 @@
             <span class="erro" th:if="${#fields.hasErrors('rgm')}" th:errors="*{rgm}"></span>
 
             <label>Curso</label>
-            <input type="text" th:field="*{curso}">
+            <select th:field="*{curso}">
+                <option value="">Selecionar curso</option>
+                <option th:each="c : ${T(com.tcc.trilha_do_saber.model.Curso).values()}"
+                        th:value="${c.nomeExibicao}" th:text="${c.nomeExibicao}"></option>
+            </select>
             <span class="erro" th:if="${#fields.hasErrors('curso')}" th:errors="*{curso}"></span>
 
             <label>Semestre</label>
             <input type="number" th:field="*{semestre}" min="1" max="12">
 
+            <label>Turma</label>
+            <select th:field="*{turma}">
+                <option value="">Não definida</option>
+                <option th:each="t : ${T(com.tcc.trilha_do_saber.model.Turma).values()}"
+                        th:value="${t.nomeExibicao}" th:text="${t.nomeExibicao}"></option>
+            </select>
+            <span class="erro" th:if="${#fields.hasErrors('turma')}" th:errors="*{turma}"></span>
+
+            <label>Período de estudo</label>
+            <select th:field="*{turno}">
+                <option value="">Não definido</option>
+                <option th:each="p : ${T(com.tcc.trilha_do_saber.model.Turno).values()}"
+                        th:value="${p.nomeExibicao}" th:text="${p.nomeExibicao}"></option>
+            </select>
+            <span class="erro" th:if="${#fields.hasErrors('turno')}" th:errors="*{turno}"></span>
+
             <label class="campo-checkbox">
                 <input type="checkbox" th:field="*{ativo}">
                 Usuário ativo (acesso liberado)
             </label>
+            <span class="erro" th:if="${#fields.hasErrors('turmaTurnoPreenchidosSeAtivo')}" th:errors="*{turmaTurnoPreenchidosSeAtivo}"></span>
 
             <div class="acoes-form">
                 <a th:href="@{/coordenador/usuarios}" class="botao-secundario">Cancelar</a>
@@ -78,7 +98,6 @@
             </div>
         </form>
 
-        <!-- FORM DE PROFESSOR -->
         <form th:if="${tipo == 'professor'}" method="post" th:object="${professorForm}"
               th:action="@{/coordenador/usuarios/professor/{id}(id=${professorForm.id})}">
 

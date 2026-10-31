@@ -39,9 +39,10 @@
 
             <span class="aviso-info" th:if="${param.cadastroEnviado}">Solicitação enviada! Assim que seu acesso for aprovado, você poderá entrar por aqui.</span>
             <span class="aviso-info" th:if="${param.deslogado}">Você saiu da plataforma.</span>
+            <span class="aviso-info" th:if="${param.senhaRedefinida}">Senha alterada com sucesso! Entre com a nova senha.</span>
             <span class="erro-geral" th:if="${erroLogin}" th:text="${erroLogin}"></span>
 
-            <form method="post" th:action="@{/login}" th:object="${loginDTO}">
+            <form method="post" th:action="@{/login}" th:object="${loginDTO}" id="formLogin">
 
                 <label>E-mail</label>
                 <input type="email" th:field="*{email}" placeholder="seu@email.edu.br">
@@ -52,10 +53,10 @@
                 <span class="erro" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></span>
 
                 <div class="linha-esqueci">
-                    <a href="#">Esqueci minha senha</a>
+                    <a th:href="@{/esqueci-senha}">Esqueci minha senha</a>
                 </div>
 
-                <button type="submit" class="botao-primario botao-largo">Entrar</button>
+                <button type="submit" class="botao-primario botao-largo" id="botaoEntrar">Entrar</button>
             </form>
 
             <p class="rodape-login">
@@ -68,6 +69,15 @@
     </div>
 
 </div>
+
+<script>
+    const formLogin = document.getElementById("formLogin");
+    const botaoEntrar = document.getElementById("botaoEntrar");
+    formLogin.addEventListener("submit", () => {
+        botaoEntrar.disabled = true;
+        botaoEntrar.textContent = "Entrando...";
+    });
+</script>
 
 </body>
 </html>

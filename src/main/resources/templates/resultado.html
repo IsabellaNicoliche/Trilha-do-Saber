@@ -8,27 +8,83 @@
 </head>
 <body>
 
-<div class="conclusao">
-    <div class="cartao-conclusao">
+<main class="pagina-resultado">
+
+    <section class="cartao-conclusao cartao-resultado">
 
         <div class="selo-ok">✓</div>
 
-        <h1>Simulado concluído</h1>
-        <p class="subtitulo">Confira seu desempenho</p>
+        <h1 th:text="${porTempo} ? 'Tempo esgotado' : 'Simulado concluído'">Simulado concluído</h1>
+        <p class="subtitulo" th:text="${simulado.titulo}">Confira seu desempenho</p>
+
+        <p class="aviso-resultado" th:if="${porTempo}">
+            O tempo acabou e o simulado foi enviado automaticamente. Questões sem resposta contam como erro.
+        </p>
 
         <p class="resumo-final">
             Você acertou <strong th:text="${resultado.acertos}"></strong>
             de <strong th:text="${resultado.totalQuestoes}"></strong> questões
             (<span th:text="${#numbers.formatDecimal(resultado.percentualAcerto, 1, 1)}"></span>%)
         </p>
-        <p class="horario">
-            Erros: <span th:text="${resultado.erros}"></span>
-        </p>
 
-        <a class="botao-primario bloco" th:href="@{/simulado/iniciar}">Fazer novo simulado</a>
+        <div class="indicadores-resultado">
+            <div class="indicador">
+                <span class="indicador-valor acerto" th:text="${resultado.acertos}">0</span>
+                <span>Acertos</span>
+            </div>
+            <div class="indicador">
+                <span class="indicador-valor erro" th:text="${resultado.erros}">0</span>
+                <span>Erros</span>
+            </div>
+            <div class="indicador">
+                <span class="indicador-valor" th:text="${tempoUtilizado}">00:00</span>
+                <span>Tempo utilizado</span>
+            </div>
+        </div>
 
-    </div>
-</div>
+        <div class="acoes-resultado">
+            <a class="botao-primario" th:href="@{/simulado/iniciar}">Fazer novo simulado</a>
+            <a class="botao-secundario" th:href="@{/aluno/dashboard}">Ver meu desempenho</a>
+        </div>
+
+    </section>
+
+    <section class="revisao">
+        <h2>Revisão das questões</h2>
+        <p class="subtitulo">Sua resposta e o gabarito de cada questão.</p>
+
+        <article class="cartao-revisao" th:each="q : ${revisao}">
+
+            <header class="cabecalho-revisao">
+                <span class="etiqueta-ordem">Questão <span th:text="${q.numero}">1</span></span>
+                <span class="situacao" th:classappend="${q.classeSituacao}" th:text="${q.situacao}">Acertou</span>
+            </header>
+
+            <div class="cartao-enunciado">
+                <p th:text="${#strings.trim(q.enunciado)}">Enunciado da questão</p>
+            </div>
+
+            <div class="cartao-imagem" th:if="${q.temImagem}">
+                <img th:src="@{'/questao/' + ${q.questaoId} + '/imagem'}"
+                     alt="Imagem de apoio da questão" class="imagem-questao">
+            </div>
+
+            <ul class="lista-revisao">
+                <li class="alternativa-revisao" th:each="alt : ${q.alternativas}"
+                    th:classappend="${(alt.correta ? 'certa ' : '') + (alt.marcada and !alt.correta ? 'errada' : '')}">
+                    <span class="letra" th:text="${alt.letra}">A</span>
+                    <span class="texto-alternativa" th:text="${#strings.trim(alt.texto)}">Texto da alternativa</span>
+                    <span class="etiqueta-revisao" th:if="${alt.marcada}">Sua resposta</span>
+                    <span class="etiqueta-revisao correta" th:if="${alt.correta}">Resposta correta</span>
+                </li>
+            </ul>
+
+            <p class="nota-branco" th:unless="${q.respondida}">Você não respondeu esta questão.</p>
+
+        </article>
+    </section>
+
+</main>
 
 </body>
 </html>

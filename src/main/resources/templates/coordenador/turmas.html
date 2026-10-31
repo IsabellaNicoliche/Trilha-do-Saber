@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Turmas e professores</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+    <link rel="stylesheet" th:href="@{/css/turmas.css}">
+</head>
+<body>
+
+<th:block th:if="${ehAdmin}">
+    <header th:replace="~{fragments/navAdmin :: nav(pagina='turmas', usuarioLogado=${usuario})}"></header>
+</th:block>
+<th:block th:unless="${ehAdmin}">
+    <header th:replace="~{fragments/navCoordenador :: nav(pagina='turmas', usuarioLogado=${usuario})}"></header>
+</th:block>
+
+<main class="conteudo turmas">
+
+    <header class="topo-conteudo">
+        <h1>Turmas e professores</h1>
+        <p class="subtitulo-pagina">Importe a planilha de disciplinas por turma e veja quem leciona cada uma.</p>
+    </header>
+
+    <div class="alerta-sucesso" th:if="${mensagem}" th:text="${mensagem}">Turma atualizada com sucesso.</div>
+
+    <section class="painel cartao-importacao">
+        <h2>Importar planilha</h2>
+        <p class="painel-descricao">Envie um arquivo CSV (UTF-8) com uma linha para cada disciplina de uma turma. Se a disciplina for dividida entre dois professores, use uma linha para cada um.</p>
+
+        <code class="formato">Curso;Semestre;Turma;Período_de_Estudo;Disciplina;Professor_email</code>
+        <code class="formato">Sistemas de Informação;8;B;Noturno;Engenharia de Software;professor@umc.br</code>
+
+        <ul class="valores-aceitos">
+            <li><strong>Curso:</strong> <span th:text="${#strings.listJoin(cursos, ', ')}">Sistemas de Informação</span></li>
+            <li><strong>Semestre:</strong> de 1 a 12</li>
+            <li><strong>Turma:</strong> A, B, C ou D</li>
+            <li><strong>Período_de_Estudo:</strong> Matutino, Noturno ou Integral</li>
+            <li><strong>Professor_email:</strong> e-mail de um professor com cadastro aprovado</li>
+        </ul>
+
+        <a class="link-modelo" th:href="@{/modelos/modelo-turmas.xlsx}" download>Baixar modelo da planilha (.xlsx)</a>
+
+        <details class="guia-csv" open>
+            <summary>Como gerar o arquivo CSV (UTF-8) a partir da planilha</summary>
+
+            <div class="guia-passos">
+                <div class="guia-coluna">
+                    <h3>No Excel</h3>
+                    <ol>
+                        <li>Clique em <strong>Baixar modelo da planilha</strong> e abra o arquivo no Excel.</li>
+                        <li>Preencha uma linha para cada disciplina de cada turma, sem alterar a primeira linha (cabeçalho).</li>
+                        <li>Clique em <strong>Arquivo</strong> e depois em <strong>Salvar como</strong>.</li>
+                        <li>Em <strong>Tipo</strong> (ou <strong>Salvar como tipo</strong>), escolha <strong>CSV UTF-8 (Delimitado por vírgulas) (*.csv)</strong>.</li>
+                        <li>Clique em <strong>Salvar</strong>. Se o Excel avisar que alguns recursos serão perdidos, clique em <strong>Sim</strong>.</li>
+                        <li>Volte aqui, escolha o arquivo salvo no campo <strong>Planilha (.csv)</strong> e clique em <strong>Importar</strong>.</li>
+                    </ol>
+                </div>
+
+                <div class="guia-coluna">
+                    <h3>No Google Planilhas</h3>
+                    <ol>
+                        <li>Clique em <strong>Baixar modelo da planilha</strong>. No Google Planilhas, abra o arquivo em <strong>Arquivo</strong> e depois <strong>Importar</strong>, aba <strong>Fazer upload</strong>.</li>
+                        <li>Preencha uma linha para cada disciplina de cada turma, sem alterar a primeira linha (cabeçalho).</li>
+                        <li>Clique em <strong>Arquivo</strong> e depois em <strong>Fazer download</strong>.</li>
+                        <li>Escolha <strong>Valores separados por vírgula (.csv)</strong>.</li>
+                        <li>O arquivo é baixado na pasta <strong>Downloads</strong>. Escolha-o no campo <strong>Planilha (.csv)</strong> e clique em <strong>Importar</strong>.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <p class="guia-dica">O sistema aceita ponto e vírgula, vírgula ou tabulação como separador e reconhece os acentos. Os nomes dos menus podem variar um pouco conforme a versão do programa.</p>
+        </details>
+
+        <div class="alerta-importacao" th:if="${erro}" th:text="${erro}">Selecione um arquivo CSV para importar.</div>
+
+        <div class="alerta-importacao" th:if="${cursos.isEmpty()}">
+            Seu cadastro não tem um curso vinculado. Fale com o administrador do sistema.
+        </div>
+
+        <th:block th:unless="${cursos.isEmpty()}">
+            <form class="form-importacao" method="post" th:action="@{${base}}" enctype="multipart/form-data">
+                <div class="campo">
+                    <label for="periodo">Período letivo</label>
+                    <input id="periodo" name="periodo" type="text" th:value="${periodoFormulario}"
+                           placeholder="2026/2" pattern="[0-9]{4}/[12]" required>
+                </div>
+                <div class="campo campo-arquivo">
+                    <label for="arquivo">Planilha (.csv)</label>
+                    <input id="arquivo" name="arquivo" type="file" accept=".csv,text/csv" required>
+                </div>
+                <button type="submit" class="botao-primario">Importar</button>
+            </form>
+
+            <p class="nota-cursos">Cursos que você pode importar:
+                <strong th:text="${#strings.listJoin(cursos, ', ')}">Sistemas de Informação</strong></p>
+        </th:block>
+    </section>
+
+    <section class="painel painel-tabela" th:if="${resultado != null}">
+        <h2>Resultado da importação</h2>
+        <p class="painel-descricao" th:text="'Período letivo ' + ${resultado.periodoLetivo}">Período letivo 2026/2</p>
+
+        <p class="painel-descricao" th:if="${resultado.vazio}">A planilha não tem nenhuma linha de dados abaixo do cabeçalho.</p>
+
+        <th:block th:unless="${resultado.vazio}">
+            <div class="grade-cards resumo-importacao">
+                <div class="card-estatistica">
+                    <span class="rotulo-card">Criadas</span>
+                    <strong class="numero-card" th:text="${resultado.criadas}">2</strong>
+                </div>
+                <div class="card-estatistica">
+                    <span class="rotulo-card">Atualizadas</span>
+                    <strong class="numero-card" th:text="${resultado.atualizadas}">1</strong>
+                </div>
+                <div class="card-estatistica">
+                    <span class="rotulo-card">Sem alteração</span>
+                    <strong class="numero-card" th:text="${resultado.semAlteracao}">0</strong>
+                </div>
+                <div class="card-estatistica">
+                    <span class="rotulo-card">Com erro</span>
+                    <strong class="numero-card" th:text="${resultado.comErro}">1</strong>
+                </div>
+            </div>
+
+            <div class="tabela-rolagem">
+                <table class="tabela-desempenho">
+                    <thead>
+                    <tr>
+                        <th>Linha</th>
+                        <th>Situação</th>
+                        <th>Conteúdo</th>
+                        <th>Detalhe</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="l : ${resultado.linhas}">
+                        <td th:text="${l.numero}">2</td>
+                        <td><span class="selo" th:classappend="${l.classeStatus}" th:text="${l.rotuloStatus}">Criada</span></td>
+                        <td class="conteudo-linha" th:text="${l.conteudo}">Sistemas de Informação;8;B;Noturno;Banco de Dados;ana@umc.br</td>
+                        <td th:text="${l.mensagem}">Disciplina cadastrada para Ana.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </th:block>
+    </section>
+
+    <section class="painel painel-tabela" th:unless="${cursos.isEmpty()}">
+        <h2>Turmas cadastradas</h2>
+        <p class="painel-descricao">Disciplinas e professores de cada turma no período letivo escolhido.</p>
+
+        <div class="barra-turmas">
+            <form class="filtro-periodo" method="get" th:action="@{${base}}">
+                <label for="filtro">Período letivo</label>
+                <select id="filtro" name="periodo" onchange="this.form.submit()">
+                    <option th:each="p : ${periodos}" th:value="${p}" th:text="${p}"
+                            th:selected="${p == periodoSelecionado}">2026/2</option>
+                </select>
+            </form>
+
+            <a class="botao-primario botao-adicionar" th:href="@{|${base}/nova?periodo=${periodoSelecionado}|}">+ Adicionar disciplina</a>
+        </div>
+
+        <p class="painel-descricao" th:if="${alocacoes.isEmpty()}">Nenhuma disciplina cadastrada neste período.</p>
+
+        <div class="tabela-rolagem" th:unless="${alocacoes.isEmpty()}">
+            <table class="tabela-desempenho">
+                <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Semestre</th>
+                    <th>Turma</th>
+                    <th>Período</th>
+                    <th>Disciplina</th>
+                    <th>Professores</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${alocacoes}">
+                    <td th:text="${a.curso}">Sistemas de Informação</td>
+                    <td th:text="${a.semestre} + 'º'">8º</td>
+                    <td th:text="${a.turma}">B</td>
+                    <td th:text="${a.turno}">Noturno</td>
+                    <td th:text="${a.disciplina}">Banco de Dados</td>
+                    <td>
+                        <div class="professor-linha" th:each="prof : ${a.professoresOrdenados}">
+                            <span th:text="${prof.nome}">Ana Souza</span>
+                            <span class="email-professor" th:text="${prof.email}">ana@umc.br</span>
+                        </div>
+                    </td>
+                    <td class="coluna-acao"><a class="link-editar" th:href="@{|${base}/${a.id}/editar|}">Editar</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+</body>
+</html>

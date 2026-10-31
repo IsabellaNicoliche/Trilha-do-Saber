@@ -426,3 +426,35 @@ input::placeholder {
 .cartao-termos strong {
     color: var(--texto);
 }
+
+/* ---------- Cursos adicionais do coordenador ---------- */
+
+.opcao-curso {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--texto);
+    cursor: pointer;
+}
+
+.opcao-curso input {
+    width: auto;
+    flex-shrink: 0;
+}
+
+.bloco-outros-cursos {
+    margin-top: 10px;
+    padding: 2px 16px 14px;
+    background: var(--fundo);
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+}
+
+.oculto {
+    display: none !important;
+}

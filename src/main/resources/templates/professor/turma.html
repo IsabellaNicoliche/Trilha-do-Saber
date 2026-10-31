@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Desempenho da turma</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+    <link rel="stylesheet" th:href="@{/css/turmas.css}">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="marca-topbar">
+        <span class="logo-marca">📘</span>
+        <div>
+            <strong>Trilha do Saber</strong>
+            <span>Professor</span>
+        </div>
+    </div>
+
+    <nav class="menu-topbar">
+        <a th:href="@{/professor/inicio}" class="item-menu"><span>🏠</span> Início</a>
+        <a th:href="@{/professor/turmas}" class="item-menu"><span>👥</span> Turmas</a>
+        <a th:href="@{/professor/dashboard}" class="item-menu ativo"><span>📈</span> Desempenho</a>
+        <a href="#" class="item-menu"><span>📤</span> Conteúdo de Aula</a>
+        <a href="#" class="item-menu"><span>👤</span> Minha Conta</a>
+    </nav>
+
+    <div class="perfil-topbar">
+        <div class="avatar-usuario">PR</div>
+        <div>
+            <strong th:text="${usuario.nome}">Professor</strong>
+            <span th:text="${usuario.email}">professor@umc.br</span>
+        </div>
+        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
+        <a th:href="@{/logout}" class="link-sair">Sair</a>
+    </div>
+</header>
+
+<main class="conteudo dashboard">
+
+    <header class="topo-conteudo">
+        <h1>Desempenho da turma</h1>
+        <p class="subtitulo-pagina"
+           th:text="${semTurmas} ? 'Acompanhe a participação e o desempenho dos alunos das suas turmas.' : ('Participação e desempenho dos alunos de ' + ${turmaEscolhida.rotuloCompleto})">
+            Participação e desempenho dos alunos da turma</p>
+
+        <form class="filtro-periodo" method="get" th:action="@{/professor/turma}" th:unless="${periodos.isEmpty()}">
+            <label for="filtro">Período letivo</label>
+            <select id="filtro" name="periodo" onchange="this.form.submit()">
+                <option th:each="p : ${periodos}" th:value="${p}" th:text="${p}"
+                        th:selected="${p == periodoSelecionado}">2026/2</option>
+            </select>
+        </form>
+
+        <div th:replace="~{professor/abas :: abas}"></div>
+    </header>
+
+    <div class="palco">
+
+        <section th:if="${semTurmas}" class="estado-vazio">
+            <span class="icone-vazio">📈</span>
+            <h2>Você ainda não tem turmas cadastradas</h2>
+            <p>A coordenação cadastra as disciplinas e os professores de cada turma. Quando as suas aparecerem, o desempenho delas fica disponível aqui.</p>
+        </section>
+
+        <th:block th:unless="${semTurmas}">
+
+            <p class="nota-turma">
+                <strong>Disciplinas que você leciona nesta turma:</strong>
+                <span th:text="${#strings.listJoin(turmaEscolhida.disciplinas, ', ')}">Aplicativos Web</span>.
+                Os números consideram os simulados finalizados de <span th:text="${dashboard.periodoDescricao}">julho a dezembro de 2026</span>.
+                Os simulados não são separados por disciplina, então valem para a turma inteira.
+            </p>
+
+            <section th:if="${dashboard.semAlunos}" class="estado-vazio">
+                <span class="icone-vazio">👥</span>
+                <h2>Nenhum aluno ativo nesta turma</h2>
+                <p>Quando houver alunos ativos cadastrados em <strong th:text="${turmaEscolhida.rotulo}">turma</strong>, a participação deles aparece aqui.</p>
+            </section>
+
+            <th:block th:unless="${dashboard.semAlunos}">
+
+                <section class="grade-kpis grade-kpis-seis">
+                    <div class="kpi">
+                        <span class="kpi-rotulo">Alunos ativos</span>
+                        <strong class="kpi-valor" th:text="${dashboard.alunosAtivos}">0</strong>
+                        <span class="kpi-detalhe">cadastrados na turma</span>
+                    </div>
+                    <div class="kpi kpi-verde">
+                        <span class="kpi-rotulo">Adesão</span>
+                        <strong class="kpi-valor"
+                                th:text="${#numbers.formatDecimal(dashboard.adesao, 1, 1)} + '%'">0%</strong>
+                        <span class="kpi-detalhe"
+                              th:text="${dashboard.alunosComSimulado} + ' de ' + ${dashboard.alunosAtivos} + ' alunos fizeram simulado'">0 de 0 alunos</span>
+                    </div>
+                    <div class="kpi kpi-azul">
+                        <span class="kpi-rotulo">Recorrência</span>
+                        <strong class="kpi-valor"
+                                th:text="${dashboard.desempenhoVisivel} ? (${#numbers.formatDecimal(dashboard.resumo.recorrencia, 1, 1)} + '%') : '—'">—</strong>
+                        <span class="kpi-detalhe"
+                              th:text="${dashboard.desempenhoVisivel} ? (${dashboard.resumo.alunosRecorrentes} + ' de ' + ${dashboard.alunosComSimulado} + ' fizeram 2 ou mais simulados') : 'Nenhum simulado no período'">0 de 0</span>
+                    </div>
+                    <div class="kpi kpi-ambar">
+                        <span class="kpi-rotulo">Acerto da turma</span>
+                        <strong class="kpi-valor"
+                                th:text="${dashboard.desempenhoVisivel} ? (${#numbers.formatDecimal(dashboard.percentualAcerto, 1, 1)} + '%') : '—'">—</strong>
+                        <span class="kpi-detalhe">
+                            <span class="selo" th:classappend="${dashboard.resumo.classeStatus}"
+                                  th:text="${dashboard.resumo.statusMeta}">Status</span>
+                            <span th:if="${dashboard.desempenhoVisivel}"
+                                  th:text="'meta de ' + ${#numbers.formatDecimal(dashboard.meta, 1, 0)} + '%'">meta</span>
+                        </span>
+                    </div>
+                    <div class="kpi kpi-vermelho">
+                        <span class="kpi-rotulo">Questões em branco</span>
+                        <strong class="kpi-valor"
+                                th:text="${dashboard.desempenhoVisivel} ? (${#numbers.formatDecimal(dashboard.resumo.percentualEmBranco, 1, 1)} + '%') : '—'">—</strong>
+                        <span class="kpi-detalhe"
+                              th:text="${dashboard.desempenhoVisivel} ? (${dashboard.resumo.totalEmBranco} + ' de ' + ${dashboard.totalQuestoes} + ' questões') : 'Nenhum simulado no período'">0 questões</span>
+                    </div>
+                    <div class="kpi kpi-ciano">
+                        <span class="kpi-rotulo">Variação do último mês</span>
+                        <strong class="kpi-valor" th:classappend="${dashboard.resumo.classeVariacao}"
+                                th:text="${dashboard.resumo.variacaoCurta}">—</strong>
+                        <span class="kpi-detalhe"
+                              th:text="${dashboard.resumo.temVariacao} ? 'comparado ao mês anterior' : 'Sem mês anterior para comparar'">comparado ao mês anterior</span>
+                    </div>
+                </section>
+
+                <div class="aviso" th:if="${dashboard.semSimulados}">
+                    <strong>Nenhum simulado finalizado ainda.</strong>
+                    Incentive os alunos a fazerem o primeiro simulado do período para acompanhar o desempenho da turma.
+                </div>
+
+                <section class="grade-dashboard">
+
+                    <div class="painel">
+                        <h2>Adesão ao simulado</h2>
+                        <p class="painel-descricao">Alunos ativos que já fizeram ao menos um simulado.</p>
+                        <div class="area-grafico"><canvas id="graficoAdesao"></canvas></div>
+                    </div>
+
+                    <div class="painel" th:if="${dashboard.desempenhoVisivel}">
+                        <h2>Composição das respostas</h2>
+                        <p class="painel-descricao">Todas as questões dos simulados finalizados.</p>
+                        <div class="area-grafico"><canvas id="graficoComposicao"></canvas></div>
+                    </div>
+
+                    <div class="painel" th:if="${dashboard.desempenhoVisivel}">
+                        <h2>Alunos por faixa de desempenho</h2>
+                        <p class="painel-descricao"
+                           th:text="'Só quantidades, sem nomes. Aluno com menos de ' + ${dashboard.minimoQuestoesAluno} + ' questões entra em Sem base suficiente.'">
+                            Só quantidades, sem nomes.</p>
+                        <div class="area-grafico"><canvas id="graficoFaixas"></canvas></div>
+                    </div>
+
+                    <div class="painel" th:if="${dashboard.temEvolucao}">
+                        <h2>Evolução do acerto</h2>
+                        <p class="painel-descricao"
+                           th:text="'Acerto da turma mês a mês. A linha tracejada é a meta de ' + ${#numbers.formatDecimal(dashboard.meta, 1, 0)} + '%.'">
+                            Acerto da turma mês a mês.</p>
+                        <div class="area-grafico"><canvas id="graficoEvolucao"></canvas></div>
+                    </div>
+
+                    <div class="painel" th:if="${!dashboard.insights.isEmpty()}">
+                        <h2>Pontos de atenção</h2>
+                        <p class="painel-descricao">O que os números da turma mostram.</p>
+                        <ul class="lista-insights">
+                            <li th:each="insight : ${dashboard.insights}" th:text="${insight}">Insight</li>
+                        </ul>
+                    </div>
+
+                </section>
+
+                <section class="painel painel-tabela" th:if="${!dashboard.questoesMaisErradas.isEmpty()}">
+                    <h2>Questões com maior taxa de erro</h2>
+                    <p class="painel-descricao"
+                       th:text="'Questões aplicadas ao menos ' + ${dashboard.minimoAplicacoes} + ' vezes. Questão em branco conta como erro.'">
+                        Questões aplicadas várias vezes.</p>
+                    <div class="tabela-rolagem">
+                        <table class="tabela-desempenho">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Questão</th>
+                                <th>Aplicações</th>
+                                <th>Taxa de erro</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="q, iter : ${dashboard.questoesMaisErradas}">
+                                <td th:text="${iter.count}">1</td>
+                                <td th:text="${q.rotulo}">Prova 2021 · Questão 1</td>
+                                <td th:text="${q.aplicacoes}">0</td>
+                                <td>
+                                    <span th:text="${#numbers.formatDecimal(q.taxaErro, 1, 1)} + '%'">0%</span>
+                                    <div class="barra">
+                                        <div class="barra-preenchida" th:style="'width:' + ${q.taxaErro} + '%'"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="painel painel-tabela" th:if="${dashboard.temRanking}">
+                    <h2>🏆 Ranking de alunos</h2>
+                    <p class="painel-descricao"
+                       th:text="'Todos os alunos da turma que fizeram simulado em ' + ${dashboard.periodoDescricao} + ', do maior para o menor % de acerto. Visível só para você.'">
+                        Alunos da turma do maior para o menor % de acerto.</p>
+                    <div class="tabela-rolagem">
+                        <table class="tabela-desempenho">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Aluno</th>
+                                <th>% de acerto</th>
+                                <th>Acertos</th>
+                                <th>Simulados</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="r : ${dashboard.rankingAlunos}">
+                                <td class="coluna-posicao"
+                                    th:text="${r.posicao == 1 ? '🥇' : (r.posicao == 2 ? '🥈' : (r.posicao == 3 ? '🥉' : r.posicao))}">1</td>
+                                <td th:text="${r.nome}">Nome</td>
+                                <td>
+                                    <span th:text="${#numbers.formatDecimal(r.percentual, 1, 1)} + '%'">0%</span>
+                                    <div class="barra">
+                                        <div class="barra-preenchida barra-verde" th:style="'width:' + ${r.percentual} + '%'"></div>
+                                    </div>
+                                </td>
+                                <td th:text="${r.acertos} + ' de ' + ${r.questoes}">0 de 0</td>
+                                <td th:text="${r.simulados}">0</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </th:block>
+
+        </th:block>
+
+    </div>
+
+</main>
+
+<th:block th:if="${!semTurmas and !dashboard.semAlunos}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script th:inline="javascript">
+        const alunosAtivos = /*[[${dashboard.alunosAtivos}]]*/ 0;
+        const alunosComSimulado = /*[[${dashboard.alunosComSimulado}]]*/ 0;
+        const alunosSemSimulado = /*[[${dashboard.alunosSemSimulado}]]*/ 0;
+        const adesaoTexto = /*[[${#numbers.formatDecimal(dashboard.adesao, 1, 1)}]]*/ '0,0';
+        const acertoTexto = /*[[${#numbers.formatDecimal(dashboard.percentualAcerto, 1, 1)}]]*/ '0,0';
+        const totalAcertos = /*[[${dashboard.totalAcertos}]]*/ 0;
+        const totalErrosMarcados = /*[[${dashboard.resumo.totalErrosMarcados}]]*/ 0;
+        const totalEmBranco = /*[[${dashboard.resumo.totalEmBranco}]]*/ 0;
+        const rotulosFaixas = /*[[${dashboard.rotulosFaixas}]]*/ [];
+        const alunosPorFaixa = /*[[${dashboard.alunosPorFaixa}]]*/ [];
+        const rotulosEvolucao = /*[[${dashboard.rotulosEvolucao}]]*/ [];
+        const acertoEvolucao = /*[[${dashboard.acertoEvolucao}]]*/ [];
+        const metaEvolucao = /*[[${dashboard.metaEvolucao}]]*/ [];
+
+        const estilo = getComputedStyle(document.documentElement);
+        const corMarca = estilo.getPropertyValue('--marca').trim();
+        const corVerde = estilo.getPropertyValue('--verde').trim();
+        const corVermelho = estilo.getPropertyValue('--vermelho').trim();
+        const corAmbar = '#F59E0B';
+        const corAzul = '#3B82F6';
+        const corCinza = '#CBD5E1';
+        const corGrade = '#EEF0F4';
+
+        Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+        Chart.defaults.font.size = 14;
+        Chart.defaults.color = '#5F6368';
+
+        const legenda = { position: 'bottom', labels: { usePointStyle: true, padding: 16 } };
+
+        function textoCentro(principal, secundario) {
+            return {
+                id: 'textoCentro',
+                afterDraw(grafico) {
+                    const area = grafico.chartArea;
+                    const x = (area.left + area.right) / 2;
+                    const y = (area.top + area.bottom) / 2;
+                    const ctx = grafico.ctx;
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = corMarca;
+                    ctx.font = '700 32px Inter, system-ui, sans-serif';
+                    ctx.fillText(principal, x, y - 10);
+                    ctx.fillStyle = '#5F6368';
+                    ctx.font = '500 14px Inter, system-ui, sans-serif';
+                    ctx.fillText(secundario, x, y + 20);
+                    ctx.restore();
+                }
+            };
+        }
+
+        new Chart(document.getElementById('graficoAdesao'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Já fizeram simulado', 'Ainda não fizeram'],
+                datasets: [{
+                    data: [alunosComSimulado, alunosSemSimulado],
+                    backgroundColor: [corMarca, corAmbar],
+                    borderColor: '#fff',
+                    borderWidth: 4,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: { legend: legenda }
+            },
+            plugins: [textoCentro(adesaoTexto + '%', alunosComSimulado + ' de ' + alunosAtivos + ' alunos')]
+        });
+
+        const canvasComposicao = document.getElementById('graficoComposicao');
+        if (canvasComposicao) {
+            new Chart(canvasComposicao, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Acertos', 'Erros', 'Em branco'],
+                    datasets: [{
+                        data: [totalAcertos, totalErrosMarcados, totalEmBranco],
+                        backgroundColor: [corVerde, corVermelho, corAmbar],
+                        borderColor: '#fff',
+                        borderWidth: 4,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: { legend: legenda }
+                },
+                plugins: [textoCentro(acertoTexto + '%', 'de acerto')]
+            });
+        }
+
+        const canvasFaixas = document.getElementById('graficoFaixas');
+        if (canvasFaixas) {
+            new Chart(canvasFaixas, {
+                type: 'bar',
+                data: {
+                    labels: rotulosFaixas,
+                    datasets: [{
+                        label: 'Alunos',
+                        data: alunosPorFaixa,
+                        backgroundColor: [corVermelho, corAmbar, corAzul, corVerde, corCinza],
+                        borderRadius: 6,
+                        maxBarThickness: 36
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: corGrade }, ticks: { precision: 0 } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        const canvasEvolucao = document.getElementById('graficoEvolucao');
+        if (canvasEvolucao) {
+            const degrade = canvasEvolucao.getContext('2d').createLinearGradient(0, 0, 0, 320);
+            degrade.addColorStop(0, 'rgba(108, 76, 232, 0.35)');
+            degrade.addColorStop(1, 'rgba(108, 76, 232, 0)');
+
+            new Chart(canvasEvolucao, {
+                type: 'line',
+                data: {
+                    labels: rotulosEvolucao,
+                    datasets: [
+                        {
+                            label: '% de acerto da turma',
+                            data: acertoEvolucao,
+                            borderColor: corMarca,
+                            backgroundColor: degrade,
+                            fill: true,
+                            borderWidth: 3,
+                            tension: 0.35,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: corMarca,
+                            pointBorderWidth: 3
+                        },
+                        {
+                            label: 'Meta',
+                            data: metaEvolucao,
+                            borderColor: corAmbar,
+                            borderDash: [6, 6],
+                            borderWidth: 2,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: legenda },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { min: 0, max: 100, grid: { color: corGrade }, ticks: { callback: valor => valor + '%' } }
+                    }
+                }
+            });
+        }
+    </script>
+</th:block>
+
+</body>
+</html>

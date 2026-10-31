@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<header th:fragment="nav(pagina, usuarioLogado)" class="topbar">
+    <div class="marca-topbar">
+        <span class="logo-marca">📘</span>
+        <div>
+            <strong>Trilha do Saber</strong>
+            <span>Coordenador</span>
+        </div>
+    </div>
+
+    <nav class="menu-topbar">
+        <a th:href="@{/coordenador/inicio}" class="item-menu" th:classappend="${pagina == 'inicio'} ? ' ativo' : ''"><span>🏠</span> Início</a>
+        <a th:href="@{/coordenador/usuarios}" class="item-menu" th:classappend="${pagina == 'usuarios'} ? ' ativo' : ''"><span>👥</span> Usuários</a>
+        <a th:href="@{/coordenador/turmas}" class="item-menu" th:classappend="${pagina == 'turmas'} ? ' ativo' : ''"><span>🎓</span> Turmas</a>
+        <a th:href="@{/coordenador/dashboard}" class="item-menu" th:classappend="${pagina == 'dashboard'} ? ' ativo' : ''"><span>📊</span> Desempenho</a>
+        <a th:href="@{/arquivoPDF}" class="item-menu" th:classappend="${pagina == 'importar'} ? ' ativo' : ''"><span>📥</span> Importar Provas</a>
+        <a href="#" class="item-menu"><span>⚙️</span> Minha Conta</a>
+    </nav>
+
+    <div class="perfil-topbar">
+        <div class="avatar-usuario">CO</div>
+        <div>
+            <strong th:text="${usuarioLogado != null} ? ${usuarioLogado.nome} : 'Coordenação'">Coordenação</strong>
+            <span th:text="${usuarioLogado != null} ? ${usuarioLogado.email} : 'coordenacao@umc.br'">coordenacao@umc.br</span>
+        </div>
+        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
+        <a th:href="@{/logout}" class="link-sair">Sair</a>
+    </div>
+</header>
+
+</body>
+</html>

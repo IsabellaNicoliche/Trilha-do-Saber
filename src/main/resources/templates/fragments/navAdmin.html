@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<header th:fragment="nav(pagina, usuarioLogado)" class="topbar">
+    <div class="marca-topbar">
+        <span class="logo-marca">📘</span>
+        <div>
+            <strong>Trilha do Saber</strong>
+            <span>Administrador</span>
+        </div>
+    </div>
+
+    <nav class="menu-topbar">
+        <a th:href="@{/admin/inicio}" class="item-menu" th:classappend="${pagina == 'inicio'} ? ' ativo' : ''"><span>🏠</span> Início</a>
+        <a href="#" class="item-menu"><span>🗄️</span> Banco de Questões</a>
+        <a href="#" class="item-menu"><span>📋</span> Simulados</a>
+        <a th:href="@{/admin/coordenadores}" class="item-menu" th:classappend="${pagina == 'usuarios'} ? ' ativo' : ''"><span>👥</span> Usuários</a>
+        <a th:href="@{/admin/turmas}" class="item-menu" th:classappend="${pagina == 'turmas'} ? ' ativo' : ''"><span>🎓</span> Turmas</a>
+        <a th:href="@{/arquivoPDF}" class="item-menu" th:classappend="${pagina == 'importar'} ? ' ativo' : ''"><span>📥</span> Importar Provas</a>
+        <a th:href="@{/admin/logs}" class="item-menu" th:classappend="${pagina == 'logs'} ? ' ativo' : ''"><span>🛡️</span> Logs de Auditoria</a>
+    </nav>
+
+    <div class="perfil-topbar">
+        <div class="avatar-usuario">AD</div>
+        <div>
+            <strong th:text="${usuarioLogado != null} ? ${usuarioLogado.nome} : 'Admin Sistema'">Admin Sistema</strong>
+            <span th:text="${usuarioLogado != null} ? ${usuarioLogado.email} : 'adm@umc.br'">adm@umc.br</span>
+        </div>
+        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
+        <a th:href="@{/logout}" class="link-sair">Sair</a>
+    </div>
+</header>
+
+</body>
+</html>

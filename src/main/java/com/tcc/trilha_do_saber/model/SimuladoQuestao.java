@@ -1,31 +1,30 @@
 package com.tcc.trilha_do_saber.model;
 
-// Todos os importes do JPA
 import jakarta.persistence.*;
 
-@Entity // Representa uma tabela no banco de dados
+@Entity
 public class SimuladoQuestao {
 
-    @Id // Atributo que vai receber a chave primaria da tabela
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Atributo para gerar as Chaves automaticas.
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "simulado_id") // Muitas linhas pertencem a um Simulado
+    @JoinColumn(name = "simulado_id")
     private Simulado simulado;
 
     @ManyToOne
-    @JoinColumn(name = "questao_id") // Muitas linhas apontam para uma Questao
+    @JoinColumn(name = "questao_id")
     private Questao questao;
 
-    private int ordem; // Posicao da questao no simulado: 1, 2, 3...
+    private int ordem;
 
-    // Construtor JPA
+    private Boolean marcadaRevisao;
+
     public SimuladoQuestao() {
 
     }
 
-    // Construtor da Classe
     public SimuladoQuestao(Simulado simulado, Questao questao, int ordem) {
         this.simulado = simulado;
         this.questao = questao;
@@ -46,5 +45,17 @@ public class SimuladoQuestao {
 
     public int getOrdem() {
         return ordem;
+    }
+
+    public boolean isMarcadaRevisao() {
+        return marcadaRevisao != null && marcadaRevisao;
+    }
+
+    public void alternarRevisao() {
+        this.marcadaRevisao = !isMarcadaRevisao();
+    }
+
+    public void limparRevisao() {
+        this.marcadaRevisao = false;
     }
 }
