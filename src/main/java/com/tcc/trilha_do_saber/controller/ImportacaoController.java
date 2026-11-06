@@ -64,7 +64,7 @@ public class ImportacaoController {
                     arquivoProva.getAbsolutePath(), ano, curso, usuario.getId(), usuario.getNome());
 
             int alternativasCorrigidas = gabaritoService.gabaritoMontado(
-                    arquivoGabarito.getAbsolutePath());
+                    arquivoGabarito.getAbsolutePath(), curso, ano);
 
             model.addAttribute("sucesso", true);
             model.addAttribute("questoesImportadas", questoesImportadas);

@@ -27,7 +27,7 @@ public class GabaritoService {
         this.alternativaRepository = alternativaRepository;
     }
 
-    public int gabaritoMontado (String documento) {
+    public int gabaritoMontado (String documento, String curso, int ano) {
 
         String textoPdfCompleto = null;
         int contador = 0;
@@ -60,7 +60,7 @@ public class GabaritoService {
                         String letraAlternativa = partes[2];
 
                         if (partes[2].toLowerCase().equals("anulada")){
-                            List<Questao> questoesAnuladas = questaoRepository.findByNumero(numeroQuestao);
+                            List<Questao> questoesAnuladas = questaoRepository.findByNumeroAndProvaCursoAndProvaAno(numeroQuestao, curso, ano);
                             if (!questoesAnuladas.isEmpty()){
                                 Questao questaoAnulada = questoesAnuladas.get(0);
                                 questaoAnulada.setAtiva(false);
@@ -69,7 +69,7 @@ public class GabaritoService {
                             continue;
                         }
 
-                        List<Questao> questoesEncontradas  = questaoRepository.findByNumero(numeroQuestao);
+                        List<Questao> questoesEncontradas  = questaoRepository.findByNumeroAndProvaCursoAndProvaAno(numeroQuestao, curso, ano);
 
                         if (questoesEncontradas.isEmpty()){
                             continue;
@@ -98,7 +98,7 @@ public class GabaritoService {
             doc.close();
 
             if (contador == 0) {
-                contador = tentarFormatoItemGabarito(textoPdfCompleto);
+                contador = tentarFormatoItemGabarito(textoPdfCompleto, curso, ano);
             }
 
             if (contador == 0) {
@@ -112,7 +112,7 @@ public class GabaritoService {
         return contador;
     }
 
-    private int tentarFormatoItemGabarito(String texto) {
+    private int tentarFormatoItemGabarito(String texto, String curso, int ano) {
         String[] linhas = texto.split("\n");
         List<Integer> itens = new ArrayList<>();
         List<String> valores = new ArrayList<>();
@@ -140,7 +140,7 @@ public class GabaritoService {
             int numeroQuestao = itens.get(i);
             String valor = valores.get(i);
 
-            List<Questao> questoesEncontradas = questaoRepository.findByNumero(numeroQuestao);
+            List<Questao> questoesEncontradas = questaoRepository.findByNumeroAndProvaCursoAndProvaAno(numeroQuestao, curso, ano);
             if (questoesEncontradas.isEmpty()) {
                 continue;
             }
