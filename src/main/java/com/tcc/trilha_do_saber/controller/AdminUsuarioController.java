@@ -31,7 +31,19 @@ public class AdminUsuarioController {
     }
 
     @GetMapping
-    public String listar (Model model, HttpSession session){
+    public String listar(Model model, HttpSession session){
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+
+        model.addAttribute("coordenadores", coordenadorService.listarTodos());
+        model.addAttribute("professores", professorService.listarTodos());
+        model.addAttribute("alunos", alunoService.listarTodos());
+        model.addAttribute("usuarioLogado", ator);
+        return "admin/coordenadores";
+    }
+
+    @GetMapping("/{id}/editar")
+    public String editarFormulario(@PathVariable Long id, Model model, HttpSession session){
         UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
         if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
 
@@ -41,7 +53,7 @@ public class AdminUsuarioController {
 
         CoordenadorFormDTO form = new CoordenadorFormDTO();
         form.setId(coordenador.getId());
-        form.setNome((coordenador.getNome()));
+        form.setNome(coordenador.getNome());
         form.setEmail(coordenador.getEmail());
         form.setRegistroFuncional(coordenador.getRegistroFuncional());
         form.setCurso(cursos.isEmpty() ? null : cursos.get(0));
@@ -54,14 +66,15 @@ public class AdminUsuarioController {
     }
 
     @PostMapping("/{id}")
-    public String atualizar (@PathVariable Long id, @Valid @ModelAttribute ("coordenadorForm") CoordenadorFormDTO form, BindingResult result, HttpSession session, HttpServletRequest request){
+    public String atualizar(@PathVariable Long id, @Valid @ModelAttribute("coordenadorForm") CoordenadorFormDTO form,
+                            BindingResult result, HttpSession session, HttpServletRequest request){
         if (result.hasErrors()) {
             return "admin/coordenadorForm";
-    }
-    UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
-    if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
-    long inicio = System.currentTimeMillis();
-    coordenadorService.atualizar(id, form, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
+        }
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        long inicio = System.currentTimeMillis();
+        coordenadorService.atualizar(id, form, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         return "redirect:/admin/coordenadores";
     }
 
@@ -101,4 +114,3 @@ public class AdminUsuarioController {
         return "redirect:/admin/coordenadores";
     }
 }
-
