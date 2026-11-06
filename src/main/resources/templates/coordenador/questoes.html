@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Banco de Questões</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+</head>
+<body>
+
+<th:block th:if="${ehAdmin}">
+    <header th:replace="~{fragments/navAdmin :: nav(pagina='questoes', usuarioLogado=${usuarioLogado})}"></header>
+</th:block>
+<th:block th:unless="${ehAdmin}">
+    <header th:replace="~{fragments/navCoordenador :: nav(pagina='questoes', usuarioLogado=${usuarioLogado})}"></header>
+</th:block>
+
+<main class="conteudo">
+    <div class="cartao-largo">
+
+        <h1>Banco de Questões</h1>
+
+        <form method="get" th:action="@{${baseUrl}}">
+            <label>Curso</label>
+            <select name="curso" onchange="this.form.submit()">
+                <option value="">Selecionar curso</option>
+                <option th:each="c : ${T(com.tcc.trilha_do_saber.model.Curso).values()}"
+                        th:value="${c.nomeExibicao}" th:text="${c.nomeExibicao}"
+                        th:selected="${c.nomeExibicao == cursoSelecionado}"></option>
+            </select>
+        </form>
+
+        <p th:if="${cursoSelecionado != null and #lists.isEmpty(questoes)}">
+            Nenhuma questão encontrada para esse curso.
+        </p>
+
+        <table th:if="${!#lists.isEmpty(questoes)}" class="tabela-usuarios tabela-questoes">
+            <thead>
+            <tr>
+                <th>Ano</th>
+                <th>Nº</th>
+                <th>Enunciado</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="q : ${questoes}">
+                <td th:text="${q.prova.ano}"></td>
+                <td th:text="${q.numero}"></td>
+                <td th:text="${#strings.abbreviate(q.enunciado, 160)}"></td>
+                <td>
+                    <span th:unless="${q.ativa}" class="badge-status badge-inativo">Anulada/Oculta</span>
+                    <span th:if="${q.ativa and q.imagem != null}" class="badge-status badge-aviso">Tem imagem</span>
+                    <span th:if="${q.ativa and q.imagem == null}" class="badge-status badge-ativo">Ativa</span>
+                </td>
+                <td>
+                    <a th:href="@{${baseUrl} + '/' + ${q.id} + '/editar'}" class="botao-secundario">Editar</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+</main>
+
+</body>
+</html>

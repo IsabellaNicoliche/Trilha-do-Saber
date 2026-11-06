@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Editar Questão</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+</head>
+<body>
+
+<th:block th:if="${ehAdmin}">
+    <header th:replace="~{fragments/navAdmin :: nav(pagina='questoes', usuarioLogado=${usuarioLogado})}"></header>
+</th:block>
+<th:block th:unless="${ehAdmin}">
+    <header th:replace="~{fragments/navCoordenador :: nav(pagina='questoes', usuarioLogado=${usuarioLogado})}"></header>
+</th:block>
+
+<main class="conteudo">
+    <div class="cartao-largo">
+
+        <h1>Editar questão</h1>
+        <p>
+            Curso: <strong th:text="${questao.prova.curso}"></strong> —
+            Ano: <strong th:text="${questao.prova.ano}"></strong> —
+            Questão nº <strong th:text="${questao.numero}"></strong>
+        </p>
+
+        <form method="post" th:action="@{${baseUrl} + '/' + ${questao.id}}" enctype="multipart/form-data">
+
+            <label>Enunciado</label>
+            <textarea name="enunciado" rows="6" th:text="${questao.enunciado}"></textarea>
+
+            <div th:if="${questao.imagem != null}">
+                <label>Imagem atual</label>
+                <img class="imagem-questao-preview" th:src="@{${baseUrl} + '/' + ${questao.id} + '/imagem'}" alt="Imagem da questão">
+                <label class="campo-checkbox">
+                    <input type="checkbox" name="removerImagem" value="true">
+                    Remover imagem atual
+                </label>
+            </div>
+
+            <label>Substituir imagem (opcional)</label>
+            <input type="file" name="novaImagem" accept="image/*">
+
+            <h2>Alternativas</h2>
+            <div th:each="alt : ${alternativas}" class="linha-alternativa">
+                <input type="hidden" name="altId" th:value="${alt.id}">
+                <span class="letra-alternativa" th:text="${alt.letra}"></span>
+                <textarea name="altTexto" rows="2" th:text="${alt.texto}"></textarea>
+                <label class="opcao-correta">
+                    <input type="radio" name="corretaId" th:value="${alt.id}" th:checked="${alt.correta}">
+                    Correta
+                </label>
+            </div>
+
+            <label class="campo-checkbox">
+                <input type="checkbox" name="ativa" value="true" th:checked="${questao.ativa}">
+                Questão ativa (desmarque para ocultar do simulado — ex: anulada ou com erro grave)
+            </label>
+
+            <div class="acoes-form">
+                <a th:href="@{${baseUrl}(curso=${questao.prova.curso})}" class="botao-secundario">Cancelar</a>
+                <button type="submit" class="botao-primario">Salvar</button>
+            </div>
+        </form>
+
+    </div>
+</main>
+
+</body>
+</html>

@@ -13,7 +13,7 @@
 
     <nav class="menu-topbar">
         <a th:href="@{/admin/inicio}" class="item-menu" th:classappend="${pagina == 'inicio'} ? ' ativo' : ''"><span>🏠</span> Início</a>
-        <a href="#" class="item-menu"><span>🗄️</span> Banco de Questões</a>
+        <a th:href="@{/admin/questoes}" class="item-menu" th:classappend="${pagina == 'questoes'} ? ' ativo' : ''"><span>🗄️</span> Banco de Questões</a>
         <a href="#" class="item-menu"><span>📋</span> Simulados</a>
         <a th:href="@{/admin/coordenadores}" class="item-menu" th:classappend="${pagina == 'usuarios'} ? ' ativo' : ''"><span>👥</span> Usuários</a>
         <a th:href="@{/admin/turmas}" class="item-menu" th:classappend="${pagina == 'turmas'} ? ' ativo' : ''"><span>🎓</span> Turmas</a>

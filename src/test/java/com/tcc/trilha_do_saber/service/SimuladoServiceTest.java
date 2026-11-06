@@ -72,7 +72,7 @@ class SimuladoServiceTest {
         Aluno aluno = mock(Aluno.class);
         when(aluno.getCurso()).thenReturn("Engenharia de Software");
         when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
-        when(questaoRepository.findByProvaCurso("Engenharia de Software")).thenReturn(List.of());
+        when(questaoRepository.findByProvaCursoAndAtivaTrue("Engenharia de Software")).thenReturn(List.of());
 
         SemQuestoesException excecao = assertThrows(SemQuestoesException.class, () -> simuladoService.iniciar(1L));
 
@@ -89,7 +89,7 @@ class SimuladoServiceTest {
         for (int i = 0; i < 40; i++) {
             banco.add(mock(Questao.class));
         }
-        when(questaoRepository.findByProvaCurso("Sistemas de Informação")).thenReturn(banco);
+        when(questaoRepository.findByProvaCursoAndAtivaTrue("Sistemas de Informação")).thenReturn(banco);
         when(simuladoRepository.save(any(Simulado.class))).thenAnswer(invocacao -> invocacao.getArgument(0));
 
         simuladoService.iniciar(1L);
@@ -477,7 +477,7 @@ class SimuladoServiceTest {
         for (int i = 0; i < tamanhoDoBanco; i++) {
             banco.add(mock(Questao.class));
         }
-        when(questaoRepository.findByProvaCurso("Sistemas de Informação")).thenReturn(banco);
+        when(questaoRepository.findByProvaCursoAndAtivaTrue("Sistemas de Informação")).thenReturn(banco);
         when(simuladoRepository.save(any(Simulado.class))).thenAnswer(invocacao -> invocacao.getArgument(0));
 
         if (modoProva == null) {
