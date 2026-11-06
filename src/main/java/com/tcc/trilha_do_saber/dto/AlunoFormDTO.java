@@ -16,8 +16,8 @@ public class AlunoFormDTO {
     @Email(message = "Email inválido")
     private String email;
 
-    @NotBlank(message = "RGM é obrigatório")
-    private String rgm;
+    @NotBlank(message = "Registro de aluno é obrigatório")
+    private String registroAluno;
 
     @NotBlank(message = "Curso é obrigatório")
     private String curso;
@@ -41,8 +41,8 @@ public class AlunoFormDTO {
     public String getEmail(){ return email; }
     public void setEmail(String email){ this.email = email; }
 
-    public String getRgm(){ return rgm; }
-    public void setRgm(String rgm){ this.rgm = rgm; }
+    public String getRegistroAluno(){ return registroAluno; }
+    public void setRegistroAluno(String registroAluno){ this.registroAluno = registroAluno; }
 
     public String getCurso(){ return curso; }
     public void setCurso(String curso){ this.curso = curso; }

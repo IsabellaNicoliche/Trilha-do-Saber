@@ -47,7 +47,7 @@ class AlunoServiceTest {
         dto.setEmail("ana@umc.br");
         dto.setSenha("Senha@123");
         dto.setConfirmarSenha("Senha@123");
-        dto.setMatricula("20240001");
+        dto.setRegistroAluno("20240001");
         dto.setCurso("Sistemas de Informação");
         dto.setSemestre(8);
         dto.setTurma("B");
@@ -111,7 +111,7 @@ class AlunoServiceTest {
         form.setId(1L);
         form.setNome(aluno.getNome());
         form.setEmail(aluno.getEmail());
-        form.setRgm(aluno.getRgm());
+        form.setRegistroAluno(aluno.getRegistroAluno());
         form.setCurso(aluno.getCurso());
         form.setSemestre(aluno.getSemestre());
         form.setTurma(aluno.getTurma());

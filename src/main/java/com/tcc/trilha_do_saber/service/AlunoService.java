@@ -44,7 +44,7 @@ public class AlunoService {
         }
 
         String senhaComHash = passwordEncoder.encode(dto.getSenha());
-        Aluno aluno = new Aluno(dto.getNome(), dto.getEmail(), senhaComHash, dto.getMatricula(), dto.getCurso(), dto.getSemestre(),
+        Aluno aluno = new Aluno(dto.getNome(), dto.getEmail(), senhaComHash, dto.getRegistroAluno(), dto.getCurso(), dto.getSemestre(),
                 dto.getTurma(), dto.getTurno());
         aluno.setConsentimentoLgpd(dto.isAceitouTermos());
         aluno.setDataConsentimento(LocalDateTime.now());
@@ -76,7 +76,7 @@ public class AlunoService {
         StringBuilder mudancas = new StringBuilder();
         compararCampo(mudancas, "nome", aluno.getNome(), dto.getNome());
         compararCampo(mudancas, "email", aluno.getEmail(), dto.getEmail());
-        compararCampo(mudancas, "RGM", aluno.getRgm(), dto.getRgm());
+        compararCampo(mudancas, "Registro de aluno", aluno.getRegistroAluno(), dto.getRegistroAluno());
         compararCampo(mudancas, "curso", aluno.getCurso(), dto.getCurso());
         compararCampo(mudancas, "semestre", String.valueOf(aluno.getSemestre()), String.valueOf(dto.getSemestre()));
         compararCampo(mudancas, "turma", aluno.getTurma(), vazioParaNulo(dto.getTurma()));
@@ -85,7 +85,7 @@ public class AlunoService {
 
         aluno.setNome(dto.getNome());
         aluno.setEmail(dto.getEmail());
-        aluno.setRgm(dto.getRgm());
+        aluno.setRegistroAluno(dto.getRegistroAluno());
         aluno.setCurso(dto.getCurso());
         aluno.setSemestre(dto.getSemestre());
         aluno.setTurma(vazioParaNulo(dto.getTurma()));
@@ -148,7 +148,7 @@ public class AlunoService {
         aluno.setNome("Usuário removido");
         aluno.setEmail("removido-" + aluno.getId() + "@anonimo.local");
         aluno.setSenha(null);
-        aluno.setRgm(null);
+        aluno.setRegistroAluno(null);
         aluno.setAtivo(false);
         aluno.setAnonimizado(true);
         if (aluno.getDataExclusao() == null) {
@@ -159,7 +159,7 @@ public class AlunoService {
 
         logAuditoriaService.registrar(ator.getId(), ator.getNome(), ator.getTipo(),
                 TipoAcao.ANONIMIZACAO, "Aluno", id,
-                "Dados pessoais do aluno (id " + id + ") anonimizados definitivamente: nome, email, senha e RGM apagados",
+                "Dados pessoais do aluno (id " + id + ") anonimizados definitivamente: nome, email, senha e registro de aluno apagados",
                 ip, duracaoMs);
     }
 }
