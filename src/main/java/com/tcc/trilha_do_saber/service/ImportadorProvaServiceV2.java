@@ -30,6 +30,7 @@ import org.apache.pdfbox.contentstream.operator.state.Restore;
 import org.apache.pdfbox.contentstream.operator.state.Save;
 import org.apache.pdfbox.contentstream.operator.state.SetGraphicsStateParameters;
 import com.tcc.trilha_do_saber.exception.ArquivoInvalidoException;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -250,6 +251,7 @@ public class ImportadorProvaServiceV2 {
         }
     }
 
+    @Transactional
     public int provaMontada(String documento, int ano, String curso, Long importadoPorId, String importadoPorNome){
 
 

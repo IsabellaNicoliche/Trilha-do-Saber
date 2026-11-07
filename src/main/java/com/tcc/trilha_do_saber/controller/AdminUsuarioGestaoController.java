@@ -57,8 +57,10 @@ public class AdminUsuarioGestaoController {
 
     @GetMapping("/{tipo}/{id}/editar")
     public String editarFormulario(@PathVariable String tipo, @PathVariable Long id, Model model, HttpSession session){
-        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
-        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        UsuarioSessaoDTO ator = autorizado(session);
+        if (ator == null) {
+            return "redirect:/login";
+        }
 
         if ("professor".equals(tipo)) {
             Professor professor = professorService.buscarPorId(id);
@@ -92,12 +94,14 @@ public class AdminUsuarioGestaoController {
     @PostMapping("/aluno/{id}")
     public String atualizarAluno(@PathVariable Long id, @Valid @ModelAttribute("alunoForm") AlunoFormDTO form,
                                  BindingResult result, Model model, HttpSession session, HttpServletRequest request){
+        UsuarioSessaoDTO ator = autorizado(session);
+        if (ator == null) {
+            return "redirect:/login";
+        }
         if (result.hasErrors()) {
             model.addAttribute("tipo", "aluno");
             return "admin/usuarioForm";
         }
-        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
-        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
         long inicio = System.currentTimeMillis();
         alunoService.atualizar(id, form, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         return "redirect:/admin/coordenadores";
@@ -106,12 +110,14 @@ public class AdminUsuarioGestaoController {
     @PostMapping("/professor/{id}")
     public String atualizarProfessor(@PathVariable Long id, @Valid @ModelAttribute("professorForm") ProfessorFormDTO form,
                                      BindingResult result, Model model, HttpSession session, HttpServletRequest request){
-        if (result.hasErrors()) {
+        UsuarioSessaoDTO ator = autorizado(session);
+        if (ator == null) {
+            return "redirect:/login";
+        }
+        if (result.hasErrors()){
             model.addAttribute("tipo", "professor");
             return "admin/usuarioForm";
         }
-        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
-        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
         long inicio = System.currentTimeMillis();
         professorService.atualizar(id, form, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         return "redirect:/admin/coordenadores";
@@ -119,8 +125,10 @@ public class AdminUsuarioGestaoController {
 
     @PostMapping("/{tipo}/{id}/excluir")
     public String excluir(@PathVariable String tipo, @PathVariable Long id, HttpSession session, HttpServletRequest request){
-        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
-        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        UsuarioSessaoDTO ator = autorizado(session);
+        if (ator == null) {
+            return "redirect:/login";
+        }
         long inicio = System.currentTimeMillis();
         if ("professor".equals(tipo)) {
             professorService.excluir(id, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
@@ -132,8 +140,10 @@ public class AdminUsuarioGestaoController {
 
     @PostMapping("/{tipo}/{id}/anonimizar")
     public String anonimizar(@PathVariable String tipo, @PathVariable Long id, HttpSession session, HttpServletRequest request){
-        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
-        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        UsuarioSessaoDTO ator = autorizado(session);
+        if (ator == null) {
+            return "redirect:/login";
+        }
         long inicio = System.currentTimeMillis();
         if ("professor".equals(tipo)) {
             professorService.anonimizar(id, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
@@ -141,5 +151,13 @@ public class AdminUsuarioGestaoController {
             alunoService.anonimizar(id, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         }
         return "redirect:/admin/coordenadores";
+    }
+
+    private UsuarioSessaoDTO autorizado(HttpSession session) {
+        Object logado = session.getAttribute("usuarioLogado");
+        if (logado instanceof UsuarioSessaoDTO usuario && "ADMIN".equals(usuario.getTipo())) {
+            return usuario;
+        }
+        return null;
     }
 }

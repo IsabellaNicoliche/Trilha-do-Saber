@@ -74,7 +74,7 @@ public class SimuladoService {
 
         String curso = aluno.getCurso();
 
-        List<Questao> disponiveis = new ArrayList<>(questaoRepository.findByProvaCurso(curso));
+        List<Questao> disponiveis = new ArrayList<>(questaoRepository.findByProvaCursoAndAtivaTrue(curso));
 
         if (disponiveis.isEmpty()) {
             throw new SemQuestoesException(curso);

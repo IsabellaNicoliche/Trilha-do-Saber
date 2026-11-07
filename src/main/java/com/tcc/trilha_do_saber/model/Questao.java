@@ -26,6 +26,10 @@ public class Questao {
     private int numero;
 
     private byte[] imagem;
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean ativa = true;
+
+
 
     //Construtor JPA
     public Questao(){
@@ -64,4 +68,23 @@ public class Questao {
     public int getNumero(){return numero;}
 
     public byte[] getImagem(){return imagem;}
+    public boolean isAtiva() {
+        return ativa;
+    }
+
+    public void setAtiva(boolean ativa) {
+        this.ativa = ativa;
+    }
+
+    public void setEnunciado(String enunciado) {
+        this.enunciado = enunciado;
+    }
+
+    public void setDificuldade(Dificuldade dificuldade) {
+        this.dificuldade = dificuldade;
+    }
+
+    public void setImagem(byte[] imagem) {
+        this.imagem = imagem;
+    }
 }

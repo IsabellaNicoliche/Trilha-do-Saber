@@ -13,7 +13,7 @@
 
     <nav class="menu-topbar">
         <a th:href="@{/admin/inicio}" class="item-menu" th:classappend="${pagina == 'inicio'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconeinicio.png}" alt="Início" class="icone-menu"> Início</a>
-        <a href="#" class="item-menu"><img th:src="@{/css/img/icons/img/iconeBQ.png}" alt="Banco de Questões" class="icone-menu"> Banco de Questões</a>
+        <a th:href="@{/admin/questoes}" class="item-menu" th:classappend="${pagina == 'questoes'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconeBQ.png}" alt="Banco de Questões" class="icone-menu"> Banco de Questões</a>
         <a href="#" class="item-menu"><img th:src="@{/css/img/icons/img/iconesimu.png}" alt="Simulados" class="icone-menu"> Simulados</a>
         <a th:href="@{/admin/coordenadores}" class="item-menu" th:classappend="${pagina == 'usuarios'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconeusua.png}" alt="Usuários" class="icone-menu"> Usuários</a>
         <a th:href="@{/admin/turmas}" class="item-menu" th:classappend="${pagina == 'turmas'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconeturma.png}" alt="Turmas" class="icone-menu"> Turmas</a>
