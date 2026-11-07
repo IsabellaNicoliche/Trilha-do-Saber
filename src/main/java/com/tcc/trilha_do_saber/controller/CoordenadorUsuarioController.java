@@ -6,6 +6,7 @@ import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
 import com.tcc.trilha_do_saber.model.Aluno;
 import com.tcc.trilha_do_saber.model.Professor;
 import com.tcc.trilha_do_saber.service.AlunoService;
+import com.tcc.trilha_do_saber.service.MinhaContaService;
 import com.tcc.trilha_do_saber.service.ProfessorService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -21,20 +22,25 @@ public class CoordenadorUsuarioController {
 
     private final AlunoService alunoService;
     private final ProfessorService professorService;
+    private final MinhaContaService minhaContaService;
 
-    public CoordenadorUsuarioController(AlunoService alunoService, ProfessorService professorService){
+    public CoordenadorUsuarioController(AlunoService alunoService, ProfessorService professorService,
+                                        MinhaContaService minhaContaService){
         this.alunoService = alunoService;
         this.professorService = professorService;
+        this.minhaContaService = minhaContaService;
     }
 
     @GetMapping
-    public String listar(Model model, HttpSession session){
+    public String listar(@RequestParam(required = false) String aba, Model model, HttpSession session){
         UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
         if (ator == null || !("ADMIN".equals(ator.getTipo()) || "COORDENADOR".equals(ator.getTipo()))) {
             return "redirect:/login";
         }
         model.addAttribute("alunos", alunoService.listarTodos());
         model.addAttribute("professores", professorService.listarTodos());
+        model.addAttribute("solicitacoes", minhaContaService.listarSolicitacoesDeAlunosEProfessores());
+        model.addAttribute("abaAtiva", "solicitacoes".equals(aba) ? "solicitacoes" : "usuarios");
         model.addAttribute("usuarioLogado", ator);
         return "coordenador/usuarios";
     }
@@ -135,5 +141,27 @@ public class CoordenadorUsuarioController {
             alunoService.anonimizar(id, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         }
         return "redirect:/coordenador/usuarios";
+    }
+
+    @PostMapping("/solicitacoes/{tipo}/{id}/aprovar")
+    public String aprovarSolicitacao(@PathVariable String tipo, @PathVariable Long id, HttpSession session, HttpServletRequest request){
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !("ADMIN".equals(ator.getTipo()) || "COORDENADOR".equals(ator.getTipo()))) {
+            return "redirect:/login";
+        }
+        long inicio = System.currentTimeMillis();
+        minhaContaService.aprovarSolicitacao(tipo.toUpperCase(), id, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
+        return "redirect:/coordenador/usuarios?aba=solicitacoes";
+    }
+
+    @PostMapping("/solicitacoes/{tipo}/{id}/recusar")
+    public String recusarSolicitacao(@PathVariable String tipo, @PathVariable Long id, HttpSession session, HttpServletRequest request){
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !("ADMIN".equals(ator.getTipo()) || "COORDENADOR".equals(ator.getTipo()))) {
+            return "redirect:/login";
+        }
+        long inicio = System.currentTimeMillis();
+        minhaContaService.recusarSolicitacao(tipo.toUpperCase(), id, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
+        return "redirect:/coordenador/usuarios?aba=solicitacoes";
     }
 }

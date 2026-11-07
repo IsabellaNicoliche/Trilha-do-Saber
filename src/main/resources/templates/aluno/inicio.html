@@ -8,58 +8,77 @@
 </head>
 <body>
 
-<header class="topbar">
-    <div class="marca-topbar">
-        <span class="logo-marca">📘</span>
-        <div>
-            <strong>Trilha do Saber</strong>
-            <span>Aluno</span>
-        </div>
-    </div>
-
-    <nav class="menu-topbar">
-        <a th:href="@{/aluno/inicio}" class="item-menu ativo"><span>🏠</span> Início</a>
-        <a th:href="@{/simulado/iniciar}" class="item-menu"><span>📝</span> Simulados</a>
-        <a th:href="@{/aluno/dashboard}" class="item-menu"><span>📈</span> Meu Desempenho</a>
-        <a href="#" class="item-menu"><span>👤</span> Minha Conta</a>
-    </nav>
-
-    <div class="perfil-topbar">
-        <div class="avatar-usuario">AL</div>
-        <div>
-            <strong th:text="${usuario.nome}">Aluno</strong>
-            <span th:text="${usuario.email}">aluno@umc.br</span>
-        </div>
-        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
-        <a th:href="@{/logout}" class="link-sair">Sair</a>
-    </div>
-</header>
+<header th:replace="~{fragments/navAluno :: nav(pagina='inicio', usuarioLogado=${usuario})}"></header>
 
 <main class="conteudo">
+
+    <div class="linha-boas-vindas">
+        <div class="cartao-boas-vindas">
+            <div class="texto-boas-vindas">
+                <h2 th:text="'Olá, ' + ${usuario.nome} + '!'">Olá!</h2>
+                <p>Vamos estudar mais hoje.</p>
+                <p>Realize simulados e veja seu desempenho!</p>
+                <a th:href="@{/simulado/iniciar}" class="botao-boas-vindas">Realizar Simulado</a>
+            </div>
+            <img th:src="@{/css/img/icons/img/telainiAlu.png}" alt="" class="mascote-boas-vindas">
+        </div>
+
+        <div class="painel-notificacoes">
+            <div class="cabecalho-painel-notificacoes">
+                <h3>Últimos simulados</h3>
+            </div>
+            <div class="item-notificacao" th:each="simulado : ${dashboard.ultimosSimulados}">
+                <span class="ponto-notificacao"></span>
+                <div class="texto-notificacao">
+                    <strong th:text="${simulado.titulo}">Simulado</strong>
+                    <span th:text="${#numbers.formatDecimal(simulado.percentual, 1, 1)} + '% de acerto'">0% de acerto</span>
+                </div>
+            </div>
+            <p class="vazio-notificacoes" th:if="${dashboard.semSimulados}">Você ainda não fez nenhum simulado.</p>
+        </div>
+    </div>
 
     <header class="topo-conteudo">
         <h1>Início</h1>
         <p class="subtitulo-pagina" th:text="'Bom dia, ' + ${usuario.nome} + '. Continue sua preparação para o ENADE.'">Bom dia. Continue sua preparação para o ENADE.</p>
     </header>
 
-    <section class="grade-cards">
-        <div class="card-estatistica">
-            <span class="rotulo-card">Simulados realizados</span>
-            <strong class="numero-card">0</strong>
+    <div class="linha-inicio">
+        <section class="grade-cards grade-cards-3">
+            <div class="card-estatistica">
+                <div class="cabecalho-card-estatistica">
+                    <span class="icone-card-estatistica badge-1"><img th:src="@{/css/img/icons/img/iconesimu.png}" alt=""></span>
+                    <span class="rotulo-card">Simulados realizados</span>
+                </div>
+                <strong class="numero-card" th:text="${dashboard.totalSimulados}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <div class="cabecalho-card-estatistica">
+                    <span class="icone-card-estatistica badge-2"><img th:src="@{/css/img/icons/img/iconedash.png}" alt=""></span>
+                    <span class="rotulo-card">Média geral</span>
+                </div>
+                <strong class="numero-card"
+                        th:text="${dashboard.semSimulados} ? '-' : (${#numbers.formatDecimal(dashboard.percentualGeral, 1, 1)} + '%')">-</strong>
+            </div>
+            <div class="card-estatistica">
+                <div class="cabecalho-card-estatistica">
+                    <span class="icone-card-estatistica badge-3"><img th:src="@{/css/img/icons/img/iconeBQ.png}" alt=""></span>
+                    <span class="rotulo-card">Maior acerto de questões</span>
+                </div>
+                <strong class="numero-card"
+                        th:text="${dashboard.semSimulados} ? '-' : (${#numbers.formatDecimal(dashboard.melhorPercentual, 1, 1)} + '%')">-</strong>
+            </div>
+        </section>
+
+        <div class="calendario-enade">
+            <div class="calendario-enade-topo">NOV</div>
+            <strong class="calendario-enade-numero" th:text="${diasParaEnade}">0</strong>
+            <span class="calendario-enade-rotulo">dias até o ENADE</span>
+            <span class="calendario-enade-data" th:text="${#temporals.format(dataEnade, 'dd/MM/yyyy')}">29/11/2026</span>
         </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Média geral</span>
-            <strong class="numero-card">-</strong>
-        </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Tema mais forte</span>
-            <strong class="numero-card">-</strong>
-        </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Tema mais fraco</span>
-            <strong class="numero-card">-</strong>
-        </div>
-    </section>
+    </div>
+
+    <a th:href="@{/aluno/dashboard}" class="botao-primario">Ver Desempenho</a>
 
 </main>
 

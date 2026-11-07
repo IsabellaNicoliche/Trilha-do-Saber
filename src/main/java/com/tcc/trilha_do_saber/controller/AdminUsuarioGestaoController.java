@@ -1,11 +1,14 @@
 package com.tcc.trilha_do_saber.controller;
 
 import com.tcc.trilha_do_saber.dto.AlunoFormDTO;
+import com.tcc.trilha_do_saber.dto.CadastroProfessorAdminDTO;
 import com.tcc.trilha_do_saber.dto.ProfessorFormDTO;
+import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
 import com.tcc.trilha_do_saber.model.Aluno;
 import com.tcc.trilha_do_saber.model.Professor;
 import com.tcc.trilha_do_saber.service.AlunoService;
 import com.tcc.trilha_do_saber.service.ProfessorService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -25,8 +28,38 @@ public class AdminUsuarioGestaoController {
         this.professorService = professorService;
     }
 
+    @GetMapping("/professor/novo")
+    public String novoProfessorFormulario(Model model, HttpSession session){
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        model.addAttribute("professorNovoForm", new CadastroProfessorAdminDTO());
+        model.addAttribute("usuarioLogado", ator);
+        return "admin/professorNovoForm";
+    }
+
+    @PostMapping("/professor/novo")
+    public String criarProfessor(@Valid @ModelAttribute("professorNovoForm") CadastroProfessorAdminDTO form, BindingResult result,
+                                 HttpSession session, HttpServletRequest request, Model model){
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        if (result.hasErrors()) {
+            return "admin/professorNovoForm";
+        }
+        long inicio = System.currentTimeMillis();
+        try {
+            professorService.cadastrarPeloAdmin(form, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("erroGeral", e.getMessage());
+            return "admin/professorNovoForm";
+        }
+        return "redirect:/admin/coordenadores";
+    }
+
     @GetMapping("/{tipo}/{id}/editar")
     public String editarFormulario(@PathVariable String tipo, @PathVariable Long id, Model model, HttpSession session){
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+
         if ("professor".equals(tipo)) {
             Professor professor = professorService.buscarPorId(id);
             ProfessorFormDTO form = new ProfessorFormDTO();
@@ -46,50 +79,67 @@ public class AdminUsuarioGestaoController {
             form.setRgm(aluno.getRgm());
             form.setCurso(aluno.getCurso());
             form.setSemestre(aluno.getSemestre());
+            form.setTurma(aluno.getTurma());
+            form.setTurno(aluno.getTurno());
             form.setAtivo(aluno.isAtivo());
             model.addAttribute("alunoForm", form);
         }
         model.addAttribute("tipo", tipo);
-        model.addAttribute("usuarioLogado", session.getAttribute("usuarioLogado"));
+        model.addAttribute("usuarioLogado", ator);
         return "admin/usuarioForm";
     }
-    @PostMapping ("/aluno/{id}")
-    public String atualizarAluno (@PathVariable Long id, @Valid @ModelAttribute ("alunoForm") AlunoFormDTO form, BindingResult result, Model model){
+
+    @PostMapping("/aluno/{id}")
+    public String atualizarAluno(@PathVariable Long id, @Valid @ModelAttribute("alunoForm") AlunoFormDTO form,
+                                 BindingResult result, Model model, HttpSession session, HttpServletRequest request){
         if (result.hasErrors()) {
             model.addAttribute("tipo", "aluno");
             return "admin/usuarioForm";
         }
-        alunoService.atualizar(id, form);
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        long inicio = System.currentTimeMillis();
+        alunoService.atualizar(id, form, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         return "redirect:/admin/coordenadores";
     }
 
     @PostMapping("/professor/{id}")
-    public String atualizarProfessor(@PathVariable Long id, @Valid @ModelAttribute ("professorForm") ProfessorFormDTO form, BindingResult result, Model model){
-        if (result.hasErrors()){
+    public String atualizarProfessor(@PathVariable Long id, @Valid @ModelAttribute("professorForm") ProfessorFormDTO form,
+                                     BindingResult result, Model model, HttpSession session, HttpServletRequest request){
+        if (result.hasErrors()) {
             model.addAttribute("tipo", "professor");
             return "admin/usuarioForm";
         }
-        professorService.atualizar(id, form);
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        long inicio = System.currentTimeMillis();
+        professorService.atualizar(id, form, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         return "redirect:/admin/coordenadores";
     }
+
     @PostMapping("/{tipo}/{id}/excluir")
-    public String excluir(@PathVariable String tipo, @PathVariable Long id){
+    public String excluir(@PathVariable String tipo, @PathVariable Long id, HttpSession session, HttpServletRequest request){
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        long inicio = System.currentTimeMillis();
         if ("professor".equals(tipo)) {
-            professorService.excluir(id);
+            professorService.excluir(id, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         } else {
-            alunoService.excluir(id);
+            alunoService.excluir(id, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         }
         return "redirect:/admin/coordenadores";
     }
 
     @PostMapping("/{tipo}/{id}/anonimizar")
-    public String anonimizar(@PathVariable String tipo, @PathVariable Long id){
+    public String anonimizar(@PathVariable String tipo, @PathVariable Long id, HttpSession session, HttpServletRequest request){
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        long inicio = System.currentTimeMillis();
         if ("professor".equals(tipo)) {
-            professorService.anonimizar(id);
+            professorService.anonimizar(id, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         } else {
-            alunoService.anonimizar(id);
+            alunoService.anonimizar(id, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         }
         return "redirect:/admin/coordenadores";
     }
-
 }

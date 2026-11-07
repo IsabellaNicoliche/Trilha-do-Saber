@@ -8,7 +8,10 @@ import com.tcc.trilha_do_saber.model.TipoAcao;
 import com.tcc.trilha_do_saber.repository.CoordenadorRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.tcc.trilha_do_saber.dto.CadastroCoordenadorAdminDTO;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,27 +21,25 @@ public class CoordenadorService {
     private final CoordenadorRepository coordenadorRepository;
     private final PasswordEncoder passwordEncoder;
     private final LogAuditoriaService logAuditoriaService;
+    private final EmailService emailService;
 
-    // Construtor
     public CoordenadorService(CoordenadorRepository coordenadorRepository, PasswordEncoder passwordEncoder,
-                              LogAuditoriaService logAuditoriaService){
+                              LogAuditoriaService logAuditoriaService, EmailService emailService){
         this.coordenadorRepository = coordenadorRepository;
         this.passwordEncoder = passwordEncoder;
         this.logAuditoriaService = logAuditoriaService;
+        this.emailService = emailService;
     }
 
-    // Lista todos os coordenadores cadastrados
     public List<Coordenador> listarTodos(){
         return coordenadorRepository.findAll();
     }
 
-    // Busca um coordenador pelo id, lança erro se não encontrar
     public Coordenador buscarPorId(Long id){
         return coordenadorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Coordenador não encontrado"));
     }
 
-    // Cadastro publico de coordenador; fica inativo ate o admin aprovar
     public Coordenador cadastrar(CadastroCoordenadorDTO dto){
         if (!dto.senhasConferem()) {
             throw new IllegalArgumentException("As senhas não conferem");
@@ -52,7 +53,7 @@ public class CoordenadorService {
         coordenador.setDataConsentimento(LocalDateTime.now());
         coordenador = coordenadorRepository.save(coordenador);
 
-        // Cadastro ainda nao tem "ator" (ninguem logado fez essa acao, foi o proprio coordenador se cadastrando)
+
         logAuditoriaService.registrar(coordenador.getId(), coordenador.getNome(), "COORDENADOR",
                 TipoAcao.CADASTRO, "Coordenador", coordenador.getId(),
                 "Solicitacao de cadastro enviada por " + coordenador.getNome() + " (" + coordenador.getEmail() + "), aguardando aprovacao",
@@ -61,7 +62,44 @@ public class CoordenadorService {
         return coordenador;
     }
 
-    // Compara valor antigo x novo de um campo e acumula a diferenca numa string, pro log de auditoria
+    private String gerarSenhaAleatoria(){
+        String letras = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+        String numeros = "123456789";
+        String especiais =  "!@#$%*";
+        String todos = letras + numeros + especiais;
+
+        SecureRandom random = new SecureRandom();
+        StringBuilder senha = new StringBuilder();
+        senha.append(letras.charAt(random.nextInt(letras.length())));
+        senha.append(numeros.charAt(random.nextInt(numeros.length())));
+        senha.append(especiais.charAt(random.nextInt(especiais.length())));
+        for (int i = 0; i < 7; i++){
+            senha.append(todos.charAt(random.nextInt(todos.length())));
+        }
+        return senha.toString();
+    }
+
+    public Coordenador cadastrarPeloAdmin(CadastroCoordenadorAdminDTO dto, UsuarioSessaoDTO ator, String ip, long duracaoMs){
+        if (coordenadorRepository.findByEmail(dto.getEmail()).isPresent()){
+            throw new IllegalArgumentException("Já existe um cadastro com esse email");
+        }
+
+        String senhaGerada = gerarSenhaAleatoria();
+        String senhaComHash = passwordEncoder.encode(senhaGerada);
+
+        Coordenador coordenador = new Coordenador(dto.getNome(), dto.getEmail(), senhaComHash, dto.getRegistroFuncional(), dto.cursosJuntos());
+        coordenador.setAtivo(true);
+        coordenador = coordenadorRepository.save(coordenador);
+
+        logAuditoriaService.registrar(ator.getId(), ator.getNome(), ator.getTipo(), TipoAcao.CADASTRO,"Coordenador", coordenador.getId(),
+                "Coordenador " + coordenador.getNome() + " (" + coordenador.getEmail() + ") criado diretamente pelo administrador, acesso ja liberado",
+                ip, duracaoMs);
+
+        emailService.enviarSenhaProvisoria(coordenador.getNome(), coordenador.getEmail(), senhaGerada, "coordenador");
+
+        return coordenador;
+    }
+
     private void compararCampo(StringBuilder mudancas, String nomeCampo, String valorAntigo, String valorNovo){
         boolean mudou = valorAntigo == null ? valorNovo != null : !valorAntigo.equals(valorNovo);
         if (mudou) {
@@ -70,7 +108,6 @@ public class CoordenadorService {
         }
     }
 
-    // Atualiza os dados do coordenador e registra no log exatamente quais campos mudaram
     public Coordenador atualizar(Long id, CoordenadorFormDTO dto, UsuarioSessaoDTO ator, String ip, long duracaoMs){
         Coordenador coordenador = buscarPorId(id);
 
@@ -99,7 +136,7 @@ public class CoordenadorService {
         return coordenador;
     }
 
-    // Aprova o cadastro do coordenador, liberando o acesso a plataforma
+
     public void ativar(Long id, UsuarioSessaoDTO ator, String ip, long duracaoMs){
         Coordenador coordenador = buscarPorId(id);
         coordenador.setAtivo(true);
@@ -111,7 +148,7 @@ public class CoordenadorService {
                 ip, duracaoMs);
     }
 
-    // Bloqueia o acesso do coordenador sem apagar os dados
+
     public void desativar(Long id, UsuarioSessaoDTO ator, String ip, long duracaoMs){
         Coordenador coordenador = buscarPorId(id);
         coordenador.setAtivo(false);
@@ -123,11 +160,11 @@ public class CoordenadorService {
                 ip, duracaoMs);
     }
 
-    // Exclusao "soft": desativa e marca data de exclusao, mas mantem os dados academicos no banco
+
     public void excluir(Long id, UsuarioSessaoDTO ator, String ip, long duracaoMs){
         Coordenador coordenador = buscarPorId(id);
 
-        // Guarda nome/email antes de mexer no registro, pra descrever no log com clareza
+
         String nomeParaLog = coordenador.getNome();
         String emailParaLog = coordenador.getEmail();
 
@@ -141,7 +178,7 @@ public class CoordenadorService {
                 ip, duracaoMs);
     }
 
-    // Anonimizacao definitiva (LGPD): apaga os dados que identificam a pessoa, sem excluir o registro
+
     public void anonimizar(Long id, UsuarioSessaoDTO ator, String ip, long duracaoMs){
         Coordenador coordenador = buscarPorId(id);
 
@@ -158,7 +195,7 @@ public class CoordenadorService {
 
         coordenadorRepository.save(coordenador);
 
-        // Aqui o log nao guarda nome/email antigos de proposito: eles ja foram apagados do registro
+
         logAuditoriaService.registrar(ator.getId(), ator.getNome(), ator.getTipo(),
                 TipoAcao.ANONIMIZACAO, "Coordenador", id,
                 "Dados pessoais do coordenador (id " + id + ") anonimizados definitivamente: nome, email, senha, registro e curso apagados",

@@ -84,6 +84,14 @@ public class PainelProfessorDTO {
         return melhor;
     }
 
+    public List<DashboardTurmaDTO> getTop3Turmas() {
+        return turmas.stream()
+                .filter(DashboardTurmaDTO::isDesempenhoVisivel)
+                .sorted((a, b) -> Double.compare(b.getPercentualAcerto(), a.getPercentualAcerto()))
+                .limit(3)
+                .toList();
+    }
+
     public List<String> getRotulosTurmas() {
         return turmas.stream().map(t -> t.getTurma().getRotuloCurto()).toList();
     }

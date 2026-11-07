@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<header th:fragment="nav(pagina, usuarioLogado)" class="topbar">
+    <div class="marca-topbar">
+        <img th:src="@{/css/img/icons/img/logo.png}" alt="Trilha do Saber" class="logo-marca">
+        <div>
+            <strong>Trilha do Saber</strong>
+            <span>Aluno</span>
+        </div>
+    </div>
+
+    <nav class="menu-topbar">
+        <a th:href="@{/aluno/inicio}" class="item-menu" th:classappend="${pagina == 'inicio'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconeinicio.png}" alt="Início" class="icone-menu"> Início</a>
+        <a th:href="@{/simulado/iniciar}" class="item-menu" th:classappend="${pagina == 'simulados'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconesimu.png}" alt="Simulados" class="icone-menu"> Simulados</a>
+        <a th:href="@{/aluno/dashboard}" class="item-menu" th:classappend="${pagina == 'dashboard'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconedash.png}" alt="Meu Desempenho" class="icone-menu"> Meu Desempenho</a>
+        <a th:href="@{/conta}" class="item-menu" th:classappend="${pagina == 'conta'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconeconta.png}" alt="Minha Conta" class="icone-menu"> Minha Conta</a>
+    </nav>
+
+    <div class="perfil-topbar">
+        <div class="avatar-usuario">AL</div>
+        <div>
+            <strong th:text="${usuarioLogado != null} ? ${usuarioLogado.nome} : 'Aluno'">Aluno</strong>
+            <span th:text="${usuarioLogado != null} ? ${usuarioLogado.email} : 'aluno@umc.br'">aluno@umc.br</span>
+        </div>
+        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
+        <a th:href="@{/logout}" class="link-sair">Sair</a>
+    </div>
+</header>
+
+</body>
+</html>

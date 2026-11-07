@@ -8,33 +8,7 @@
 </head>
 <body>
 
-<header class="topbar">
-  <div class="marca-topbar">
-    <span class="logo-marca">📘</span>
-    <div>
-      <strong>Trilha do Saber</strong>
-      <span>Administrador</span>
-    </div>
-  </div>
-
-  <nav class="menu-topbar">
-    <a th:href="@{/admin/inicio}" class="item-menu"><span>🏠</span> Início</a>
-    <a href="#" class="item-menu"><span>🗄️</span> Banco de Questões</a>
-    <a href="#" class="item-menu"><span>📋</span> Simulados</a>
-    <a th:href="@{/admin/coordenadores}" class="item-menu ativo"><span>👥</span> Usuários</a>
-    <a th:href="@{/admin/logs}" class="item-menu"><span>🛡️</span> Logs de Auditoria</a>
-  </nav>
-
-  <div class="perfil-topbar">
-    <div class="avatar-usuario">AD</div>
-    <div>
-      <strong th:text="${usuarioLogado != null} ? ${usuarioLogado.nome} : 'Admin Sistema'">Admin Sistema</strong>
-      <span th:text="${usuarioLogado != null} ? ${usuarioLogado.email} : 'adm@umc.br'">adm@umc.br</span>
-    </div>
-    <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
-    <a th:href="@{/logout}" class="link-sair">Sair</a>
-  </div>
-</header>
+<header th:replace="~{fragments/navAdmin :: nav(pagina='usuarios', usuarioLogado=${usuarioLogado})}"></header>
 
 <main class="conteudo">
   <div class="cartao-form">
@@ -120,28 +94,26 @@
 </main>
 
 <script>
-    const cursoPrincipal = document.getElementById('curso');
-    const outrosCursos = document.getElementById('outrosCursos');
-    const bloco = document.getElementById('blocoOutrosCursos');
+  const cursoPrincipal = document.getElementById('curso');
+  const outrosCursos = document.getElementById('outrosCursos');
+  const bloco = document.getElementById('blocoOutrosCursos');
 
-    function atualizar() {
-        bloco.classList.toggle('oculto', !outrosCursos.checked);
+  function atualizar() {
+      bloco.classList.toggle('oculto', !outrosCursos.checked);
 
-        bloco.querySelectorAll('input[type=checkbox]').forEach(caixa => {
-            // O curso ja escolhido no select nao aparece de novo na lista
-            const repetido = caixa.value === cursoPrincipal.value;
-            caixa.closest('label').classList.toggle('oculto', repetido);
+      bloco.querySelectorAll('input[type=checkbox]').forEach(caixa => {
+          const repetido = caixa.value === cursoPrincipal.value;
+          caixa.closest('label').classList.toggle('oculto', repetido);
 
-            // Desmarcou "outros cursos" ou e o mesmo do select: nao pode ir marcado pro servidor
-            if (repetido || !outrosCursos.checked) {
-                caixa.checked = false;
-            }
-        });
-    }
+          if (repetido || !outrosCursos.checked) {
+              caixa.checked = false;
+          }
+      });
+  }
 
-    outrosCursos.addEventListener('change', atualizar);
-    cursoPrincipal.addEventListener('change', atualizar);
-    atualizar();
+  outrosCursos.addEventListener('change', atualizar);
+  cursoPrincipal.addEventListener('change', atualizar);
+  atualizar();
 </script>
 
 </body>

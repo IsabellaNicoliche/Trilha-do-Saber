@@ -12,29 +12,80 @@
 
 <main class="conteudo">
 
+    <div class="linha-boas-vindas">
+        <div class="cartao-boas-vindas">
+            <div class="texto-boas-vindas">
+                <h2>Olá, Coordenador!</h2>
+                <p>Veja o desempenho das turmas e gerencie usuários!</p>
+                <div class="atalhos-boas-vindas">
+                    <a th:href="@{/coordenador/usuarios}" class="atalho-boas-vindas"><img th:src="@{/css/img/icons/img/iconeusua.png}" alt="" class="icone-atalho"> Usuários</a>
+                    <a th:href="@{/coordenador/turmas}" class="atalho-boas-vindas"><img th:src="@{/css/img/icons/img/iconeturma.png}" alt="" class="icone-atalho"> Turmas</a>
+                    <a th:href="@{/coordenador/dashboard}" class="atalho-boas-vindas"><img th:src="@{/css/img/icons/img/iconedash.png}" alt="" class="icone-atalho"> Desempenho</a>
+                </div>
+            </div>
+            <img th:src="@{/css/img/icons/img/telainiCoor.png}" alt="" class="mascote-boas-vindas">
+        </div>
+
+        <div class="painel-notificacoes">
+            <div class="cabecalho-painel-notificacoes">
+                <h3>Solicitações pendentes</h3>
+                <a th:if="${painel.totalPendentes > 4}" th:href="@{/coordenador/usuarios}" class="link-ver-todas">Ver todas</a>
+            </div>
+            <div class="item-notificacao" th:each="solicitacao : ${painel.pendentesParaPainel}">
+                <span class="ponto-notificacao"></span>
+                <div class="texto-notificacao">
+                    <strong th:text="${solicitacao.nome}">Nome</strong>
+                    <span th:text="${solicitacao.tipo} + ' · ' + ${solicitacao.email}">Aluno · email@umc.br</span>
+                </div>
+            </div>
+            <p class="vazio-notificacoes" th:if="${painel.semPendentes}">Nenhuma solicitação pendente.</p>
+        </div>
+    </div>
+
     <header class="topo-conteudo">
         <h1>Início</h1>
         <p class="subtitulo-pagina">Visão geral da coordenação do curso</p>
     </header>
 
-    <section class="grade-cards">
-        <div class="card-estatistica">
-            <span class="rotulo-card">Alunos cadastrados</span>
-            <strong class="numero-card">-</strong>
+    <div class="linha-inicio">
+        <section class="grade-cards">
+            <div class="card-estatistica">
+                <div class="cabecalho-card-estatistica">
+                    <span class="icone-card-estatistica badge-1"><img th:src="@{/css/img/icons/img/iconeusua.png}" alt=""></span>
+                    <span class="rotulo-card">Alunos cadastrados</span>
+                </div>
+                <strong class="numero-card" th:text="${painel.alunosCadastrados}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <div class="cabecalho-card-estatistica">
+                    <span class="icone-card-estatistica badge-2"><img th:src="@{/css/img/icons/img/iconeusua.png}" alt=""></span>
+                    <span class="rotulo-card">Professores cadastrados</span>
+                </div>
+                <strong class="numero-card" th:text="${painel.professoresCadastrados}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <div class="cabecalho-card-estatistica">
+                    <span class="icone-card-estatistica badge-3"><img th:src="@{/css/img/icons/img/iconeconta.png}" alt=""></span>
+                    <span class="rotulo-card">Cadastros pendentes</span>
+                </div>
+                <strong class="numero-card" th:text="${painel.totalPendentes}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <div class="cabecalho-card-estatistica">
+                    <span class="icone-card-estatistica badge-4"><img th:src="@{/css/img/icons/img/iconesimu.png}" alt=""></span>
+                    <span class="rotulo-card">Simulados no período</span>
+                </div>
+                <strong class="numero-card">-</strong>
+            </div>
+        </section>
+
+        <div class="calendario-enade">
+            <div class="calendario-enade-topo">NOV</div>
+            <strong class="calendario-enade-numero" th:text="${diasParaEnade}">0</strong>
+            <span class="calendario-enade-rotulo">dias até o ENADE</span>
+            <span class="calendario-enade-data" th:text="${#temporals.format(dataEnade, 'dd/MM/yyyy')}">29/11/2026</span>
         </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Professores cadastrados</span>
-            <strong class="numero-card">-</strong>
-        </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Cadastros pendentes</span>
-            <strong class="numero-card">-</strong>
-        </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Simulados no período</span>
-            <strong class="numero-card">-</strong>
-        </div>
-    </section>
+    </div>
 
     <div class="cabecalho-usuarios">
         <h2>Acesso rápido</h2>

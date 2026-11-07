@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minha Conta</title>
+  <link rel="stylesheet" th:href="@{/css/painel.css}">
+</head>
+<body>
+
+<header th:replace="~{fragments/navCoordenador :: nav(pagina='conta', usuarioLogado=${usuario})}"></header>
+
+<main class="conteudo">
+
+  <header class="topo-conteudo">
+    <h1>Minha Conta</h1>
+    <p class="subtitulo-pagina">Gerencie seus dados, sua senha e a privacidade da sua conta</p>
+  </header>
+
+  <p class="aviso" th:if="${param.perfilAtualizado != null}">Seus dados foram atualizados.</p>
+  <p class="aviso" th:if="${param.senhaAlterada != null}">Sua senha foi alterada.</p>
+  <p class="aviso" th:if="${param.fotoAtualizada != null}">Sua foto de perfil foi atualizada.</p>
+  <p class="aviso" th:if="${param.fotoRemovida != null}">Sua foto de perfil foi removida.</p>
+  <p class="aviso" th:if="${param.solicitacaoEnviada != null}">Sua solicitação foi enviada para o administrador.</p>
+  <p class="aviso" th:if="${param.solicitacaoCancelada != null}">A solicitação foi cancelada.</p>
+
+  <div class="cartao-form">
+    <h1>Meus dados</h1>
+
+    <div class="campo-foto-perfil">
+      <img th:if="${conta.temFoto}" th:src="@{/conta/foto}" alt="Foto de perfil" class="foto-perfil-atual">
+      <span th:unless="${conta.temFoto}" class="foto-perfil-vazia" th:text="${conta.iniciais}">??</span>
+
+      <form th:action="@{/conta/foto}" method="post" enctype="multipart/form-data" class="formulario-foto">
+        <input type="file" name="foto" accept="image/*">
+        <button type="submit" class="botao-secundario">Enviar foto</button>
+      </form>
+      <form th:if="${conta.temFoto}" th:action="@{/conta/foto/remover}" method="post" class="formulario-foto">
+        <button type="submit" class="botao-perigo" onclick="return confirm('Remover a foto de perfil?');">Remover foto</button>
+      </form>
+    </div>
+    <span class="erro" th:if="${erroFoto}" th:text="${erroFoto}"></span>
+
+    <form method="post" th:object="${perfilForm}" th:action="@{/conta/perfil}">
+      <label>Nome</label>
+      <input type="text" th:field="*{nome}">
+      <span class="erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
+
+      <label>Email</label>
+      <input type="email" th:field="*{email}">
+      <span class="erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+
+      <span class="erro" th:if="${erroPerfil}" th:text="${erroPerfil}"></span>
+
+      <div class="acoes-form">
+        <button type="submit" class="botao-primario">Salvar dados</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="cartao-form">
+    <h1>Alterar senha</h1>
+
+    <form method="post" th:object="${senhaForm}" th:action="@{/conta/senha}">
+      <label>Senha atual</label>
+      <input type="password" th:field="*{senhaAtual}">
+      <span class="erro" th:if="${#fields.hasErrors('senhaAtual')}" th:errors="*{senhaAtual}"></span>
+
+      <label>Nova senha</label>
+      <input type="password" th:field="*{novaSenha}">
+      <span class="erro" th:if="${#fields.hasErrors('novaSenha')}" th:errors="*{novaSenha}"></span>
+
+      <label>Confirmar nova senha</label>
+      <input type="password" th:field="*{confirmarSenha}">
+      <span class="erro" th:if="${#fields.hasErrors('confirmarSenha')}" th:errors="*{confirmarSenha}"></span>
+
+      <span class="erro" th:if="${erroSenha}" th:text="${erroSenha}"></span>
+
+      <div class="acoes-form">
+        <button type="submit" class="botao-primario">Alterar senha</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="cartao-form">
+    <h1>Privacidade da conta</h1>
+
+    <div th:if="${conta.solicitacaoPendente}" class="aviso">
+      <strong th:text="'Solicitação de ' + ${conta.rotuloSolicitacao} + ' enviada em ' + ${#temporals.format(conta.dataSolicitacaoConta, 'dd/MM/yyyy')} + '.'"></strong>
+      <p>Aguardando análise do administrador.</p>
+      <form th:action="@{/conta/cancelar-solicitacao}" method="post">
+        <button type="submit" class="botao-secundario">Cancelar solicitação</button>
+      </form>
+    </div>
+
+    <div th:unless="${conta.solicitacaoPendente}">
+      <span class="erro" th:if="${erroSolicitacao}" th:text="${erroSolicitacao}"></span>
+
+      <div class="linha-zona-perigo">
+        <div>
+          <strong>Solicitar exclusão da conta</strong>
+          <p>Seu acesso é bloqueado e seus dados pessoais deixam de ser usados. O pedido é enviado ao administrador para aprovação.</p>
+        </div>
+        <form th:action="@{/conta/solicitar-exclusao}" method="post">
+          <button type="submit" class="botao-perigo" onclick="return confirm('Solicitar a exclusão da sua conta ao administrador?');">Solicitar exclusão</button>
+        </form>
+      </div>
+
+      <div class="linha-zona-perigo">
+        <div>
+          <strong>Solicitar anonimização dos dados</strong>
+          <p>Seu nome, email e demais dados pessoais são apagados definitivamente, sem poder ser desfeito. O pedido também é enviado ao administrador para aprovação.</p>
+        </div>
+        <form th:action="@{/conta/solicitar-anonimizacao}" method="post">
+          <button type="submit" class="botao-perigo" onclick="return confirm('Solicitar a anonimização dos seus dados ao administrador?');">Solicitar anonimização</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+</body>
+</html>

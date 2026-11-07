@@ -1,9 +1,12 @@
 package com.tcc.trilha_do_saber.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.MappedSuperclass;
 
 import java.time.LocalDateTime;
@@ -31,6 +34,16 @@ public abstract class Usuario {
     private boolean consentimentoLgpd;
 
     private LocalDateTime dataConsentimento;
+
+    @Lob
+    private byte[] fotoPerfil;
+
+    private String fotoPerfilTipo;
+
+    @Enumerated(EnumType.STRING)
+    private TipoSolicitacaoConta solicitacaoConta;
+
+    private LocalDateTime dataSolicitacaoConta;
 
     public Usuario(){
     }
@@ -114,4 +127,39 @@ public abstract class Usuario {
         this.dataConsentimento = dataConsentimento;
     }
 
+    public byte[] getFotoPerfil(){
+        return fotoPerfil;
+    }
+
+    public void setFotoPerfil(byte[] fotoPerfil){
+        this.fotoPerfil = fotoPerfil;
+    }
+
+    public String getFotoPerfilTipo(){
+        return fotoPerfilTipo;
+    }
+
+    public void setFotoPerfilTipo(String fotoPerfilTipo){
+        this.fotoPerfilTipo = fotoPerfilTipo;
+    }
+
+    public TipoSolicitacaoConta getSolicitacaoConta(){
+        return solicitacaoConta;
+    }
+
+    public void setSolicitacaoConta(TipoSolicitacaoConta solicitacaoConta){
+        this.solicitacaoConta = solicitacaoConta;
+    }
+
+    public LocalDateTime getDataSolicitacaoConta(){
+        return dataSolicitacaoConta;
+    }
+
+    public void setDataSolicitacaoConta(LocalDateTime dataSolicitacaoConta){
+        this.dataSolicitacaoConta = dataSolicitacaoConta;
+    }
+
+    public boolean isSolicitacaoContaPendente(){
+        return solicitacaoConta != null;
+    }
 }

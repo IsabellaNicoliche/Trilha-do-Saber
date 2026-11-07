@@ -59,4 +59,39 @@ public class EmailService {
             return false;
         }
     }
+    public boolean enviarSenhaProvisoria(String nomeDestinatario, String emailDestinatario, String senhaProvisoria, String tipoConta){
+        String assunto = "Seu acesso à plataforma Trilha do Saber";
+        String html = """
+                <div style="font-family: Arial, sans-serif; color: #202124;">
+                    <p>Olá, %s!</p>
+                    <p>Uma conta de %s foi criada para você na plataforma Trilha do Saber.</p>
+                    <p>Use os dados abaixo para o seu primeiro acesso:</p>
+                    <p>E-mail: <strong>%s</strong><br>Senha provisória: <strong style="font-size: 20px; letter-spacing: 2px;">%s</strong></p>
+                    <p>Por segurança, recomendamos trocar essa senha assim que entrar na plataforma.</p>
+                </div>
+                """.formatted(nomeDestinatario, tipoConta, emailDestinatario, senhaProvisoria);
+
+        if (!apiConfigurada) {
+            System.out.println("[Resend não configurado] Senha provisória para " + emailDestinatario + ": " + senhaProvisoria);
+            return false;
+        }
+
+        Map<String, Object> corpo = new LinkedHashMap<>();
+        corpo.put("from", remetente);
+        corpo.put("to", List.of(emailDestinatario));
+        corpo.put("subject", assunto);
+        corpo.put("html", html);
+
+        try {
+            restClient.post()
+                    .uri("/emails")
+                    .body(corpo)
+                    .retrieve()
+                    .toBodilessEntity();
+            return true;
+        } catch (RestClientException e) {
+            System.out.println("[Falha ao enviar pelo Resend: " + e.getMessage() + "] Senha provisória para " + emailDestinatario + ": " + senhaProvisoria);
+            return false;
+        }
+    }
 }

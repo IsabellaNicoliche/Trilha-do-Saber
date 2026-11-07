@@ -43,7 +43,10 @@ body {
 }
 
 .logo-marca {
-    font-size: 22px;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    display: block;
 }
 
 .marca-topbar strong {
@@ -75,6 +78,13 @@ body {
     font-size: 14px;
     font-weight: 500;
     white-space: nowrap;
+}
+
+.icone-menu {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex-shrink: 0;
 }
 
 .item-menu:hover {
@@ -164,23 +174,54 @@ body {
     background: #fff;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    padding: 16px 18px;
+    padding: 22px 24px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
 }
 
 .rotulo-card {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--texto-secundario);
     font-weight: 600;
 }
 
 .numero-card {
-    font-size: 26px;
+    font-size: 32px;
     font-weight: 700;
     color: var(--marca);
 }
+
+.grade-cards-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.cabecalho-card-estatistica {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icone-card-estatistica {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.icone-card-estatistica img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.badge-1 { background: #FEE2E2; }
+.badge-2 { background: #DBEAFE; }
+.badge-3 { background: #FEF3C7; }
+.badge-4 { background: #DCFCE7; }
 
 /* ---------- Tabelas ---------- */
 
@@ -230,13 +271,13 @@ body {
     border-bottom: none;
 }
 
-/* Coluna de status: largura fixa, não deixa o badge empurrar as outras colunas */
+
 .tabela-usuarios th:nth-last-child(2),
 .tabela-usuarios td:nth-last-child(2) {
     width: 110px;
 }
 
-/* Última coluna (ações): largura fixa e alinhada à direita */
+
 .tabela-usuarios th:last-child,
 .tabela-usuarios td:last-child {
     width: 90px;
@@ -469,7 +510,7 @@ body {
     }
 }
 
-/* Tabela de Logs de Auditoria: mais colunas com dados variados, entao usa largura por conteudo em vez de largura fixa igual pra todas */
+
 .tabela-logs {
     table-layout: auto;
 }
@@ -496,7 +537,7 @@ body {
     font-size: 16px;
 }
 
-/* Bloco cinza atras do dashboard */
+
 .palco {
     background: var(--palco);
     border-radius: 20px;
@@ -504,7 +545,7 @@ body {
     margin-top: 28px;
 }
 
-/* Sem simulados */
+
 .estado-vazio {
     background: #fff;
     border-radius: 16px;
@@ -538,7 +579,7 @@ body {
     padding: 14px 28px;
 }
 
-/* Cards de indicadores, cada um com sua cor */
+
 .grade-kpis {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -592,7 +633,7 @@ body {
     font-weight: 600;
 }
 
-/* Grid dos graficos: duas colunas iguais */
+
 .grade-dashboard {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -644,7 +685,7 @@ body {
     line-height: 1.5;
 }
 
-/* Tabela, no mesmo estilo da tela de logs */
+
 .painel-tabela {
     margin-top: 20px;
 }
@@ -732,7 +773,7 @@ body {
         grid-template-columns: 1fr;
     }
 }
-/* Aviso dentro do palco */
+
 .aviso {
     background: #fff;
     border-left: 5px solid #D97706;
@@ -744,7 +785,7 @@ body {
     box-shadow: 0 2px 8px rgba(32, 33, 36, 0.06);
 }
 
-/* Barra da taxa de erro na tabela de questoes */
+
 .barra {
     height: 8px;
     min-width: 120px;
@@ -878,4 +919,391 @@ body {
 
 .oculto {
     display: none !important;
+}
+
+.icone-vazio {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+}
+
+.icone-raking {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.icone-medalha {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+/* ---------- Linha do topo: cartão de boas-vindas + painel de notificações ---------- */
+
+.linha-boas-vindas {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.cartao-boas-vindas {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: linear-gradient(135deg, var(--marca) 0%, #8B6CF5 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 24px 28px;
+}
+
+.texto-boas-vindas {
+    min-width: 0;
+}
+
+.mascote-boas-vindas {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.cartao-boas-vindas h2 {
+    margin: 0 0 4px;
+    font-size: 20px;
+}
+
+.cartao-boas-vindas p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.botao-boas-vindas {
+    display: inline-block;
+    margin-top: 12px;
+    background: #fff;
+    color: var(--marca);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.atalhos-boas-vindas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 14px;
+}
+
+.atalho-boas-vindas {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.95;
+}
+
+.atalho-boas-vindas:hover {
+    text-decoration: underline;
+}
+
+.icone-atalho {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.painel-notificacoes {
+    flex: 1;
+    min-width: 220px;
+    background: #fff;
+    border: 1px solid var(--borda);
+    border-radius: 16px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cabecalho-painel-notificacoes {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.cabecalho-painel-notificacoes h3 {
+    margin: 0;
+    font-size: 15px;
+}
+
+.link-ver-todas {
+    font-size: 12px;
+    color: var(--marca);
+    text-decoration: none;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.link-ver-todas:hover {
+    text-decoration: underline;
+}
+
+.item-notificacao {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--borda);
+}
+
+.item-notificacao:last-child {
+    border-bottom: none;
+}
+
+.ponto-notificacao {
+    width: 8px;
+    height: 8px;
+    margin-top: 5px;
+    border-radius: 50%;
+    background: var(--marca);
+    flex-shrink: 0;
+}
+
+.texto-notificacao {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.texto-notificacao strong {
+    font-size: 13px;
+}
+
+.texto-notificacao span {
+    font-size: 12px;
+    color: var(--texto-secundario);
+}
+
+.vazio-notificacoes {
+    font-size: 13px;
+    color: var(--texto-secundario);
+    margin: 4px 0 0;
+}
+
+/* ---------- Linha com cards + calendário do ENADE ---------- */
+
+.linha-inicio {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    margin: 24px 0 8px;
+}
+
+.linha-inicio .grade-cards {
+    flex: 1;
+    margin: 0;
+}
+
+.calendario-enade {
+    flex: 0 0 160px;
+    background: #fff;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.calendario-enade-topo {
+    background: var(--marca);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    border-radius: 6px;
+    padding: 2px 10px;
+    margin-bottom: 8px;
+}
+
+.calendario-enade-numero {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--marca);
+    line-height: 1.1;
+}
+
+.calendario-enade-rotulo {
+    font-size: 12px;
+    color: var(--texto-secundario);
+    margin-top: 2px;
+}
+
+.calendario-enade-data {
+    font-size: 12px;
+    color: var(--texto-secundario);
+    margin-top: 8px;
+    border-top: 1px solid var(--borda);
+    padding-top: 8px;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .linha-boas-vindas {
+        flex-direction: column;
+    }
+
+    .cartao-boas-vindas {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .atalhos-boas-vindas {
+        justify-content: center;
+    }
+
+    .linha-inicio {
+        flex-direction: column;
+    }
+
+    .calendario-enade {
+        flex: 1;
+    }
+}
+
+.lista-ranking-turmas {
+    background: #fff;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.item-ranking-turma {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--borda);
+}
+
+.item-ranking-turma:last-child {
+    border-bottom: none;
+}
+
+.posicao-ranking {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--marca);
+    background: var(--marca-fundo);
+    border-radius: 999px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+}
+
+.nome-ranking-turma {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.valor-ranking-turma {
+    font-size: 16px;
+    color: var(--marca);
+}
+
+.lista-pendentes {
+    background: #fff;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.item-pendente {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--borda);
+}
+
+.item-pendente:last-child {
+    border-bottom: none;
+}
+
+.info-pendente {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.info-pendente strong {
+    font-size: 14px;
+}
+
+.info-pendente span {
+    font-size: 12px;
+    color: var(--texto-secundario);
+}
+
+.badge-tipo-pendente {
+    background: var(--marca-fundo);
+    color: var(--marca);
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 4px 10px;
+    white-space: nowrap;
+}
+
+.campo-foto-perfil {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.foto-perfil-atual {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--borda);
+}
+
+.foto-perfil-vazia {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--marca-fundo);
+    color: var(--marca);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.formulario-foto {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }

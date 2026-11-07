@@ -8,33 +8,7 @@
 </head>
 <body>
 
-<header class="topbar">
-    <div class="marca-topbar">
-        <span class="logo-marca">📘</span>
-        <div>
-            <strong>Trilha do Saber</strong>
-            <span>Professor</span>
-        </div>
-    </div>
-
-    <nav class="menu-topbar">
-        <a th:href="@{/professor/inicio}" class="item-menu"><span>🏠</span> Início</a>
-        <a th:href="@{/professor/alunos}" class="item-menu ativo"><span>👥</span> Alunos</a>
-        <a href="#" class="item-menu"><span>📈</span> Desempenho da Turma</a>
-        <a href="#" class="item-menu"><span>📤</span> Conteúdo de Aula</a>
-        <a href="#" class="item-menu"><span>👤</span> Minha Conta</a>
-    </nav>
-
-    <div class="perfil-topbar">
-        <div class="avatar-usuario">PR</div>
-        <div>
-            <strong th:text="${usuarioLogado.nome}">Professor</strong>
-            <span th:text="${usuarioLogado.email}">professor@umc.br</span>
-        </div>
-        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
-        <a th:href="@{/logout}" class="link-sair">Sair</a>
-    </div>
-</header>
+<header th:replace="~{fragments/navProfessor :: nav(pagina='alunos', usuarioLogado=${usuarioLogado})}"></header>
 
 <main class="conteudo">
 
