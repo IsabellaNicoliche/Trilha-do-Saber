@@ -30,36 +30,44 @@
             </select>
         </form>
 
-        <p th:if="${cursoSelecionado != null and #lists.isEmpty(questoes)}">
+        <div class="acoes-form" style="justify-content:flex-end; margin: 12px 0;">
+            <a th:href="@{${baseUrl} + '/novo'(curso=${cursoSelecionado})}" class="botao-primario">+ Nova questão</a>
+        </div>
+
+        <p th:if="${cursoSelecionado != null and #maps.isEmpty(questoesPorProva)}">
             Nenhuma questão encontrada para esse curso.
         </p>
 
-        <table th:if="${!#lists.isEmpty(questoes)}" class="tabela-usuarios tabela-questoes">
-            <thead>
-            <tr>
-                <th>Ano</th>
-                <th>Nº</th>
-                <th>Enunciado</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="q : ${questoes}">
-                <td th:text="${q.prova.ano}"></td>
-                <td th:text="${q.numero}"></td>
-                <td th:text="${#strings.abbreviate(q.enunciado, 160)}"></td>
-                <td>
-                    <span th:unless="${q.ativa}" class="badge-status badge-inativo">Anulada/Oculta</span>
-                    <span th:if="${q.ativa and q.imagem != null}" class="badge-status badge-aviso">Tem imagem</span>
-                    <span th:if="${q.ativa and q.imagem == null}" class="badge-status badge-ativo">Ativa</span>
-                </td>
-                <td>
-                    <a th:href="@{${baseUrl} + '/' + ${q.id} + '/editar'}" class="botao-secundario">Editar</a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <details class="prova-grupo" th:each="entry : ${questoesPorProva}" open>
+            <summary>
+                <span class="prova-grupo-titulo" th:text="${entry.key.ano}"></span>
+                <span class="prova-grupo-contagem" th:text="${entry.value.size()} + ' questões'"></span>
+
+                <table class="tabela-usuarios tabela-questoes">
+                    <thead>
+                    <tr>
+                        <th>Nº</th>
+                        <th>Enunciado</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="q : ${entry.value}">
+                        <td th:text="${q.numero}"></td>
+                        <td th:text="${#strings.abbreviate(q.enunciado, 160)}"></td>
+                        <td>
+                            <span th:unless="${q.ativa}" class="badge-status badge-inativo">Anulada/Oculta</span>
+                            <span th:if="${q.ativa and q.imagem != null}" class="badge-status badge-aviso">Tem imagem</span>
+                            <span th:if="${q.ativa and q.imagem == null}" class="badge-status badge-ativo">Ativa</span>
+                        </td>
+                        <td>
+                            <a th:href="@{${baseUrl} + '/' + ${q.id} + '/editar'}" class="botao-secundario">Editar</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+        </details>
 
     </div>
 </main>

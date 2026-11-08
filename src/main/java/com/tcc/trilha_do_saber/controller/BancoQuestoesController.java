@@ -2,8 +2,12 @@ package com.tcc.trilha_do_saber.controller;
 
 import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
 import com.tcc.trilha_do_saber.model.Alternativa;
+import com.tcc.trilha_do_saber.model.Fonte;
+import com.tcc.trilha_do_saber.model.Prova;
 import com.tcc.trilha_do_saber.model.Questao;
 import com.tcc.trilha_do_saber.repository.AlternativaRepository;
+import com.tcc.trilha_do_saber.repository.FonteRepository;
+import com.tcc.trilha_do_saber.repository.ProvaRepository;
 import com.tcc.trilha_do_saber.repository.QuestaoRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
@@ -17,17 +21,24 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class BancoQuestoesController {
 
     private final QuestaoRepository questaoRepository;
     private final AlternativaRepository alternativaRepository;
+    private final ProvaRepository provaRepository;
+    private final FonteRepository fonteRepository;
 
-    public BancoQuestoesController(QuestaoRepository questaoRepository, AlternativaRepository alternativaRepository) {
+    public BancoQuestoesController(QuestaoRepository questaoRepository, AlternativaRepository alternativaRepository, ProvaRepository provaRepository, FonteRepository fonteRepository) {
         this.questaoRepository = questaoRepository;
         this.alternativaRepository = alternativaRepository;
+        this.provaRepository = provaRepository;
+        this.fonteRepository = fonteRepository;
     }
 
     @GetMapping({"/admin/questoes", "/coordenador/questoes"})
@@ -41,12 +52,88 @@ public class BancoQuestoesController {
                 ? List.of()
                 : questaoRepository.findByProvaCursoOrderByProva_AnoDescNumeroAsc(curso);
 
-        model.addAttribute("questoes", questoes);
+        Map<Prova, List<Questao>> questoesPorProva = questoes.stream()
+                .collect(Collectors.groupingBy(Questao::getProva, LinkedHashMap::new, Collectors.toList()));
+
+        model.addAttribute("questoesPorProva", questoesPorProva);
         model.addAttribute("cursoSelecionado", curso);
         model.addAttribute("usuarioLogado", ator);
         model.addAttribute("ehAdmin", "ADMIN".equals(ator.getTipo()));
         model.addAttribute("baseUrl", baseUrl(ator));
         return "coordenador/questoes";
+    }
+
+    @GetMapping({"/admin/questoes/novo", "/coordenador/questoes/novo"})
+    public String novoFormulario(@RequestParam(required = false) String curso, Model model, HttpSession session) {
+        UsuarioSessaoDTO ator = autorizado(session);
+        if (ator == null) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("cursoPreSelecionado", curso);
+        model.addAttribute("usuarioLogado", ator);
+        model.addAttribute("ehAdmin", "ADMIN".equals(ator.getTipo()));
+        model.addAttribute("baseUrl", baseUrl(ator));
+        return "coordenador/questaoNovaForm";
+    }
+
+    @PostMapping({"/admin/questoes", "/coordenador/questoes"})
+    public String cadastrar(@RequestParam String curso,
+                            @RequestParam int ano,
+                            @RequestParam int numero,
+                            @RequestParam String fonte,
+                            @RequestParam String enunciado,
+                            @RequestParam(required = false) MultipartFile imagem,
+                            @RequestParam List<String> altTexto,
+                            @RequestParam char corretaLetra,
+                            Model model,
+                            HttpSession session) throws IOException {
+
+        UsuarioSessaoDTO ator = autorizado(session);
+        if (ator == null) {
+            return "redirect:/login";
+        }
+
+        if (!questaoRepository.findByNumeroAndProvaCursoAndProvaAno(numero, curso, ano).isEmpty()) {
+            model.addAttribute("erro", "Já existe uma questão com o número " + numero + " cadastrada para " + curso + " / " + ano + ".");
+            model.addAttribute("cursoPreSelecionado", curso);
+            model.addAttribute("anoPreenchido", ano);
+            model.addAttribute("numeroPreenchido", numero);
+            model.addAttribute("fontePreenchida", fonte);
+            model.addAttribute("enunciadoPreenchido", enunciado);
+            model.addAttribute("altTextoPreenchido", altTexto);
+            model.addAttribute("corretaLetraPreenchida", corretaLetra);
+            model.addAttribute("usuarioLogado", ator);
+            model.addAttribute("ehAdmin", "ADMIN".equals(ator.getTipo()));
+            model.addAttribute("baseUrl", baseUrl(ator));
+            return "coordenador/questaoNovaForm";
+        }
+
+        Prova prova = provaRepository.findByCursoAndAno(curso, ano)
+                .orElseGet(() -> provaRepository.save(new Prova(ano, curso, null)));
+
+        Fonte fonteCriada = fonteRepository.save(new Fonte(fonte));
+
+        Questao questao = new Questao(enunciado, null, prova, fonteCriada, numero);
+
+        if (imagem != null && !imagem.isEmpty()) {
+            questao.setImagem(imagem.getBytes());
+        }
+
+        questao = questaoRepository.save(questao);
+
+        for (int i = 0; i < altTexto.size() && i < 5; i++) {
+            char letra = (char) ('A' + i);
+            String texto = altTexto.get(i);
+            if (texto == null || texto.isBlank()) {
+                continue;
+            }
+            Alternativa alternativa = new Alternativa(texto, letra == corretaLetra, questao, letra);
+            alternativaRepository.save(alternativa);
+        }
+
+        String cursoCodificado = URLEncoder.encode(curso, StandardCharsets.UTF_8);
+        return "redirect:" + baseUrl(ator) + "?curso=" + cursoCodificado;
     }
 
     @GetMapping({"/admin/questoes/{id}/editar", "/coordenador/questoes/{id}/editar"})

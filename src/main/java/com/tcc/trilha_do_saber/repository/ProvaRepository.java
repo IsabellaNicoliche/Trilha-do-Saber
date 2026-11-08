@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface ProvaRepository extends JpaRepository<Prova, Long> {
     Optional<Prova> findByHashArquivo(String hashArquivo);
+
+    Optional<Prova> findByCursoAndAno(String curso, int ano);
 }

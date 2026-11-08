@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nova Questão</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+</head>
+<body>
+
+<th:block th:if="${ehAdmin}">
+    <header th:replace="~{fragments/navAdmin :: nav(pagina='questoes', usuarioLogado=${usuarioLogado})}"></header>
+</th:block>
+<th:block th:unless="${ehAdmin}">
+    <header th:replace="~{fragments/navCoordenador :: nav(pagina='questoes', usuarioLogado=${usuarioLogado})}"></header>
+</th:block>
+
+<main class="conteudo">
+    <div class="cartao-largo">
+
+        <h1>Nova questão</h1>
+
+        <p th:if="${erro != null}" th:text="${erro}" style="color:#B91C1C; font-weight:600;"></p>
+
+        <form method="post" th:action="@{${baseUrl}}" enctype="multipart/form-data">
+
+            <label>Curso</label>
+            <select name="curso" required>
+                <option value="">Selecionar curso</option>
+                <option th:each="c : ${T(com.tcc.trilha_do_saber.model.Curso).values()}"
+                        th:value="${c.nomeExibicao}" th:text="${c.nomeExibicao}"
+                        th:selected="${c.nomeExibicao == cursoPreSelecionado}"></option>
+            </select>
+
+            <label>Ano</label>
+            <input type="number" name="ano" th:value="${anoPreenchido}" required>
+
+            <label>Número da questão (na prova)</label>
+            <input type="number" name="numero" th:value="${numeroPreenchido}" required>
+
+            <label>Fonte (link ou referência da prova original)</label>
+            <input type="text" name="fonte" th:value="${fontePreenchida}" placeholder="Ex: https://github.com/geacc/enade/.../2021/ ou ENADE 2021 - Ciência da Computação" required>
+
+            <label>Enunciado</label>
+            <textarea name="enunciado" rows="6" th:text="${enunciadoPreenchido}" required></textarea>
+
+            <label>Imagem (opcional)</label>
+            <input type="file" name="imagem" accept="image/*">
+
+            <h2>Alternativas</h2>
+
+            <div class="linha-alternativa">
+                <span class="letra-alternativa">A</span>
+                <textarea name="altTexto" rows="2" th:text="${altTextoPreenchido != null ? altTextoPreenchido[0] : ''}"></textarea>
+                <label class="opcao-correta">
+                    <input type="radio" name="corretaLetra" value="A" th:checked="${corretaLetraPreenchida == 'A'}">
+                    Correta
+                </label>
+            </div>
+            <div class="linha-alternativa">
+                <span class="letra-alternativa">B</span>
+                <textarea name="altTexto" rows="2" th:text="${altTextoPreenchido != null ? altTextoPreenchido[1] : ''}"></textarea>
+                <label class="opcao-correta">
+                    <input type="radio" name="corretaLetra" value="B" th:checked="${corretaLetraPreenchida == 'B'}">
+                    Correta
+                </label>
+            </div>
+            <div class="linha-alternativa">
+                <span class="letra-alternativa">C</span>
+                <textarea name="altTexto" rows="2" th:text="${altTextoPreenchido != null ? altTextoPreenchido[2] : ''}"></textarea>
+                <label class="opcao-correta">
+                    <input type="radio" name="corretaLetra" value="C" th:checked="${corretaLetraPreenchida == 'C'}">
+                    Correta
+                </label>
+            </div>
+            <div class="linha-alternativa">
+                <span class="letra-alternativa">D</span>
+                <textarea name="altTexto" rows="2" th:text="${altTextoPreenchido != null ? altTextoPreenchido[3] : ''}"></textarea>
+                <label class="opcao-correta">
+                    <input type="radio" name="corretaLetra" value="D" th:checked="${corretaLetraPreenchida == 'D'}">
+                    Correta
+                </label>
+            </div>
+            <div class="linha-alternativa">
+                <span class="letra-alternativa">E</span>
+                <textarea name="altTexto" rows="2" th:text="${altTextoPreenchido != null ? altTextoPreenchido[4] : ''}"></textarea>
+                <label class="opcao-correta">
+                    <input type="radio" name="corretaLetra" value="E" th:checked="${corretaLetraPreenchida == 'E'}">
+                    Correta
+                </label>
+            </div>
+
+            <div class="acoes-form">
+                <a th:href="@{${baseUrl}}" class="botao-secundario">Cancelar</a>
+                <button type="submit" class="botao-primario">Salvar</button>
+            </div>
+        </form>
+
+    </div>
+</main>
+
+</body>
+</html>
