@@ -9,41 +9,8 @@
 </head>
 <body>
 
-<header class="topbar">
-    <div class="marca-topbar">
-        <span class="logo-marca">📘</span>
-        <div>
-            <strong>Trilha do Saber</strong>
-            <span th:text="${ehAdmin} ? 'Administrador' : 'Coordenador'">Coordenador</span>
-        </div>
-    </div>
-
-    <nav class="menu-topbar" th:if="${ehAdmin}">
-        <a th:href="@{/admin/inicio}" class="item-menu"><span>🏠</span> Início</a>
-        <a href="#" class="item-menu"><span>🗄️</span> Banco de Questões</a>
-        <a href="#" class="item-menu"><span>📋</span> Simulados</a>
-        <a th:href="@{/admin/coordenadores}" class="item-menu"><span>👥</span> Usuários</a>
-        <a th:href="@{/admin/turmas}" class="item-menu ativo"><span>🎓</span> Turmas</a>
-        <a th:href="@{/admin/logs}" class="item-menu"><span>🛡️</span> Logs de Auditoria</a>
-    </nav>
-
-    <nav class="menu-topbar" th:unless="${ehAdmin}">
-        <a th:href="@{/coordenador/inicio}" class="item-menu"><span>🏠</span> Início</a>
-        <a th:href="@{/coordenador/usuarios}" class="item-menu"><span>👥</span> Usuários</a>
-        <a th:href="@{/coordenador/turmas}" class="item-menu ativo"><span>🎓</span> Turmas</a>
-        <a href="#" class="item-menu"><span>📊</span> Relatórios</a>
-        <a href="#" class="item-menu"><span>⚙️</span> Minha Conta</a>
-    </nav>
-
-    <div class="perfil-topbar">
-        <div class="avatar-usuario" th:text="${ehAdmin} ? 'AD' : 'CO'">CO</div>
-        <div>
-            <strong th:text="${usuario.nome}">Coordenação</strong>
-            <span th:text="${usuario.email}">coordenacao@umc.br</span>
-        </div>
-        <a th:href="@{/logout}" class="link-sair">Sair</a>
-    </div>
-</header>
+<header th:if="${ehAdmin}" th:replace="~{fragments/navAdmin :: nav(pagina='turmas', usuarioLogado=${usuario})}"></header>
+<header th:unless="${ehAdmin}" th:replace="~{fragments/navCoordenador :: nav(pagina='turmas', usuarioLogado=${usuario})}"></header>
 
 <main class="conteudo">
     <div class="cartao-form">

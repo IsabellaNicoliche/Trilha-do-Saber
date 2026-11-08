@@ -9,32 +9,7 @@
 </head>
 <body>
 
-<header class="topbar">
-    <div class="marca-topbar">
-        <span class="logo-marca">📘</span>
-        <div>
-            <strong>Trilha do Saber</strong>
-            <span>Aluno</span>
-        </div>
-    </div>
-
-    <nav class="menu-topbar">
-        <a th:href="@{/aluno/inicio}" class="item-menu"><span>🏠</span> Início</a>
-        <a th:href="@{/simulado/iniciar}" class="item-menu"><span>📝</span> Simulados</a>
-        <a th:href="@{/aluno/dashboard}" class="item-menu ativo"><span>📈</span> Meu Desempenho</a>
-        <a href="#" class="item-menu"><span>👤</span> Minha Conta</a>
-    </nav>
-
-    <div class="perfil-topbar">
-        <div class="avatar-usuario">AL</div>
-        <div>
-            <strong th:text="${usuario.nome}">Aluno</strong>
-            <span th:text="${usuario.email}">aluno@umc.br</span>
-        </div>
-        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
-        <a th:href="@{/logout}" class="link-sair">Sair</a>
-    </div>
-</header>
+<header th:replace="~{fragments/navAluno :: nav(pagina='dashboard', usuarioLogado=${usuario})}"></header>
 
 <main class="conteudo dashboard">
 
@@ -48,7 +23,7 @@
         <div class="alerta-erro" th:if="${erroSimulado}" th:text="${erroSimulado}"></div>
 
         <section th:if="${dashboard.semSimulados}" class="estado-vazio">
-            <span class="icone-vazio">📝</span>
+            <img th:src="@{/css/img/icons/img/iconeVazio.png}" alt="" class="icone-vazio">
             <h2>Você ainda não realizou nenhum simulado</h2>
             <p>Faça seu primeiro simulado para começar a acompanhar seu desempenho.</p>
             <a th:href="@{/simulado/iniciar}" class="botao-primario">Fazer meu primeiro simulado</a>
@@ -87,7 +62,7 @@
             <section class="painel painel-ranking" th:if="${ranking != null}">
 
                 <div class="ranking-bloco" th:if="${ranking.classificado}">
-                    <span class="ranking-medalha">🏆</span>
+                    <span class="ranking-medalha"><img th:src="@{/css/img/icons/img/iconeMedalha.png}" alt="" class="icone-medalha"></span>
                     <div>
                         <span class="ranking-rotulo">Sua posição na turma</span>
                         <strong class="ranking-valor"
@@ -98,7 +73,7 @@
                 </div>
 
                 <div class="ranking-bloco" th:if="${ranking.insuficiente}">
-                    <span class="ranking-medalha">🎯</span>
+                    <span class="ranking-medalha"><img th:src="@{/css/img/icons/img/iconeMedalha.png}" alt="" class="icone-medalha"></span>
                     <div>
                         <span class="ranking-rotulo">Sua posição na turma</span>
                         <strong class="ranking-valor ranking-valor-texto">Ainda sem posição</strong>
@@ -111,7 +86,7 @@
                 </div>
 
                 <div class="ranking-bloco" th:if="${ranking.semTurma}">
-                    <span class="ranking-medalha">ℹ️</span>
+                    <span class="ranking-medalha"><img th:src="@{/css/img/icons/img/iconeMedalha.png}" alt="" class="icone-medalha"></span>
                     <div>
                         <span class="ranking-rotulo">Sua posição na turma</span>
                         <strong class="ranking-valor ranking-valor-texto">Turma não informada</strong>

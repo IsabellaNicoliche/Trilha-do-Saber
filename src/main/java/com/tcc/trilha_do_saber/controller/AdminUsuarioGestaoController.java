@@ -1,6 +1,7 @@
 package com.tcc.trilha_do_saber.controller;
 
 import com.tcc.trilha_do_saber.dto.AlunoFormDTO;
+import com.tcc.trilha_do_saber.dto.CadastroProfessorAdminDTO;
 import com.tcc.trilha_do_saber.dto.ProfessorFormDTO;
 import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
 import com.tcc.trilha_do_saber.model.Aluno;
@@ -25,6 +26,33 @@ public class AdminUsuarioGestaoController {
     public AdminUsuarioGestaoController(AlunoService alunoService, ProfessorService professorService){
         this.alunoService = alunoService;
         this.professorService = professorService;
+    }
+
+    @GetMapping("/professor/novo")
+    public String novoProfessorFormulario(Model model, HttpSession session){
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        model.addAttribute("professorNovoForm", new CadastroProfessorAdminDTO());
+        model.addAttribute("usuarioLogado", ator);
+        return "admin/professorNovoForm";
+    }
+
+    @PostMapping("/professor/novo")
+    public String criarProfessor(@Valid @ModelAttribute("professorNovoForm") CadastroProfessorAdminDTO form, BindingResult result,
+                                 HttpSession session, HttpServletRequest request, Model model){
+        UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
+        if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
+        if (result.hasErrors()) {
+            return "admin/professorNovoForm";
+        }
+        long inicio = System.currentTimeMillis();
+        try {
+            professorService.cadastrarPeloAdmin(form, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("erroGeral", e.getMessage());
+            return "admin/professorNovoForm";
+        }
+        return "redirect:/admin/coordenadores";
     }
 
     @GetMapping("/{tipo}/{id}/editar")
@@ -53,6 +81,8 @@ public class AdminUsuarioGestaoController {
             form.setRegistroAluno(aluno.getRegistroAluno());
             form.setCurso(aluno.getCurso());
             form.setSemestre(aluno.getSemestre());
+            form.setTurma(aluno.getTurma());
+            form.setTurno(aluno.getTurno());
             form.setAtivo(aluno.isAtivo());
             model.addAttribute("alunoForm", form);
         }

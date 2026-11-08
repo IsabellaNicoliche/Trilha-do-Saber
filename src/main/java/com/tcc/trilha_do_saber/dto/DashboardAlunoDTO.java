@@ -1,6 +1,7 @@
 package com.tcc.trilha_do_saber.dto;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,6 +25,11 @@ public class DashboardAlunoDTO {
 
     public int getTotalSimulados() {
         return simulados.size();
+    }
+    public List<DesempenhoSimuladoDTO> getUltimosSimulados() {
+        List<DesempenhoSimuladoDTO> invertido = new ArrayList<>(simulados);
+        Collections.reverse(invertido);
+        return invertido.stream().limit(3).toList();
     }
 
     public int getTotalQuestoes() {

@@ -17,135 +17,185 @@
         <p class="subtitulo-pagina">Coordenadores, professores e alunos da plataforma</p>
     </header>
 
-    <section class="grade-cards">
-        <div class="card-estatistica">
-            <span class="rotulo-card">Coordenadores ativos</span>
-            <strong class="numero-card" th:text="${coordenadores.?[ativo].size()}"></strong>
-        </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Professores ativos</span>
-            <strong class="numero-card" th:text="${professores.?[ativo].size()}"></strong>
-        </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Alunos ativos</span>
-            <strong class="numero-card" th:text="${alunos.?[ativo].size()}"></strong>
-        </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Pendentes de aprovação</span>
-            <strong class="numero-card" th:text="${coordenadores.?[!ativo && !isExcluido()].size()}"></strong>
-        </div>
-    </section>
+    <nav class="abas">
+        <a th:href="@{/admin/coordenadores}" class="aba" th:classappend="${abaAtiva == 'usuarios'} ? 'ativa'">Usuários</a>
+        <a th:href="@{/admin/coordenadores(aba='solicitacoes')}" class="aba" th:classappend="${abaAtiva == 'solicitacoes'} ? 'ativa'">Solicitações de exclusão</a>
+    </nav>
 
-    <div class="cabecalho-usuarios">
-        <h2>Coordenadores</h2>
+    <div th:if="${abaAtiva == 'usuarios'}">
+
+        <section class="grade-cards">
+            <div class="card-estatistica">
+                <span class="rotulo-card">Coordenadores ativos</span>
+                <strong class="numero-card" th:text="${coordenadores.?[ativo].size()}"></strong>
+            </div>
+            <div class="card-estatistica">
+                <span class="rotulo-card">Professores ativos</span>
+                <strong class="numero-card" th:text="${professores.?[ativo].size()}"></strong>
+            </div>
+            <div class="card-estatistica">
+                <span class="rotulo-card">Alunos ativos</span>
+                <strong class="numero-card" th:text="${alunos.?[ativo].size()}"></strong>
+            </div>
+            <div class="card-estatistica">
+                <span class="rotulo-card">Pendentes de aprovação</span>
+                <strong class="numero-card" th:text="${coordenadores.?[!ativo && !isExcluido()].size()}"></strong>
+            </div>
+        </section>
+
+        <div class="cabecalho-usuarios">
+            <h2>Coordenadores</h2>
+            <a th:href="@{/admin/coordenadores/novo}" class="botao-primario">+ Novo coordenador</a>
+        </div>
+
+        <table class="tabela-usuarios">
+            <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Registro</th>
+                <th>Curso</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="coordenador : ${coordenadores}">
+                <td th:text="${coordenador.nome}"></td>
+                <td th:text="${coordenador.email}"></td>
+                <td th:text="${coordenador.registroFuncional}"></td>
+                <td th:text="${coordenador.curso}"></td>
+                <td>
+                    <span class="badge-status" th:classappend="${coordenador.ativo} ? 'badge-ativo' : 'badge-inativo'"
+                          th:text="${coordenador.ativo} ? 'Ativo' : (${coordenador.isExcluido()} ? 'Excluído' : 'Pendente')"></span>
+                </td>
+                <td class="coluna-acoes">
+                    <form th:if="${!coordenador.ativo && !coordenador.isExcluido()}"
+                          th:action="@{/admin/coordenadores/{id}/aprovar(id=${coordenador.id})}" method="post" style="display:inline">
+                        <button type="submit" class="botao-primario">Aprovar</button>
+                    </form>
+                    <a th:href="@{/admin/coordenadores/{id}/editar(id=${coordenador.id})}">Editar</a>
+                </td>
+            </tr>
+            <tr th:if="${coordenadores.isEmpty()}">
+                <td colspan="6" class="linha-vazia">Nenhum coordenador cadastrado</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="cabecalho-usuarios">
+            <h2>Professores</h2>
+            <a th:href="@{/admin/usuarios/professor/novo}" class="botao-primario">+ Novo professor</a>
+        </div>
+
+        <table class="tabela-usuarios">
+            <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Registro</th>
+                <th>Disciplina</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="professor : ${professores}">
+                <td th:text="${professor.nome}"></td>
+                <td th:text="${professor.email}"></td>
+                <td th:text="${professor.registroProfissional}"></td>
+                <td th:text="${professor.disciplina}"></td>
+                <td>
+                    <span class="badge-status" th:classappend="${professor.ativo} ? 'badge-ativo' : 'badge-inativo'"
+                          th:text="${professor.ativo} ? 'Ativo' : (${professor.isExcluido()} ? 'Excluído' : 'Pendente')"></span>
+                </td>
+                <td class="coluna-acoes">
+                    <a th:href="@{/admin/usuarios/professor/{id}/editar(id=${professor.id})}">Editar</a>
+                </td>
+            </tr>
+            <tr th:if="${professores.isEmpty()}">
+                <td colspan="6" class="linha-vazia">Nenhum professor cadastrado</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="cabecalho-usuarios">
+            <h2>Alunos</h2>
+        </div>
+
+        <table class="tabela-usuarios">
+            <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Registro de aluno</th>
+                <th>Curso</th>
+                <th>Semestre</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="aluno : ${alunos}">
+                <td th:text="${aluno.nome}"></td>
+                <td th:text="${aluno.email}"></td>
+                <td th:text="${aluno.registroAluno}"></td>
+                <td th:text="${aluno.curso}"></td>
+                <td th:text="${aluno.semestre}"></td>
+                <td>
+                    <span class="badge-status" th:classappend="${aluno.ativo} ? 'badge-ativo' : 'badge-inativo'"
+                          th:text="${aluno.ativo} ? 'Ativo' : (${aluno.isExcluido()} ? 'Excluído' : 'Pendente')"></span>
+                </td>
+                <td class="coluna-acoes">
+                    <a th:href="@{/admin/usuarios/aluno/{id}/editar(id=${aluno.id})}">Editar</a>
+                </td>
+            </tr>
+            <tr th:if="${alunos.isEmpty()}">
+                <td colspan="7" class="linha-vazia">Nenhum aluno cadastrado</td>
+            </tr>
+            </tbody>
+        </table>
+
     </div>
 
-    <table class="tabela-usuarios">
-        <thead>
-        <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Registro</th>
-            <th>Curso</th>
-            <th>Status</th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="coordenador : ${coordenadores}">
-            <td th:text="${coordenador.nome}"></td>
-            <td th:text="${coordenador.email}"></td>
-            <td th:text="${coordenador.registroFuncional}"></td>
-            <td th:text="${coordenador.curso}"></td>
-            <td>
-                <span class="badge-status" th:classappend="${coordenador.ativo} ? 'badge-ativo' : 'badge-inativo'"
-                      th:text="${coordenador.ativo} ? 'Ativo' : (${coordenador.isExcluido()} ? 'Excluído' : 'Pendente')"></span>
-            </td>
-            <td class="coluna-acoes">
-                <form th:if="${!coordenador.ativo && !coordenador.isExcluido()}"
-                      th:action="@{/admin/coordenadores/{id}/aprovar(id=${coordenador.id})}" method="post" style="display:inline">
-                    <button type="submit" class="botao-primario">Aprovar</button>
-                </form>
-                <a th:href="@{/admin/coordenadores/{id}/editar(id=${coordenador.id})}">Editar</a>
-            </td>
-        </tr>
-        <tr th:if="${coordenadores.isEmpty()}">
-            <td colspan="6" class="linha-vazia">Nenhum coordenador cadastrado</td>
-        </tr>
-        </tbody>
-    </table>
+    <div th:if="${abaAtiva == 'solicitacoes'}">
 
-    <div class="cabecalho-usuarios">
-        <h2>Professores</h2>
+        <div class="cabecalho-usuarios">
+            <h2>Solicitações de exclusão e anonimização de coordenadores</h2>
+        </div>
+
+        <table class="tabela-usuarios">
+            <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Solicitação</th>
+                <th>Data</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="solicitacao : ${solicitacoes}">
+                <td th:text="${solicitacao.nome}"></td>
+                <td th:text="${solicitacao.email}"></td>
+                <td th:text="${solicitacao.rotuloSolicitacao}"></td>
+                <td th:text="${#temporals.format(solicitacao.dataSolicitacao, 'dd/MM/yyyy HH:mm')}"></td>
+                <td class="coluna-acoes">
+                    <form th:action="@{/admin/coordenadores/solicitacoes/{id}/aprovar(id=${solicitacao.id})}" method="post" style="display:inline">
+                        <button type="submit" class="botao-primario" onclick="return confirm('Aprovar esta solicitação? A ação não pode ser desfeita.');">Aprovar</button>
+                    </form>
+                    <form th:action="@{/admin/coordenadores/solicitacoes/{id}/recusar(id=${solicitacao.id})}" method="post" style="display:inline">
+                        <button type="submit" class="botao-perigo" onclick="return confirm('Recusar esta solicitação?');">Recusar</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${solicitacoes.isEmpty()}">
+                <td colspan="5" class="linha-vazia">Nenhuma solicitação pendente</td>
+            </tr>
+            </tbody>
+        </table>
+
     </div>
-
-    <table class="tabela-usuarios">
-        <thead>
-        <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Registro</th>
-            <th>Disciplina</th>
-            <th>Status</th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="professor : ${professores}">
-            <td th:text="${professor.nome}"></td>
-            <td th:text="${professor.email}"></td>
-            <td th:text="${professor.registroProfissional}"></td>
-            <td th:text="${professor.disciplina}"></td>
-            <td>
-                <span class="badge-status" th:classappend="${professor.ativo} ? 'badge-ativo' : 'badge-inativo'"
-                      th:text="${professor.ativo} ? 'Ativo' : (${professor.isExcluido()} ? 'Excluído' : 'Pendente')"></span>
-            </td>
-            <td class="coluna-acoes">
-                <a th:href="@{/admin/usuarios/professor/{id}/editar(id=${professor.id})}">Editar</a>
-            </td>
-        </tr>
-        <tr th:if="${professores.isEmpty()}">
-            <td colspan="6" class="linha-vazia">Nenhum professor cadastrado</td>
-        </tr>
-        </tbody>
-    </table>
-
-    <div class="cabecalho-usuarios">
-        <h2>Alunos</h2>
-    </div>
-
-    <table class="tabela-usuarios">
-        <thead>
-        <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Registro de aluno</th>
-            <th>Curso</th>
-            <th>Semestre</th>
-            <th>Status</th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="aluno : ${alunos}">
-            <td th:text="${aluno.nome}"></td>
-            <td th:text="${aluno.email}"></td>
-            <td th:text="${aluno.registroAluno}"></td>
-            <td th:text="${aluno.curso}"></td>
-            <td th:text="${aluno.semestre}"></td>
-            <td>
-                <span class="badge-status" th:classappend="${aluno.ativo} ? 'badge-ativo' : 'badge-inativo'"
-                      th:text="${aluno.ativo} ? 'Ativo' : (${aluno.isExcluido()} ? 'Excluído' : 'Pendente')"></span>
-            </td>
-            <td class="coluna-acoes">
-                <a th:href="@{/admin/usuarios/aluno/{id}/editar(id=${aluno.id})}">Editar</a>
-            </td>
-        </tr>
-        <tr th:if="${alunos.isEmpty()}">
-            <td colspan="7" class="linha-vazia">Nenhum aluno cadastrado</td>
-        </tr>
-        </tbody>
-    </table>
 
 </main>
 

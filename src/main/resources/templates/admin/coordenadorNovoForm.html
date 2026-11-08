@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Novo coordenador</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+</head>
+<body>
+
+<header th:replace="~{fragments/navAdmin :: nav(pagina='usuarios', usuarioLogado=${usuarioLogado})}"></header>
+
+<main class="conteudo">
+    <div class="cartao-form">
+
+        <h1>Novo coordenador</h1>
+        <p class="subtitulo-pagina">O acesso já é liberado na hora. Uma senha provisória será enviada para o e-mail informado.</p>
+
+        <span class="erro-geral" th:if="${erroGeral}" th:text="${erroGeral}"></span>
+
+        <form method="post" th:object="${coordenadorNovoForm}" th:action="@{/admin/coordenadores/novo}">
+
+            <label>Nome completo</label>
+            <input type="text" th:field="*{nome}" placeholder="Ana Lima Ferreira">
+            <span class="erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
+
+            <label>E-mail institucional</label>
+            <input type="email" th:field="*{email}" placeholder="ana.lima@uni.edu.br">
+            <span class="erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+
+            <label>Registro de funcionário</label>
+            <input type="text" th:field="*{registroFuncional}" placeholder="20240001">
+            <span class="erro" th:if="${#fields.hasErrors('registroFuncional')}" th:errors="*{registroFuncional}"></span>
+
+            <label>Curso principal</label>
+            <select th:field="*{curso}">
+                <option value="">Selecionar curso</option>
+                <option value="Sistemas de Informação">Sistemas de Informação</option>
+                <option value="Engenharia de Software">Engenharia de Software</option>
+                <option value="Análise e Desenvolvimento de Sistemas">Análise e Desenvolvimento de Sistemas</option>
+            </select>
+            <span class="erro" th:if="${#fields.hasErrors('curso')}" th:errors="*{curso}"></span>
+
+            <label>Outros cursos que também vai coordenar (opcional)</label>
+            <label class="opcao-curso">
+                <input type="checkbox" th:field="*{cursosAdicionais}" value="Sistemas de Informação">
+                <span>Sistemas de Informação</span>
+            </label>
+            <label class="opcao-curso">
+                <input type="checkbox" th:field="*{cursosAdicionais}" value="Engenharia de Software">
+                <span>Engenharia de Software</span>
+            </label>
+            <label class="opcao-curso">
+                <input type="checkbox" th:field="*{cursosAdicionais}" value="Análise e Desenvolvimento de Sistemas">
+                <span>Análise e Desenvolvimento de Sistemas</span>
+            </label>
+
+            <div class="acoes-form">
+                <a th:href="@{/admin/coordenadores}" class="botao-secundario">Cancelar</a>
+                <button type="submit" class="botao-primario">Criar coordenador</button>
+            </div>
+        </form>
+
+    </div>
+</main>
+
+</body>
+</html>

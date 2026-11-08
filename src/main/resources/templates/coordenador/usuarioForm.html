@@ -8,33 +8,7 @@
 </head>
 <body>
 
-<header class="topbar">
-    <div class="marca-topbar">
-        <span class="logo-marca">📘</span>
-        <div>
-            <strong>Trilha do Saber</strong>
-            <span>Coordenador</span>
-        </div>
-    </div>
-
-    <nav class="menu-topbar">
-        <a th:href="@{/coordenador/inicio}" class="item-menu"><span>🏠</span> Início</a>
-        <a th:href="@{/coordenador/usuarios}" class="item-menu ativo"><span>👥</span> Usuários</a>
-        <a th:href="@{/coordenador/turmas}" class="item-menu"><span>🎓</span> Turmas</a>
-        <a th:href="@{/coordenador/dashboard}" class="item-menu"><span>📊</span> Desempenho</a>
-        <a href="#" class="item-menu"><span>⚙️</span> Minha Conta</a>
-    </nav>
-
-    <div class="perfil-topbar">
-        <div class="avatar-usuario">CO</div>
-        <div>
-            <strong th:text="${usuarioLogado != null} ? ${usuarioLogado.nome} : 'Coordenação'">Coordenação</strong>
-            <span th:text="${usuarioLogado != null} ? ${usuarioLogado.email} : 'coordenacao@umc.br'">coordenacao@umc.br</span>
-        </div>
-        <a th:href="@{/cadastro/termos-lgpd}" target="_blank" class="link-sair">Termo de Uso</a>
-        <a th:href="@{/logout}" class="link-sair">Sair</a>
-    </div>
-</header>
+<header th:replace="~{fragments/navCoordenador :: nav(pagina='usuarios', usuarioLogado=${usuarioLogado})}"></header>
 
 <main class="conteudo">
     <div class="cartao-form">

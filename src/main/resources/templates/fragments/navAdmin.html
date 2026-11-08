@@ -4,7 +4,7 @@
 
 <header th:fragment="nav(pagina, usuarioLogado)" class="topbar">
     <div class="marca-topbar">
-        <span class="logo-marca">📘</span>
+        <img th:src="@{/css/img/icons/img/logo.png}" alt="Trilha do Saber" class="logo-marca">
         <div>
             <strong>Trilha do Saber</strong>
             <span>Administrador</span>
@@ -12,13 +12,13 @@
     </div>
 
     <nav class="menu-topbar">
-        <a th:href="@{/admin/inicio}" class="item-menu" th:classappend="${pagina == 'inicio'} ? ' ativo' : ''"><span>🏠</span> Início</a>
-        <a th:href="@{/admin/questoes}" class="item-menu" th:classappend="${pagina == 'questoes'} ? ' ativo' : ''"><span>🗄️</span> Banco de Questões</a>
-        <a href="#" class="item-menu"><span>📋</span> Simulados</a>
-        <a th:href="@{/admin/coordenadores}" class="item-menu" th:classappend="${pagina == 'usuarios'} ? ' ativo' : ''"><span>👥</span> Usuários</a>
-        <a th:href="@{/admin/turmas}" class="item-menu" th:classappend="${pagina == 'turmas'} ? ' ativo' : ''"><span>🎓</span> Turmas</a>
-        <a th:href="@{/arquivoPDF}" class="item-menu" th:classappend="${pagina == 'importar'} ? ' ativo' : ''"><span>📥</span> Importar Provas</a>
-        <a th:href="@{/admin/logs}" class="item-menu" th:classappend="${pagina == 'logs'} ? ' ativo' : ''"><span>🛡️</span> Logs de Auditoria</a>
+        <a th:href="@{/admin/inicio}" class="item-menu" th:classappend="${pagina == 'inicio'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconeinicio.png}" alt="Início" class="icone-menu"> Início</a>
+        <a th:href="@{/admin/questoes}" class="item-menu" th:classappend="${pagina == 'questoes'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconeBQ.png}" alt="Banco de Questões" class="icone-menu"> Banco de Questões</a>
+        <a href="#" class="item-menu"><img th:src="@{/css/img/icons/img/iconesimu.png}" alt="Simulados" class="icone-menu"> Simulados</a>
+        <a th:href="@{/admin/coordenadores}" class="item-menu" th:classappend="${pagina == 'usuarios'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconeusua.png}" alt="Usuários" class="icone-menu"> Usuários</a>
+        <a th:href="@{/admin/turmas}" class="item-menu" th:classappend="${pagina == 'turmas'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconeturma.png}" alt="Turmas" class="icone-menu"> Turmas</a>
+        <a th:href="@{/arquivoPDF}" class="item-menu" th:classappend="${pagina == 'importar'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconeprova.png}" alt="Importar Provas" class="icone-menu"> Importar Provas</a>
+        <a th:href="@{/admin/logs}" class="item-menu" th:classappend="${pagina == 'logs'} ? ' ativo' : ''"><img th:src="@{/css/img/icons/img/iconelog.png}" alt="Logs de Auditoria" class="icone-menu"> Logs de Auditoria</a>
     </nav>
 
     <div class="perfil-topbar">

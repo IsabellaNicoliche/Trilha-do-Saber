@@ -1,5 +1,6 @@
 package com.tcc.trilha_do_saber.service;
 
+import com.tcc.trilha_do_saber.dto.CadastroProfessorAdminDTO;
 import com.tcc.trilha_do_saber.dto.CadastroProfessorDTO;
 import com.tcc.trilha_do_saber.dto.ProfessorFormDTO;
 import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
@@ -9,6 +10,7 @@ import com.tcc.trilha_do_saber.repository.ProfessorRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,27 +20,25 @@ public class ProfessorService {
     private final ProfessorRepository professorRepository;
     private final PasswordEncoder passwordEncoder;
     private final LogAuditoriaService logAuditoriaService;
+    private final EmailService emailService;
 
-    // Construtor
     public ProfessorService(ProfessorRepository professorRepository, PasswordEncoder passwordEncoder,
-                            LogAuditoriaService logAuditoriaService){
+                            LogAuditoriaService logAuditoriaService, EmailService emailService){
         this.professorRepository = professorRepository;
         this.passwordEncoder = passwordEncoder;
         this.logAuditoriaService = logAuditoriaService;
+        this.emailService = emailService;
     }
 
-    // Lista todos os professores cadastrados
     public List<Professor> listarTodos(){
         return professorRepository.findAll();
     }
 
-    // Busca um professor pelo id, lanca erro se nao encontrar
     public Professor buscarPorId(Long id){
         return professorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Professor não encontrado"));
     }
 
-    // Cadastro publico de professor; fica inativo ate a coordenacao aprovar
     public Professor cadastrar(CadastroProfessorDTO dto){
         if (!dto.senhasConferem()) {
             throw new IllegalArgumentException("As senhas não conferem");
@@ -53,7 +53,6 @@ public class ProfessorService {
         professor.setDataConsentimento(LocalDateTime.now());
         professor = professorRepository.save(professor);
 
-        // Cadastro ainda nao tem "ator" (ninguem logado fez essa acao, foi o proprio professor se cadastrando)
         logAuditoriaService.registrar(professor.getId(), professor.getNome(), "PROFESSOR",
                 TipoAcao.CADASTRO, "Professor", professor.getId(),
                 "Solicitacao de cadastro enviada por " + professor.getNome() + " (" + professor.getEmail() + "), aguardando aprovacao",
@@ -62,7 +61,45 @@ public class ProfessorService {
         return professor;
     }
 
-    // Compara valor antigo x novo de um campo e acumula a diferenca numa string, pro log de auditoria
+    private String gerarSenhaAleatoria(){
+        String letras = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+        String numeros = "23456789";
+        String especiais = "!@#$%*";
+        String todos = letras + numeros + especiais;
+
+        SecureRandom random = new SecureRandom();
+        StringBuilder senha = new StringBuilder();
+        senha.append(letras.charAt(random.nextInt(letras.length())));
+        senha.append(numeros.charAt(random.nextInt(numeros.length())));
+        senha.append(especiais.charAt(random.nextInt(especiais.length())));
+        for (int i = 0; i < 7; i++) {
+            senha.append(todos.charAt(random.nextInt(todos.length())));
+        }
+        return senha.toString();
+    }
+
+    public Professor cadastrarPeloAdmin(CadastroProfessorAdminDTO dto, UsuarioSessaoDTO ator, String ip, long duracaoMs){
+        if (professorRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Já existe um cadastro com esse email");
+        }
+
+        String senhaGerada = gerarSenhaAleatoria();
+        String senhaComHash = passwordEncoder.encode(senhaGerada);
+
+        Professor professor = new Professor(dto.getNome(), dto.getEmail(), senhaComHash, dto.getRegistroProfissional());
+        professor.setAtivo(true);
+        professor = professorRepository.save(professor);
+
+        logAuditoriaService.registrar(ator.getId(), ator.getNome(), ator.getTipo(),
+                TipoAcao.CADASTRO, "Professor", professor.getId(),
+                "Professor " + professor.getNome() + " (" + professor.getEmail() + ") criado diretamente pelo administrador, acesso ja liberado",
+                ip, duracaoMs);
+
+        emailService.enviarSenhaProvisoria(professor.getNome(), professor.getEmail(), senhaGerada, "professor");
+
+        return professor;
+    }
+
     private void compararCampo(StringBuilder mudancas, String nomeCampo, String valorAntigo, String valorNovo){
         boolean mudou = valorAntigo == null ? valorNovo != null : !valorAntigo.equals(valorNovo);
         if (mudou) {
@@ -71,7 +108,6 @@ public class ProfessorService {
         }
     }
 
-    // Atualiza os dados do professor e registra no log exatamente quais campos mudaram
     public Professor atualizar(Long id, ProfessorFormDTO dto, UsuarioSessaoDTO ator, String ip, long duracaoMs){
         Professor professor = buscarPorId(id);
 
@@ -100,7 +136,6 @@ public class ProfessorService {
         return professor;
     }
 
-    // Aprova o cadastro do professor, liberando o acesso a plataforma
     public void ativar(Long id, UsuarioSessaoDTO ator, String ip, long duracaoMs){
         Professor professor = buscarPorId(id);
         professor.setAtivo(true);
@@ -112,7 +147,6 @@ public class ProfessorService {
                 ip, duracaoMs);
     }
 
-    // Bloqueia o acesso do professor sem apagar os dados
     public void desativar(Long id, UsuarioSessaoDTO ator, String ip, long duracaoMs){
         Professor professor = buscarPorId(id);
         professor.setAtivo(false);
@@ -124,11 +158,9 @@ public class ProfessorService {
                 ip, duracaoMs);
     }
 
-    // Exclusao "soft": desativa e marca data de exclusao, mas mantem os dados academicos no banco
     public void excluir(Long id, UsuarioSessaoDTO ator, String ip, long duracaoMs){
         Professor professor = buscarPorId(id);
 
-        // Guarda nome/email antes de mexer no registro, pra descrever no log com clareza
         String nomeParaLog = professor.getNome();
         String emailParaLog = professor.getEmail();
 
@@ -142,7 +174,6 @@ public class ProfessorService {
                 ip, duracaoMs);
     }
 
-    // Anonimizacao definitiva (LGPD): apaga os dados que identificam a pessoa, sem excluir o registro
     public void anonimizar(Long id, UsuarioSessaoDTO ator, String ip, long duracaoMs){
         Professor professor = buscarPorId(id);
 
@@ -159,7 +190,6 @@ public class ProfessorService {
 
         professorRepository.save(professor);
 
-        // Aqui o log nao guarda nome/email antigos de proposito: eles ja foram apagados do registro
         logAuditoriaService.registrar(ator.getId(), ator.getNome(), ator.getTipo(),
                 TipoAcao.ANONIMIZACAO, "Professor", id,
                 "Dados pessoais do professor (id " + id + ") anonimizados definitivamente: nome, email, senha, registro e disciplina apagados",

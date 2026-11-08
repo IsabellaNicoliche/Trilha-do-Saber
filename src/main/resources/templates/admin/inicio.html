@@ -12,29 +12,75 @@
 
 <main class="conteudo">
 
+    <div class="linha-boas-vindas">
+        <div class="cartao-boas-vindas">
+            <div class="texto-boas-vindas">
+                <h2>Bem vindo de volta!</h2>
+                <p>Visão geral da plataforma.</p>
+            </div>
+            <img th:src="@{/css/img/icons/img/telainiAdm.png}" alt="" class="mascote-boas-vindas">
+        </div>
+
+        <div class="painel-notificacoes">
+            <div class="cabecalho-painel-notificacoes">
+                <h3>Últimas atividades</h3>
+                <a th:href="@{/admin/logs}" class="link-ver-todas">Ver todas</a>
+            </div>
+            <div class="item-notificacao" th:each="log : ${painel.ultimosLogs}">
+                <span class="ponto-notificacao"></span>
+                <div class="texto-notificacao">
+                    <strong th:text="${log.usuarioNome}">Usuário</strong>
+                    <span th:text="${log.descricaoAcao}">Ação</span>
+                </div>
+            </div>
+            <p class="vazio-notificacoes" th:if="${painel.semLogs}">Nenhuma atividade registrada ainda.</p>
+        </div>
+    </div>
+
     <header class="topo-conteudo">
         <h1>Início</h1>
         <p class="subtitulo-pagina">Visão geral da plataforma</p>
     </header>
 
-    <section class="grade-cards">
-        <div class="card-estatistica">
-            <span class="rotulo-card">Questões cadastradas</span>
-            <strong class="numero-card">-</strong>
+    <div class="linha-inicio">
+        <section class="grade-cards">
+            <div class="card-estatistica">
+                <div class="cabecalho-card-estatistica">
+                    <span class="icone-card-estatistica badge-1"><img th:src="@{/css/img/icons/img/iconeBQ.png}" alt=""></span>
+                    <span class="rotulo-card">Questões cadastradas</span>
+                </div>
+                <strong class="numero-card" th:text="${painel.totalQuestoes}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <div class="cabecalho-card-estatistica">
+                    <span class="icone-card-estatistica badge-2"><img th:src="@{/css/img/icons/img/iconeusua.png}" alt=""></span>
+                    <span class="rotulo-card">Coordenadores ativos</span>
+                </div>
+                <strong class="numero-card" th:text="${painel.coordenadoresAtivos}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <div class="cabecalho-card-estatistica">
+                    <span class="icone-card-estatistica badge-3"><img th:src="@{/css/img/icons/img/iconeusua.png}" alt=""></span>
+                    <span class="rotulo-card">Professores ativos</span>
+                </div>
+                <strong class="numero-card" th:text="${painel.professoresAtivos}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <div class="cabecalho-card-estatistica">
+                    <span class="icone-card-estatistica badge-4"><img th:src="@{/css/img/icons/img/iconeusua.png}" alt=""></span>
+                    <span class="rotulo-card">Alunos ativos</span>
+                </div>
+                <strong class="numero-card" th:text="${painel.alunosAtivos}">0</strong>
+            </div>
+        </section>
+
+        <div class="calendario-enade">
+            <div class="calendario-enade-topo">NOV</div>
+            <strong class="calendario-enade-numero" th:text="${diasParaEnade}">0</strong>
+            <span class="calendario-enade-rotulo">dias até o ENADE</span>
+            <span class="calendario-enade-data" th:text="${#temporals.format(dataEnade, 'dd/MM/yyyy')}">29/11/2026</span>
         </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Coordenadores ativos</span>
-            <strong class="numero-card">-</strong>
-        </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Professores ativos</span>
-            <strong class="numero-card">-</strong>
-        </div>
-        <div class="card-estatistica">
-            <span class="rotulo-card">Alunos ativos</span>
-            <strong class="numero-card">-</strong>
-        </div>
-    </section>
+    </div>
 
 </main>
 
