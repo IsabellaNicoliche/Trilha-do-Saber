@@ -5,7 +5,7 @@ import jakarta.persistence.Entity;
 @Entity
 public class Aluno extends Usuario {
 
-    private String rgm;
+    private String registroAluno;
     private String curso;
     private int semestre;
     private String turma;
@@ -14,22 +14,22 @@ public class Aluno extends Usuario {
     public Aluno(){
     }
 
-    public Aluno(String nome, String email, String senha, String rgm, String curso, int semestre){
+    public Aluno(String nome, String email, String senha, String registroAluno, String curso, int semestre){
         super(nome, email, senha);
-        this.rgm = rgm;
+        this.registroAluno = registroAluno;
         this.curso = curso;
         this.semestre = semestre;
     }
 
-    public Aluno(String nome, String email, String senha, String rgm, String curso, int semestre,
+    public Aluno(String nome, String email, String senha, String registroAluno, String curso, int semestre,
                  String turma, String turno){
-        this(nome, email, senha, rgm, curso, semestre);
+        this(nome, email, senha, registroAluno, curso, semestre);
         this.turma = turma;
         this.turno = turno;
     }
 
-    public String getRgm(){
-        return rgm;
+    public String getRegistroAluno(){
+        return registroAluno;
     }
 
     public String getCurso(){
@@ -48,8 +48,8 @@ public class Aluno extends Usuario {
         return turno;
     }
 
-    public void setRgm(String rgm){
-        this.rgm = rgm;
+    public void setRegistroAluno(String registroAluno){
+        this.registroAluno = registroAluno;
     }
 
     public void setCurso(String curso){

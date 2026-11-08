@@ -55,9 +55,9 @@
             <input type="email" th:field="*{email}">
             <span class="erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
 
-            <label>RGM</label>
-            <input type="text" th:field="*{rgm}">
-            <span class="erro" th:if="${#fields.hasErrors('rgm')}" th:errors="*{rgm}"></span>
+            <label>Registro de aluno</label>
+            <input type="text" th:field="*{registroAluno}">
+            <span class="erro" th:if="${#fields.hasErrors('registroAluno')}" th:errors="*{registroAluno}"></span>
 
             <label>Curso</label>
             <select th:field="*{curso}">

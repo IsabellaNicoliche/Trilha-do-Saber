@@ -50,7 +50,7 @@ public class AdminUsuarioGestaoController {
             form.setId(aluno.getId());
             form.setNome(aluno.getNome());
             form.setEmail(aluno.getEmail());
-            form.setRgm(aluno.getRgm());
+            form.setRegistroAluno(aluno.getRegistroAluno());
             form.setCurso(aluno.getCurso());
             form.setSemestre(aluno.getSemestre());
             form.setAtivo(aluno.isAtivo());

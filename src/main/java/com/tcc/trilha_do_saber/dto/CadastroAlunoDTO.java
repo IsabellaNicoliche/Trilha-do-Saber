@@ -23,8 +23,8 @@ public class CadastroAlunoDTO {
     @NotBlank(message = "Confirme a senha")
     private String confirmarSenha;
 
-    @NotBlank(message = "Matrícula é obrigatória")
-    private String matricula;
+    @NotBlank(message = "Registro de aluno é obrigatório")
+    private String registroAluno;
 
     @NotBlank(message = "Curso é obrigatório")
     private String curso;
@@ -54,8 +54,8 @@ public class CadastroAlunoDTO {
     public String getConfirmarSenha(){ return confirmarSenha; }
     public void setConfirmarSenha(String confirmarSenha){ this.confirmarSenha = confirmarSenha; }
 
-    public String getMatricula(){ return matricula; }
-    public void setMatricula(String matricula){ this.matricula = matricula; }
+    public String getRegistroAluno(){ return registroAluno; }
+    public void setRegistroAluno(String registroAluno){ this.registroAluno = registroAluno; }
 
     public String getCurso(){ return curso; }
     public void setCurso(String curso){ this.curso = curso; }

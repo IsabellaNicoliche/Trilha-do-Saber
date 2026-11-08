@@ -59,7 +59,7 @@
         <tr>
             <th>Nome</th>
             <th>Email</th>
-            <th>RGM</th>
+            <th>Registro de aluno</th>
             <th>Curso</th>
             <th>Semestre</th>
             <th>Status</th>
@@ -69,7 +69,7 @@
         <tr th:each="aluno : ${alunos}">
             <td th:text="${aluno.nome}"></td>
             <td th:text="${aluno.email}"></td>
-            <td th:text="${aluno.rgm}"></td>
+            <td th:text="${aluno.registroAluno}"></td>
             <td th:text="${aluno.curso}"></td>
             <td th:text="${aluno.semestre}"></td>
             <td>
