@@ -3,6 +3,9 @@ package com.tcc.trilha_do_saber.controller;
 import com.tcc.trilha_do_saber.dto.PainelProfessorDTO;
 import com.tcc.trilha_do_saber.dto.TurmaDoProfessorDTO;
 import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
+import com.tcc.trilha_do_saber.service.DashboardAlunoService;
+import com.tcc.trilha_do_saber.service.PainelAdminService;
+import com.tcc.trilha_do_saber.service.PainelCoordenadorService;
 import com.tcc.trilha_do_saber.service.ProfessorPainelService;
 import com.tcc.trilha_do_saber.service.ProfessorTurmaService;
 import jakarta.servlet.http.HttpSession;
@@ -28,6 +31,15 @@ class HomeControllerTest {
 
     @Mock
     private ProfessorPainelService professorPainelService;
+
+    @Mock
+    private DashboardAlunoService dashboardAlunoService;
+
+    @Mock
+    private PainelCoordenadorService painelCoordenadorService;
+
+    @Mock
+    private PainelAdminService painelAdminService;
 
     @Mock
     private HttpSession session;
