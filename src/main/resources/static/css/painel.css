@@ -922,18 +922,13 @@ body {
     resize: vertical;
 }
 
-.tabela-questoes td:nth-child(3) {
+.tabela-questoes td:nth-child(2) {
     white-space: normal;
     max-width: 420px;
 }
 
 .tabela-questoes th:nth-child(1),
 .tabela-questoes td:nth-child(1) {
-    width: 90px;
-}
-
-.tabela-questoes th:nth-child(2),
-.tabela-questoes td:nth-child(2) {
     width: 60px;
 }
 
@@ -981,4 +976,187 @@ body {
     border: 1px solid var(--borda);
     display: block;
     margin-bottom: 10px;
+}
+
+.prova-grupo {
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.prova-grupo summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 14px 18px;
+    background: #F9FAFB;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+}
+
+.prova-grupo summary::-webkit-details-marker {
+    display: none;
+}
+
+.prova-grupo summary::before {
+    content: "▶";
+    font-size: 11px;
+    color: var(--marca);
+    transition: transform 0.15s ease;
+}
+
+.prova-grupo[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.prova-grupo-titulo {
+    font-size: 16px;
+}
+
+.prova-grupo-contagem {
+    font-weight: 400;
+    color: #6B7280;
+    font-size: 13px;
+}
+
+.prova-grupo table {
+    margin: 0;
+}
+
+/* ================= Animações e transições (adicionado) ================= */
+
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.conteudo {
+    animation: fadeSlideUp 0.35s ease both;
+}
+
+.botao-primario,
+.botao-secundario,
+.botao-perigo {
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.botao-primario:hover {
+    background: var(--marca-escura, #5A3FD6);
+    box-shadow: 0 4px 12px rgba(108, 76, 232, 0.25);
+}
+
+.botao-secundario:hover {
+    border-color: var(--marca);
+    color: var(--marca);
+}
+
+.botao-perigo:hover {
+    background: var(--vermelho);
+    color: #fff;
+}
+
+.botao-primario:active,
+.botao-secundario:active,
+.botao-perigo:active {
+    transform: scale(0.97);
+}
+
+.card-estatistica,
+.kpi,
+.painel,
+.estado-vazio {
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.card-estatistica:hover,
+.kpi:hover,
+.painel:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(32, 33, 36, 0.08);
+}
+
+.tabela-usuarios tbody tr,
+.tabela-desempenho tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.tabela-usuarios tbody tr:hover,
+.tabela-desempenho tbody tr:hover {
+    background-color: var(--marca-fundo);
+}
+
+.item-menu,
+.link-sair,
+.aba {
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.aba:hover {
+    transform: translateY(-1px);
+}
+
+.badge-status,
+.selo {
+    animation: popIn 0.2s ease both;
+}
+
+.cartao-form input,
+.cartao-form select,
+.cartao-largo textarea {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.alerta-erro {
+    animation: fadeSlideUp 0.25s ease both;
+}
+
+.linha-alternativa {
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.linha-alternativa:hover {
+    border-color: var(--marca);
+}
+
+.prova-grupo summary {
+    transition: background-color 0.15s ease;
+}
+
+.prova-grupo summary:hover {
+    background: var(--marca-fundo);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .conteudo,
+    .badge-status,
+    .selo,
+    .alerta-erro {
+        animation: none;
+    }
+
+    .botao-primario,
+    .botao-secundario,
+    .botao-perigo,
+    .card-estatistica,
+    .kpi,
+    .painel,
+    .tabela-usuarios tbody tr,
+    .tabela-desempenho tbody tr,
+    .item-menu,
+    .link-sair,
+    .aba,
+    .cartao-form input,
+    .cartao-form select,
+    .cartao-largo textarea,
+    .linha-alternativa,
+    .prova-grupo summary {
+        transition: none;
+    }
 }

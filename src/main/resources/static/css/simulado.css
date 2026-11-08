@@ -936,3 +936,119 @@ a.botao-secundario {
     font-size: 13px;
     color: var(--texto-apagado);
 }
+
+/* ================= Animações e transições (adicionado) ================= */
+
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulsar {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35); }
+    50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+
+.barra-preenchida {
+    transition: width 0.3s ease;
+}
+
+.cronometro.urgente {
+    animation: pulsar 2s ease-in-out infinite;
+}
+
+.alternativa {
+    transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+}
+
+.alternativa:active {
+    transform: scale(0.99);
+}
+
+.letra {
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-item {
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.nav-item:hover {
+    transform: translateY(-1px);
+}
+
+.fundo-modal {
+    animation: fadeSlideUp 0.15s ease both;
+}
+
+.modal {
+    animation: popIn 0.2s ease both;
+}
+
+.cartao-modo {
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.cartao-modo:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(32, 33, 36, 0.08);
+}
+
+.cartao-conclusao {
+    animation: fadeSlideUp 0.3s ease both;
+}
+
+.selo-ok {
+    animation: popIn 0.3s ease 0.1s both;
+}
+
+.mensagem-sucesso,
+.mensagem-erro {
+    animation: fadeSlideUp 0.25s ease both;
+}
+
+.aviso-tempo {
+    animation: fadeSlideUp 0.2s ease both;
+}
+
+.botao-primario,
+.botao-secundario {
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.botao-primario:hover {
+    box-shadow: 0 4px 12px rgba(108, 76, 232, 0.25);
+}
+
+.botao-primario:active,
+.botao-secundario:active {
+    transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cronometro.urgente,
+    .fundo-modal,
+    .modal,
+    .cartao-conclusao,
+    .selo-ok,
+    .mensagem-sucesso,
+    .mensagem-erro,
+    .aviso-tempo {
+        animation: none;
+    }
+
+    .barra-preenchida,
+    .alternativa,
+    .letra,
+    .nav-item,
+    .cartao-modo,
+    .botao-primario,
+    .botao-secundario {
+        transition: none;
+    }
+}

@@ -458,3 +458,82 @@ input::placeholder {
 .oculto {
     display: none !important;
 }
+
+/* ================= Animações e transições (adicionado) ================= */
+
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideLeft {
+    from { opacity: 0; transform: translateX(-16px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.painel-lateral {
+    animation: fadeSlideLeft 0.4s ease both;
+}
+
+.cartao-login,
+.cartao-cadastro,
+.cartao-termos {
+    animation: fadeSlideUp 0.35s ease both;
+}
+
+.botao-primario {
+    transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.botao-primario:hover {
+    box-shadow: 0 4px 12px rgba(108, 76, 232, 0.25);
+}
+
+.botao-primario:active {
+    transform: scale(0.97);
+}
+
+input,
+select {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus,
+select:focus {
+    box-shadow: 0 0 0 3px var(--marca-clara);
+}
+
+.aviso-info,
+.erro-geral,
+.erro {
+    animation: fadeSlideUp 0.25s ease both;
+}
+
+.linha-esqueci a,
+.rodape-login a,
+.campo-consentimento a,
+.link-voltar {
+    transition: color 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .painel-lateral,
+    .cartao-login,
+    .cartao-cadastro,
+    .cartao-termos,
+    .aviso-info,
+    .erro-geral,
+    .erro {
+        animation: none;
+    }
+
+    .botao-primario,
+    input,
+    select,
+    .linha-esqueci a,
+    .rodape-login a,
+    .campo-consentimento a,
+    .link-voltar {
+        transition: none;
+    }
+}
