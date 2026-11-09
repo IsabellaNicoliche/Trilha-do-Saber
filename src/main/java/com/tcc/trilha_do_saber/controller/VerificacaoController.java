@@ -87,12 +87,7 @@ public class VerificacaoController {
         String novoCodigo = gerarCodigo();
         Instant novaExpiracao = Instant.now().plus(10, ChronoUnit.MINUTES);
 
-        String emailDestino = usuario.getEmail();
-        if ("ADMIN".equals(usuario.getTipo()) || "COORDENADOR".equals(usuario.getTipo())) {
-            emailDestino = "derickmaschio15@gmail.com";
-        }
-
-        boolean emailEnviado = emailService.enviarCodigoVerificacao(usuario.getNome(), emailDestino, novoCodigo);
+        boolean emailEnviado = emailService.enviarCodigoVerificacao(usuario.getNome(), usuario.getEmail(), novoCodigo);
 
         session.setAttribute("verificacao",
                 new VerificacaoSessaoDTO(usuario, novoCodigo, novaExpiracao, emailEnviado));
