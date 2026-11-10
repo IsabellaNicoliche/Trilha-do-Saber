@@ -67,6 +67,12 @@ public class VerificacaoController {
 
         UsuarioSessaoDTO usuario = verificacao.getUsuario();
         session.removeAttribute("verificacao");
+
+        if (usuario.isPrimeiroAcesso()) {
+            session.setAttribute("primeiroAcesso", usuario);
+            return "redirect:/primeiro-acesso";
+        }
+
         session.setAttribute("usuarioLogado", usuario);
 
         logAuditoriaService.registrar(usuario.getId(), usuario.getNome(), usuario.getTipo(),

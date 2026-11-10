@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>Primeiro acesso</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+
+<div class="pagina-cadastro">
+    <div class="cartao-cadastro">
+        <div class="marca-cadastro">
+            <img th:src="@{/css/img/icons/img/logo.png}" alt="Trilha do Saber">
+            <strong>Trilha do Saber</strong>
+        </div>
+
+        <a th:href="@{/login}" class="link-voltar">‹ Voltar para o login</a>
+
+        <span class="icone-cadeado">🎓</span>
+
+        <h1>Primeiro acesso</h1>
+        <p class="subtitulo">
+            Olá, <strong th:text="${nome}">usuário</strong>! Você entrou com a senha provisória (o seu registro).
+            Para continuar, crie a sua própria senha e aceite o termo. A senha provisória deixa de valer.
+        </p>
+
+        <span class="erro-geral" th:if="${erroSenha}" th:text="${erroSenha}"></span>
+
+        <form method="post" th:action="@{/primeiro-acesso}" id="formPrimeiroAcesso">
+
+            <label>Nova senha</label>
+            <input type="password" name="senha" placeholder="••••••••" autocomplete="new-password" minlength="8" required>
+            <span class="dica-senha">Mínimo de 8 caracteres, com letra, número e caractere especial. Precisa ser diferente da senha provisória.</span>
+
+            <label>Confirmar nova senha</label>
+            <input type="password" name="confirmarSenha" placeholder="••••••••" autocomplete="new-password" minlength="8" required>
+
+            <label class="campo-consentimento">
+                <input type="checkbox" name="aceitouTermos" required>
+                <span>Li e aceito o <a th:href="@{/cadastro/termos-lgpd}" target="_blank">Termo de Consentimento (LGPD)</a> para tratamento dos meus dados.</span>
+            </label>
+
+            <button type="submit" class="botao-primario botao-largo" id="botaoSalvar">Salvar e entrar</button>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    const formPrimeiroAcesso = document.getElementById("formPrimeiroAcesso");
+    const botaoSalvar = document.getElementById("botaoSalvar");
+    formPrimeiroAcesso.addEventListener("submit", () => {
+        botaoSalvar.disabled = true;
+        botaoSalvar.textContent = "Salvando...";
+    });
+</script>
+
+</body>
+</html>
