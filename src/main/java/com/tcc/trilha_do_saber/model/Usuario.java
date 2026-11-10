@@ -45,6 +45,10 @@ public abstract class Usuario {
 
     private LocalDateTime dataSolicitacaoConta;
 
+    private Boolean senhaProvisoria;
+
+    private LocalDateTime senhaProvisoriaExpiraEm;
+
     public Usuario(){
     }
 
@@ -161,5 +165,29 @@ public abstract class Usuario {
 
     public boolean isSolicitacaoContaPendente(){
         return solicitacaoConta != null;
+    }
+
+    public Boolean getSenhaProvisoria(){
+        return senhaProvisoria;
+    }
+
+    public void setSenhaProvisoria(Boolean senhaProvisoria){
+        this.senhaProvisoria = senhaProvisoria;
+    }
+
+    public LocalDateTime getSenhaProvisoriaExpiraEm(){
+        return senhaProvisoriaExpiraEm;
+    }
+
+    public void setSenhaProvisoriaExpiraEm(LocalDateTime senhaProvisoriaExpiraEm){
+        this.senhaProvisoriaExpiraEm = senhaProvisoriaExpiraEm;
+    }
+
+    public boolean isPrimeiroAcessoPendente(){
+        return Boolean.TRUE.equals(senhaProvisoria);
+    }
+
+    public boolean isSenhaProvisoriaExpirada(LocalDateTime agora){
+        return isPrimeiroAcessoPendente() && senhaProvisoriaExpiraEm != null && agora.isAfter(senhaProvisoriaExpiraEm);
     }
 }

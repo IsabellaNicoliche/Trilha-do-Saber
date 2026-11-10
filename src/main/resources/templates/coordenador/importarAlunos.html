@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Importar alunos</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+    <link rel="stylesheet" th:href="@{/css/importacao-usuarios.css}">
+</head>
+<body>
+
+<th:block th:if="${ehAdmin}">
+    <header th:replace="~{fragments/navAdmin :: nav(pagina='usuarios', usuarioLogado=${usuarioLogado})}"></header>
+</th:block>
+<th:block th:unless="${ehAdmin}">
+    <header th:replace="~{fragments/navCoordenador :: nav(pagina='usuarios', usuarioLogado=${usuarioLogado})}"></header>
+</th:block>
+
+<main class="conteudo">
+
+    <header class="topo-conteudo">
+        <h1>Importar e atualizar alunos</h1>
+        <p class="subtitulo-pagina">Cadastre vários alunos de uma vez ou atualize curso, semestre, turma e período de quem já está no sistema.</p>
+    </header>
+
+    <div class="alerta-erro" th:if="${erroImportacao}" th:text="${erroImportacao}"></div>
+
+    <th:block th:if="${resultado != null}">
+
+        <section class="grade-cards">
+            <div class="card-estatistica">
+                <span class="rotulo-card">Alunos cadastrados</span>
+                <strong class="numero-card" th:text="${resultado.criados}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <span class="rotulo-card">Alunos atualizados</span>
+                <strong class="numero-card" th:text="${resultado.atualizados}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <span class="rotulo-card">Sem alteração</span>
+                <strong class="numero-card" th:text="${resultado.semAlteracao}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <span class="rotulo-card">Não importados</span>
+                <strong class="numero-card" th:text="${resultado.recusadas.size()}">0</strong>
+            </div>
+        </section>
+
+        <div class="imp-caixa" th:if="${resultado.criados > 0}">
+            <h2 class="imp-titulo">Avise os alunos cadastrados</h2>
+            <p class="imp-texto">
+                Os <strong th:text="${resultado.criados}">0</strong> alunos cadastrados entram com o <strong>e-mail</strong> e, como senha provisória,
+                o <strong>próprio registro de aluno</strong>. Nenhum e-mail de aviso é enviado: avise os alunos por fora.
+            </p>
+            <p class="imp-texto">
+                A senha provisória vale <span th:text="${validadeSenhaDias}">30</span> dias. No primeiro acesso, o aluno cria a própria senha e aceita o Termo (LGPD).
+                Se o prazo passar, use <strong>Redefinir senha</strong> ao lado do aluno na tela de usuários.
+            </p>
+        </div>
+
+        <th:block th:if="${resultado.temRecusadas}">
+            <h2 class="imp-secao-titulo">Linhas que não foram importadas</h2>
+            <div class="imp-tabela-rolagem">
+                <table class="tabela-usuarios imp-tabela">
+                    <thead>
+                    <tr>
+                        <th>Linha</th>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Motivo</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="recusada : ${resultado.recusadas}">
+                        <td th:text="${recusada.numeroLinha}"></td>
+                        <td th:text="${recusada.nome}"></td>
+                        <td th:text="${recusada.email}"></td>
+                        <td class="imp-motivo" th:text="${recusada.motivosTexto}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </th:block>
+
+        <div class="imp-acoes">
+            <a th:href="@{/coordenador/usuarios}" class="botao-secundario">Ver usuários</a>
+            <a th:href="@{/coordenador/alunos/importar}" class="botao-primario">Importar outra planilha</a>
+        </div>
+
+    </th:block>
+
+    <th:block th:if="${resultado == null and previa != null}">
+
+        <section class="grade-cards imp-cards-5">
+            <div class="card-estatistica">
+                <span class="rotulo-card">Linhas lidas</span>
+                <strong class="numero-card" th:text="${previa.totalLinhas}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <span class="rotulo-card">Novos alunos</span>
+                <strong class="numero-card" th:text="${previa.novos}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <span class="rotulo-card">Atualizações</span>
+                <strong class="numero-card" th:text="${previa.atualizacoes}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <span class="rotulo-card">Sem alteração</span>
+                <strong class="numero-card" th:text="${previa.semAlteracao}">0</strong>
+            </div>
+            <div class="card-estatistica">
+                <span class="rotulo-card">Com problema</span>
+                <strong class="numero-card" th:text="${previa.totalRecusadas}">0</strong>
+            </div>
+        </section>
+
+        <div class="imp-aviso" th:if="${previa.totalLinhas == 0}">
+            A planilha só tem a linha de cabeçalho. Preencha os alunos abaixo dela e envie de novo.
+        </div>
+
+        <div class="imp-aviso" th:if="${previa.totalRecusadas > 0 and previa.temAGravar}">
+            As linhas com problema não serão importadas, mas não impedem as demais. Você pode corrigi-las e enviar a planilha de novo depois.
+        </div>
+
+        <div class="imp-aviso-turma" th:if="${previa.temTurmaSemProfessor}">
+            <strong>Atenção: há alunos em turmas ainda sem professor.</strong>
+            <p>Você está cadastrando ou atualizando alunos para turmas que não têm nenhuma disciplina com professor cadastrada no período letivo atual:</p>
+            <ul>
+                <li th:each="turma : ${previa.turmasSemProfessor}" th:text="${turma}">Sistemas de Informação · 8º semestre · turma B · Noturno</li>
+            </ul>
+            <p>Os alunos serão criados mesmo assim, e a turma passa a ter professor quando as turmas forem importadas. Marque a caixa abaixo para continuar.</p>
+        </div>
+
+        <th:block th:if="${previa.validas.size() > 0}">
+            <h2 class="imp-secao-titulo">Prontas para importar</h2>
+            <div class="imp-tabela-rolagem">
+                <table class="tabela-usuarios imp-tabela">
+                    <thead>
+                    <tr>
+                        <th>Linha</th>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Registro de aluno</th>
+                        <th>Curso</th>
+                        <th>Semestre</th>
+                        <th>Turma</th>
+                        <th>Período</th>
+                        <th>Situação</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="linha : ${previa.validas}">
+                        <td th:text="${linha.numeroLinha}"></td>
+                        <td th:text="${linha.nome}"></td>
+                        <td th:text="${linha.email}"></td>
+                        <td th:text="${linha.registroAluno}"></td>
+                        <td th:text="${linha.curso}"></td>
+                        <td th:text="${linha.semestre}"></td>
+                        <td th:text="${linha.turma}"></td>
+                        <td th:text="${linha.turno}"></td>
+                        <td>
+                            <span class="imp-selo" th:classappend="${linha.novo} ? 'imp-selo-novo' : (${linha.atualizacao} ? 'imp-selo-atualiza' : 'imp-selo-igual')"
+                                  th:text="${linha.acaoRotulo}"></span>
+                            <span class="imp-detalhe" th:if="${linha.atualizacao}" th:text="${linha.mudancas}"></span>
+                            <span class="imp-detalhe" th:if="${linha.observacao != ''}" th:text="${linha.observacao}"></span>
+                            <span class="imp-detalhe imp-detalhe-turma" th:if="${linha.turmaSemProfessor}">Turma sem professor</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </th:block>
+
+        <th:block th:if="${previa.totalRecusadas > 0}">
+            <h2 class="imp-secao-titulo">Com problema (não serão importadas)</h2>
+            <div class="imp-tabela-rolagem">
+                <table class="tabela-usuarios imp-tabela">
+                    <thead>
+                    <tr>
+                        <th>Linha</th>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Motivo</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="recusada : ${previa.recusadas}">
+                        <td th:text="${recusada.numeroLinha}"></td>
+                        <td th:text="${recusada.nome}"></td>
+                        <td th:text="${recusada.email}"></td>
+                        <td class="imp-motivo" th:text="${recusada.motivosTexto}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </th:block>
+
+        <form method="post" th:action="@{/coordenador/alunos/importar/confirmar}" id="formConfirmar" th:if="${previa.temAGravar}" class="imp-form-confirmar">
+            <label class="imp-confirmacao" th:if="${previa.temTurmaSemProfessor}">
+                <input type="checkbox" name="confirmouTurmas" id="confirmouTurmas">
+                <span>Entendi que há alunos em turmas sem professor cadastrado e quero continuar.</span>
+            </label>
+            <p class="imp-texto" th:if="${previa.novos > 0}">
+                Cada novo aluno entra com o <strong>próprio registro de aluno</strong> como senha provisória (válida por <span th:text="${validadeSenhaDias}">30</span> dias) e define a senha no primeiro acesso. Nenhum e-mail é enviado.
+            </p>
+            <div class="imp-acoes">
+                <button type="submit" class="botao-primario" id="botaoConfirmar"
+                        th:text="'Confirmar importação (' + (${previa.novos} + ${previa.atualizacoes}) + ')'">Confirmar</button>
+                <button type="submit" class="botao-secundario" th:formaction="@{/coordenador/alunos/importar/cancelar}" formnovalidate>Cancelar</button>
+            </div>
+        </form>
+
+        <div class="imp-acoes" th:unless="${previa.temAGravar}">
+            <form method="post" th:action="@{/coordenador/alunos/importar/cancelar}">
+                <button type="submit" class="botao-secundario">Enviar outra planilha</button>
+            </form>
+        </div>
+
+    </th:block>
+
+    <th:block th:if="${resultado == null and previa == null}">
+
+        <div class="imp-caixa">
+            <h2 class="imp-titulo">Como funciona</h2>
+            <ol class="imp-passos">
+                <li>Baixe a planilha modelo, preencha uma linha por aluno e salve como <strong>.csv</strong> ou <strong>.xlsx</strong>.</li>
+                <li>Envie o arquivo. Antes de gravar qualquer coisa, você vê uma <strong>prévia</strong> com novos alunos, atualizações e linhas com problema.</li>
+                <li>Ao confirmar, cada <strong>novo aluno</strong> é criado com o <strong>registro de aluno como senha provisória</strong>. Quem já existe tem só <strong>curso, semestre, turma e período</strong> atualizados.</li>
+                <li>Avise os alunos por fora. No primeiro acesso, cada um cria a própria senha e aceita o Termo de Consentimento (LGPD).</li>
+            </ol>
+            <p class="imp-texto">
+                Você pode importar alunos dos cursos:
+                <strong th:text="${#strings.listJoin(cursosPermitidos, ', ')}">Sistemas de Informação</strong>.
+            </p>
+        </div>
+
+        <div class="imp-caixa">
+            <h2 class="imp-titulo">Colunas da planilha</h2>
+            <p class="imp-texto">A primeira linha precisa ter os nomes das colunas. A ordem não importa. O <strong>registro de aluno</strong> identifica o aluno: se ele já existe, a linha atualiza os dados acadêmicos.</p>
+            <div class="imp-tabela-rolagem">
+                <table class="tabela-usuarios imp-tabela">
+                    <thead>
+                    <tr>
+                        <th>Coluna</th>
+                        <th>Obrigatória</th>
+                        <th>O que colocar</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr><td>Nome</td><td>Sim</td><td>Nome completo do aluno (não muda o cadastro de quem já existe)</td></tr>
+                    <tr><td>E-mail</td><td>Sim</td><td>E-mail que ainda não esteja cadastrado (não muda o cadastro de quem já existe)</td></tr>
+                    <tr><td>Registro de aluno</td><td>Sim</td><td>De 3 a 30 letras, números, ponto, hífen ou barra</td></tr>
+                    <tr>
+                        <td>Curso</td>
+                        <td th:text="${cursosPermitidos.size() == 1} ? 'Não' : 'Sim'">Não</td>
+                        <td th:text="${cursosPermitidos.size() == 1} ? 'Se ficar em branco, usamos o seu curso' : 'Um dos seus cursos, escrito por extenso'">Se ficar em branco, usamos o seu curso</td>
+                    </tr>
+                    <tr><td>Semestre</td><td>Sim</td><td>Um número de 1 a 12</td></tr>
+                    <tr><td>Turma</td><td>Sim</td><td>A, B, C ou D</td></tr>
+                    <tr><td>Período de estudo</td><td>Sim</td><td>Matutino, Noturno ou Integral</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="imp-aviso">
+                A planilha modelo traz uma linha de exemplo. <strong>Apague essa linha</strong> antes de enviar.
+            </div>
+            <a th:href="@{/coordenador/alunos/importar/modelo}" class="botao-secundario">Baixar planilha modelo (.csv)</a>
+            <a th:href="@{/coordenador/professores/importar}" class="botao-secundario">Importar professores</a>
+        </div>
+
+        <div class="imp-caixa">
+            <h2 class="imp-titulo">Enviar planilha</h2>
+            <p class="imp-texto">Aceitamos arquivos <strong>.csv</strong> e <strong>.xlsx</strong>, com até <span th:text="${maximoLinhas}">500</span> alunos por planilha.</p>
+            <form method="post" th:action="@{/coordenador/alunos/importar}" enctype="multipart/form-data" class="imp-envio" id="formEnvio">
+                <input type="file" name="arquivo" accept=".csv,.xlsx" required class="imp-arquivo">
+                <button type="submit" class="botao-primario" id="botaoEnviar">Enviar e ver a prévia</button>
+            </form>
+        </div>
+
+    </th:block>
+
+</main>
+
+<script>
+    const formEnvio = document.getElementById("formEnvio");
+    if (formEnvio) {
+        formEnvio.addEventListener("submit", () => {
+            const botao = document.getElementById("botaoEnviar");
+            botao.disabled = true;
+            botao.textContent = "Lendo a planilha...";
+        });
+    }
+    const formConfirmar = document.getElementById("formConfirmar");
+    if (formConfirmar) {
+        const caixa = document.getElementById("confirmouTurmas");
+        const botao = document.getElementById("botaoConfirmar");
+        if (caixa) {
+            botao.disabled = true;
+            caixa.addEventListener("change", () => { botao.disabled = !caixa.checked; });
+        }
+        formConfirmar.addEventListener("submit", (evento) => {
+            if (evento.submitter && evento.submitter.id !== "botaoConfirmar") {
+                return;
+            }
+            botao.disabled = true;
+            botao.textContent = "Importando...";
+        });
+    }
+</script>
+
+</body>
+</html>

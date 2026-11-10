@@ -1,0 +1,203 @@
+.imp-caixa {
+    margin-bottom: 20px;
+    padding: 24px;
+    border: 1px solid var(--borda);
+    border-radius: 16px;
+    background: #fff;
+}
+
+.imp-titulo {
+    margin: 0 0 12px;
+    font-size: 18px;
+}
+
+.imp-secao-titulo {
+    margin: 28px 0 12px;
+    font-size: 18px;
+}
+
+.imp-texto {
+    margin: 0 0 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--texto-secundario);
+}
+
+.imp-passos {
+    margin: 0 0 16px;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.9;
+    color: var(--texto-secundario);
+}
+
+.imp-aviso {
+    margin: 16px 0;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: #FFFBEB;
+    color: #92400E;
+    font-size: 13px;
+}
+
+.imp-envio {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.imp-arquivo {
+    padding: 12px;
+    border: 2px dashed var(--borda);
+    border-radius: 12px;
+    background: var(--marca-fundo);
+    font-size: 13px;
+}
+
+.imp-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 24px 0;
+}
+
+.imp-tabela-rolagem {
+    overflow-x: auto;
+}
+
+.tabela-usuarios.imp-tabela {
+    table-layout: auto;
+}
+
+.tabela-usuarios.imp-tabela th,
+.tabela-usuarios.imp-tabela td {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+.tabela-usuarios.imp-tabela th {
+    white-space: nowrap;
+}
+
+.tabela-usuarios.imp-tabela th:nth-last-child(2),
+.tabela-usuarios.imp-tabela td:nth-last-child(2),
+.tabela-usuarios.imp-tabela th:last-child,
+.tabela-usuarios.imp-tabela td:last-child {
+    width: auto;
+    text-align: left;
+}
+
+.imp-motivo {
+    color: var(--vermelho);
+}
+
+a.botao-primario,
+a.botao-secundario {
+    display: inline-block;
+    text-decoration: none;
+}
+
+.imp-aviso-turma {
+    margin: 16px 0;
+    padding: 16px 20px;
+    border: 1px solid #F59E0B;
+    border-radius: 12px;
+    background: #FFFBEB;
+    color: #92400E;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.imp-aviso-turma p {
+    margin: 8px 0;
+}
+
+.imp-aviso-turma ul {
+    margin: 8px 0;
+    padding-left: 20px;
+    font-weight: 600;
+}
+
+.imp-confirmacao {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 16px 0;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: #F3F0FF;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.imp-confirmacao input {
+    margin-top: 3px;
+}
+
+.imp-selo {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.imp-selo-novo {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.imp-selo-atualiza {
+    background: #E0E7FF;
+    color: #3730A3;
+}
+
+.imp-selo-igual {
+    background: #F1F5F9;
+    color: #475569;
+}
+
+.imp-detalhe {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--texto-secundario);
+}
+
+.imp-detalhe-turma {
+    color: #B45309;
+    font-weight: 600;
+}
+
+.imp-alerta-ok {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: #DCFCE7;
+    color: #166534;
+    font-size: 14px;
+}
+
+.form-reenvio {
+    display: inline;
+    margin-left: 12px;
+}
+
+.link-botao {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--marca-principal, #6C4CE8);
+    font: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+@media (min-width: 900px) {
+    .grade-cards.imp-cards-5 {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}

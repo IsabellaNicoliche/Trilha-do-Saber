@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Usuários</title>
   <link rel="stylesheet" th:href="@{/css/painel.css}">
+  <link rel="stylesheet" th:href="@{/css/importacao-usuarios.css}">
 </head>
 <body>
 
@@ -23,6 +24,9 @@
   </nav>
 
   <div th:if="${abaAtiva == 'usuarios'}">
+
+    <div class="imp-alerta-ok" th:if="${mensagemRedefinicao}" th:text="${mensagemRedefinicao}"></div>
+    <div class="alerta-erro" th:if="${erroRedefinicao}" th:text="${erroRedefinicao}"></div>
 
     <section class="grade-cards">
       <div class="card-estatistica">
@@ -45,6 +49,7 @@
 
     <div class="cabecalho-usuarios">
       <h2>Alunos</h2>
+      <a class="botao-primario" th:href="@{/coordenador/alunos/importar}">Importar ou atualizar por planilha</a>
     </div>
 
     <table class="tabela-usuarios">
@@ -71,11 +76,15 @@
         <td th:text="${aluno.turma} ?: '—'"></td>
         <td th:text="${aluno.turno} ?: '—'"></td>
         <td>
-                  <span class="badge-status" th:classappend="${aluno.ativo} ? 'badge-ativo' : 'badge-inativo'"
-                        th:text="${aluno.ativo} ? 'Ativo' : (${aluno.isExcluido()} ? 'Excluído' : 'Pendente')"></span>
+                  <span class="badge-status" th:classappend="${aluno.ativo and !aluno.primeiroAcessoPendente} ? 'badge-ativo' : 'badge-inativo'"
+                        th:text="${aluno.primeiroAcessoPendente} ? 'Aguardando 1º acesso' : (${aluno.ativo} ? 'Ativo' : (${aluno.isExcluido()} ? 'Excluído' : 'Pendente'))"></span>
         </td>
         <td class="coluna-acoes">
           <a th:href="@{/coordenador/usuarios/aluno/{id}/editar(id=${aluno.id})}">Editar</a>
+          <form class="form-reenvio" method="post" th:if="${aluno.primeiroAcessoPendente}"
+                th:action="@{/coordenador/usuarios/aluno/{id}/redefinir-senha(id=${aluno.id})}">
+            <button type="submit" class="link-botao">Redefinir senha</button>
+          </form>
         </td>
       </tr>
       <tr th:if="${alunos.isEmpty()}">
@@ -86,6 +95,7 @@
 
     <div class="cabecalho-usuarios">
       <h2>Professores</h2>
+      <a class="botao-primario" th:href="@{/coordenador/professores/importar}">Importar ou atualizar por planilha</a>
     </div>
 
     <table class="tabela-usuarios">
@@ -106,11 +116,15 @@
         <td th:text="${professor.registroProfissional}"></td>
         <td th:text="${professor.disciplina}"></td>
         <td>
-                  <span class="badge-status" th:classappend="${professor.ativo} ? 'badge-ativo' : 'badge-inativo'"
-                        th:text="${professor.ativo} ? 'Ativo' : (${professor.isExcluido()} ? 'Excluído' : 'Pendente')"></span>
+                  <span class="badge-status" th:classappend="${professor.ativo and !professor.primeiroAcessoPendente} ? 'badge-ativo' : 'badge-inativo'"
+                        th:text="${professor.primeiroAcessoPendente} ? 'Aguardando 1º acesso' : (${professor.ativo} ? 'Ativo' : (${professor.isExcluido()} ? 'Excluído' : 'Pendente'))"></span>
         </td>
         <td class="coluna-acoes">
           <a th:href="@{/coordenador/usuarios/professor/{id}/editar(id=${professor.id})}">Editar</a>
+          <form class="form-reenvio" method="post" th:if="${professor.primeiroAcessoPendente}"
+                th:action="@{/coordenador/usuarios/professor/{id}/redefinir-senha(id=${professor.id})}">
+            <button type="submit" class="link-botao">Redefinir senha</button>
+          </form>
         </td>
       </tr>
       <tr th:if="${professores.isEmpty()}">
