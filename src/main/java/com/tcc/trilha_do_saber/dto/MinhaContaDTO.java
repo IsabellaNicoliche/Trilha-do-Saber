@@ -13,9 +13,16 @@ public class MinhaContaDTO {
     private final boolean temFoto;
     private final TipoSolicitacaoConta solicitacaoConta;
     private final LocalDateTime dataSolicitacaoConta;
+    private final boolean duasEtapasAtiva;
 
     public MinhaContaDTO(Long id, String nome, String email, String tipo, boolean temFoto,
                          TipoSolicitacaoConta solicitacaoConta, LocalDateTime dataSolicitacaoConta){
+        this(id, nome, email, tipo, temFoto, solicitacaoConta, dataSolicitacaoConta, true);
+    }
+
+    public MinhaContaDTO(Long id, String nome, String email, String tipo, boolean temFoto,
+                         TipoSolicitacaoConta solicitacaoConta, LocalDateTime dataSolicitacaoConta,
+                         boolean duasEtapasAtiva){
         this.id = id;
         this.nome = nome;
         this.email = email;
@@ -23,6 +30,7 @@ public class MinhaContaDTO {
         this.temFoto = temFoto;
         this.solicitacaoConta = solicitacaoConta;
         this.dataSolicitacaoConta = dataSolicitacaoConta;
+        this.duasEtapasAtiva = duasEtapasAtiva;
     }
 
     public Long getId(){ return id; }
@@ -32,6 +40,7 @@ public class MinhaContaDTO {
     public boolean isTemFoto(){ return temFoto; }
     public TipoSolicitacaoConta getSolicitacaoConta(){ return solicitacaoConta; }
     public LocalDateTime getDataSolicitacaoConta(){ return dataSolicitacaoConta; }
+    public boolean isDuasEtapasAtiva(){ return duasEtapasAtiva; }
 
     public boolean isSolicitacaoPendente(){
         return solicitacaoConta != null;

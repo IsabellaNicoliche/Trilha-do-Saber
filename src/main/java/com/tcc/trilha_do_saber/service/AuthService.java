@@ -76,6 +76,7 @@ public class AuthService {
             }
             primeiroAcesso = true;
         }
-        return new UsuarioSessaoDTO(usuario.getId(), usuario.getNome(), usuario.getEmail(), tipo, primeiroAcesso);
+        return new UsuarioSessaoDTO(usuario.getId(), usuario.getNome(), usuario.getEmail(), tipo, primeiroAcesso,
+                usuario.isDuasEtapasAtiva());
     }
 }

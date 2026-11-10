@@ -49,6 +49,8 @@ public abstract class Usuario {
 
     private LocalDateTime senhaProvisoriaExpiraEm;
 
+    private Boolean duasEtapas;
+
     public Usuario(){
     }
 
@@ -189,5 +191,13 @@ public abstract class Usuario {
 
     public boolean isSenhaProvisoriaExpirada(LocalDateTime agora){
         return isPrimeiroAcessoPendente() && senhaProvisoriaExpiraEm != null && agora.isAfter(senhaProvisoriaExpiraEm);
+    }
+
+    public boolean isDuasEtapasAtiva(){
+        return !Boolean.FALSE.equals(duasEtapas);
+    }
+
+    public void setDuasEtapasAtiva(boolean ativa){
+        this.duasEtapas = ativa;
     }
 }

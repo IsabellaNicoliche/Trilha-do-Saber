@@ -6,6 +6,7 @@
   <title>Usuários</title>
   <link rel="stylesheet" th:href="@{/css/painel.css}">
   <link rel="stylesheet" th:href="@{/css/importacao-usuarios.css}">
+  <link rel="stylesheet" th:href="@{/css/duas-etapas.css}">
 </head>
 <body>
 
@@ -27,6 +28,8 @@
 
     <div class="imp-alerta-ok" th:if="${mensagemRedefinicao}" th:text="${mensagemRedefinicao}"></div>
     <div class="alerta-erro" th:if="${erroRedefinicao}" th:text="${erroRedefinicao}"></div>
+    <div class="imp-alerta-ok" th:if="${mensagemDuasEtapasAluno}" th:text="${mensagemDuasEtapasAluno}"></div>
+    <div class="alerta-erro" th:if="${erroDuasEtapasAluno}" th:text="${erroDuasEtapasAluno}"></div>
 
     <section class="grade-cards">
       <div class="card-estatistica">
@@ -63,11 +66,12 @@
         <th>Turma</th>
         <th>Período</th>
         <th>Status</th>
+        <th>Verificação 2FA</th>
         <th></th>
       </tr>
       </thead>
       <tbody>
-      <tr th:each="aluno : ${alunos}">
+      <tr th:each="aluno : ${alunos}" th:id="'aluno-' + ${aluno.id}">
         <td th:text="${aluno.nome}"></td>
         <td th:text="${aluno.email}"></td>
         <td th:text="${aluno.registroAluno}"></td>
@@ -79,6 +83,23 @@
                   <span class="badge-status" th:classappend="${aluno.ativo and !aluno.primeiroAcessoPendente} ? 'badge-ativo' : 'badge-inativo'"
                         th:text="${aluno.primeiroAcessoPendente} ? 'Aguardando 1º acesso' : (${aluno.ativo} ? 'Ativo' : (${aluno.isExcluido()} ? 'Excluído' : 'Pendente'))"></span>
         </td>
+        <td class="coluna-2fa">
+          <form th:if="${aluno.duasEtapasAtiva}" class="form-2fa" method="post"
+                data-confirmar="Desligar a verificação em duas etapas deste aluno? A conta dele ficará protegida só pela senha."
+                th:action="@{/coordenador/usuarios/aluno/{id}/duas-etapas(id=${aluno.id})}">
+            <input type="hidden" name="ativar" value="false">
+            <button type="submit" class="chave chave-ligada" title="Ligada. Clique para desligar"
+                    aria-label="Desligar a verificação em duas etapas deste aluno"><span class="chave-bolinha"></span></button>
+            <span class="chave-rotulo">Ligada</span>
+          </form>
+          <form th:unless="${aluno.duasEtapasAtiva}" class="form-2fa" method="post"
+                th:action="@{/coordenador/usuarios/aluno/{id}/duas-etapas(id=${aluno.id})}">
+            <input type="hidden" name="ativar" value="true">
+            <button type="submit" class="chave chave-desligada" title="Desligada. Clique para ligar"
+                    aria-label="Ligar a verificação em duas etapas deste aluno"><span class="chave-bolinha"></span></button>
+            <span class="chave-rotulo">Desligada</span>
+          </form>
+        </td>
         <td class="coluna-acoes">
           <a th:href="@{/coordenador/usuarios/aluno/{id}/editar(id=${aluno.id})}">Editar</a>
           <form class="form-reenvio" method="post" th:if="${aluno.primeiroAcessoPendente}"
@@ -88,7 +109,7 @@
         </td>
       </tr>
       <tr th:if="${alunos.isEmpty()}">
-        <td colspan="9" class="linha-vazia">Nenhum aluno cadastrado</td>
+        <td colspan="10" class="linha-vazia">Nenhum aluno cadastrado</td>
       </tr>
       </tbody>
     </table>
@@ -177,6 +198,16 @@
   </div>
 
 </main>
+
+<script>
+  document.querySelectorAll("form[data-confirmar]").forEach(function (formulario) {
+    formulario.addEventListener("submit", function (evento) {
+      if (!confirm(formulario.dataset.confirmar)) {
+        evento.preventDefault();
+      }
+    });
+  });
+</script>
 
 </body>
 </html>
