@@ -88,3 +88,41 @@
     font-size: 14px;
     line-height: 1.5;
 }
+
+tr[hidden] {
+    display: none;
+}
+
+.barra-lote {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 12px;
+}
+
+.campo-filtro {
+    flex: 1 1 260px;
+    max-width: 360px;
+    padding: 10px 12px;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.contador-selecionados {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748B;
+}
+
+.form-lote {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 0 auto;
+}
+
+.coluna-selecao {
+    width: 36px;
+    text-align: center;
+}
