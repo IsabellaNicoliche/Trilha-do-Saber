@@ -85,13 +85,27 @@ public class BancoQuestoesController {
                             @RequestParam String enunciado,
                             @RequestParam(required = false) MultipartFile imagem,
                             @RequestParam List<String> altTexto,
-                            @RequestParam char corretaLetra,
+                            @RequestParam(required = false) Character corretaLetra,
                             Model model,
                             HttpSession session) throws IOException {
 
         UsuarioSessaoDTO ator = autorizado(session);
         if (ator == null) {
             return "redirect:/login";
+        }
+
+        if (corretaLetra == null) {
+            model.addAttribute("erro", "Selecione qual alternativa é a correta antes de salvar.");
+            model.addAttribute("cursoPreSelecionado", curso);
+            model.addAttribute("anoPreenchido", ano);
+            model.addAttribute("numeroPreenchido", numero);
+            model.addAttribute("fontePreenchida", fonte);
+            model.addAttribute("enunciadoPreenchido", enunciado);
+            model.addAttribute("altTextoPreenchido", altTexto);
+            model.addAttribute("usuarioLogado", ator);
+            model.addAttribute("ehAdmin", "ADMIN".equals(ator.getTipo()));
+            model.addAttribute("baseUrl", baseUrl(ator));
+            return "coordenador/questaoNovaForm";
         }
 
         if (!questaoRepository.findByNumeroAndProvaCursoAndProvaAno(numero, curso, ano).isEmpty()) {
