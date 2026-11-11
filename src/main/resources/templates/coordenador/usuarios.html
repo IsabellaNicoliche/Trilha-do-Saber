@@ -55,9 +55,22 @@
       <a class="botao-primario" th:href="@{/coordenador/alunos/importar}">Importar ou atualizar por planilha</a>
     </div>
 
+    <div class="barra-lote">
+      <input type="search" id="filtroAlunos" class="campo-filtro"
+             placeholder="Filtrar: nome, curso, turma, noturno, desligada..." aria-label="Filtrar alunos">
+      <span class="contador-selecionados" id="contadorSelecionados">0 selecionados</span>
+      <form id="formLote" method="post" class="form-lote" th:action="@{/coordenador/usuarios/alunos/duas-etapas-lote}">
+        <button type="submit" name="ativar" value="false" class="botao-perigo">Desligar 2FA dos selecionados</button>
+        <button type="submit" name="ativar" value="true" class="botao-secundario">Ligar 2FA dos selecionados</button>
+      </form>
+    </div>
+
     <table class="tabela-usuarios">
       <thead>
       <tr>
+        <th class="coluna-selecao">
+          <input type="checkbox" id="selecionarTodos" aria-label="Selecionar todos os alunos visíveis">
+        </th>
         <th>Nome</th>
         <th>Email</th>
         <th>Registro de aluno</th>
@@ -70,8 +83,12 @@
         <th></th>
       </tr>
       </thead>
-      <tbody>
-      <tr th:each="aluno : ${alunos}" th:id="'aluno-' + ${aluno.id}">
+      <tbody id="corpoAlunos">
+      <tr th:each="aluno : ${alunos}" th:id="'aluno-' + ${aluno.id}" data-aluno>
+        <td class="coluna-selecao">
+          <input type="checkbox" class="selecao-aluno" name="ids" form="formLote" th:value="${aluno.id}"
+                 th:attr="aria-label='Selecionar ' + ${aluno.nome}">
+        </td>
         <td th:text="${aluno.nome}"></td>
         <td th:text="${aluno.email}"></td>
         <td th:text="${aluno.registroAluno}"></td>
@@ -109,7 +126,7 @@
         </td>
       </tr>
       <tr th:if="${alunos.isEmpty()}">
-        <td colspan="10" class="linha-vazia">Nenhum aluno cadastrado</td>
+        <td colspan="11" class="linha-vazia">Nenhum aluno cadastrado</td>
       </tr>
       </tbody>
     </table>
@@ -207,6 +224,76 @@
       }
     });
   });
+
+  (function () {
+    var corpo = document.getElementById("corpoAlunos");
+    var filtro = document.getElementById("filtroAlunos");
+    var todos = document.getElementById("selecionarTodos");
+    var contador = document.getElementById("contadorSelecionados");
+    var formLote = document.getElementById("formLote");
+    if (!corpo || !filtro || !todos || !contador || !formLote) {
+      return;
+    }
+
+    function caixas() {
+      return Array.prototype.slice.call(corpo.querySelectorAll("input.selecao-aluno"));
+    }
+
+    function marcadas() {
+      return caixas().filter(function (caixa) { return caixa.checked; });
+    }
+
+    function atualizar() {
+      var total = marcadas().length;
+      contador.textContent = total + (total === 1 ? " selecionado" : " selecionados");
+    }
+
+    filtro.addEventListener("input", function () {
+      var termos = filtro.value.trim().toLowerCase().split(/\s+/).filter(function (termo) { return termo !== ""; });
+      corpo.querySelectorAll("tr[data-aluno]").forEach(function (linha) {
+        var texto = linha.textContent.toLowerCase();
+        var combina = termos.every(function (termo) { return texto.indexOf(termo) !== -1; });
+        linha.hidden = !combina;
+        if (!combina) {
+          var caixa = linha.querySelector("input.selecao-aluno");
+          if (caixa) {
+            caixa.checked = false;
+          }
+        }
+      });
+      todos.checked = false;
+      atualizar();
+    });
+
+    todos.addEventListener("change", function () {
+      caixas().forEach(function (caixa) {
+        if (!caixa.closest("tr").hidden) {
+          caixa.checked = todos.checked;
+        }
+      });
+      atualizar();
+    });
+
+    corpo.addEventListener("change", function (evento) {
+      if (evento.target.classList.contains("selecao-aluno")) {
+        atualizar();
+      }
+    });
+
+    formLote.addEventListener("submit", function (evento) {
+      var total = marcadas().length;
+      if (total === 0) {
+        evento.preventDefault();
+        alert("Selecione pelo menos um aluno.");
+        return;
+      }
+      var desligar = evento.submitter && evento.submitter.value === "false";
+      if (desligar && !confirm("Desligar a verificação em duas etapas de " + total + (total === 1 ? " aluno" : " alunos")
+              + "? As contas ficarão protegidas só pela senha.")) {
+        evento.preventDefault();
+      }
+    });
+  })();
 </script>
 
 </body>
