@@ -67,13 +67,19 @@ public class VerificacaoController {
 
         UsuarioSessaoDTO usuario = verificacao.getUsuario();
         session.removeAttribute("verificacao");
+
+        if (usuario.isPrimeiroAcesso()) {
+            session.setAttribute("primeiroAcesso", usuario);
+            return "redirect:/primeiro-acesso";
+        }
+
         session.setAttribute("usuarioLogado", usuario);
 
         logAuditoriaService.registrar(usuario.getId(), usuario.getNome(), usuario.getTipo(),
                 TipoAcao.LOGIN_SUCESSO, "Login", usuario.getId(),
                 "Login concluido via verificacao em duas etapas", request.getRemoteAddr(), null);
 
-        return "redirect:" + paginaInicial(usuario.getTipo());
+        return "redirect:" + PaginaInicial.de(usuario.getTipo());
     }
 
     @PostMapping("/verificacao/reenviar")
@@ -102,15 +108,5 @@ public class VerificacaoController {
     private String gerarCodigo(){
         int numero = random.nextInt(1_000_000);
         return String.format("%06d", numero);
-    }
-
-    private String paginaInicial(String tipo){
-        return switch (tipo) {
-            case "ALUNO" -> "/aluno/inicio";
-            case "PROFESSOR" -> "/professor/inicio";
-            case "COORDENADOR" -> "/coordenador/inicio";
-            case "ADMIN" -> "/admin/inicio";
-            default -> "/login";
-        };
     }
 }

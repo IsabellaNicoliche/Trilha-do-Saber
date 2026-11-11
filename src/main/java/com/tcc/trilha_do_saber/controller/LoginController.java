@@ -55,6 +55,17 @@ public class LoginController {
         try {
             UsuarioSessaoDTO usuario = authService.autenticar(dto.getEmail(), dto.getSenha());
 
+            if (!usuario.isExigeCodigo()) {
+                session.setAttribute("usuarioLogado", usuario);
+
+                logAuditoriaService.registrar(usuario.getId(), usuario.getNome(), usuario.getTipo(),
+                        TipoAcao.LOGIN_SUCESSO, "Login", usuario.getId(),
+                        "Login concluido sem verificacao em duas etapas (desativada pelo usuario)",
+                        request.getRemoteAddr(), null);
+
+                return "redirect:" + PaginaInicial.de(usuario.getTipo());
+            }
+
             String codigo = gerarCodigo();
             Instant expiraEm = Instant.now().plus(10, ChronoUnit.MINUTES);
 

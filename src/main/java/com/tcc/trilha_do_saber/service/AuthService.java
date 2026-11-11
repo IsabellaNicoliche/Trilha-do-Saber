@@ -13,6 +13,7 @@ import com.tcc.trilha_do_saber.repository.ProfessorRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -25,8 +26,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     public AuthService(AdmGeralRepository admGeralRepository, CoordenadorRepository coordenadorRepository,
-                        ProfessorRepository professorRepository, AlunoRepository alunoRepository,
-                        PasswordEncoder passwordEncoder){
+                       ProfessorRepository professorRepository, AlunoRepository alunoRepository,
+                       PasswordEncoder passwordEncoder){
         this.admGeralRepository = admGeralRepository;
         this.coordenadorRepository = coordenadorRepository;
         this.professorRepository = professorRepository;
@@ -68,6 +69,14 @@ public class AuthService {
         if (!passwordEncoder.matches(senha, usuario.getSenha())) {
             throw new IllegalArgumentException("E-mail ou senha inválidos");
         }
-        return new UsuarioSessaoDTO(usuario.getId(), usuario.getNome(), usuario.getEmail(), tipo);
+        boolean primeiroAcesso = false;
+        if (usuario.isPrimeiroAcessoPendente()) {
+            if (usuario.isSenhaProvisoriaExpirada(LocalDateTime.now())) {
+                throw new IllegalArgumentException("Senha provisória expirada. Peça à coordenação a redefinição");
+            }
+            primeiroAcesso = true;
+        }
+        return new UsuarioSessaoDTO(usuario.getId(), usuario.getNome(), usuario.getEmail(), tipo, primeiroAcesso,
+                usuario.isDuasEtapasAtiva());
     }
 }

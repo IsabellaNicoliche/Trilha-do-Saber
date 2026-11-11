@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="cartao" class="cartao-form">
+    <h1>Verificação em duas etapas</h1>
+
+    <p>Ao entrar, enviamos um código de 6 dígitos para o seu e-mail para confirmar que é você.</p>
+
+    <div class="linha-2fa" th:if="${conta.duasEtapasAtiva}">
+        <button type="button" class="chave chave-ligada" id="botaoDesligar2fa"
+                title="Ligada. Clique para desligar" aria-label="Desligar a verificação em duas etapas">
+            <span class="chave-bolinha"></span>
+        </button>
+        <span class="chave-rotulo">Ligada</span>
+    </div>
+
+    <form class="linha-2fa" th:unless="${conta.duasEtapasAtiva}" method="post" th:action="@{/conta/duas-etapas}">
+        <input type="hidden" name="ativar" value="true">
+        <button type="submit" class="chave chave-desligada"
+                title="Desligada. Clique para ligar" aria-label="Ligar a verificação em duas etapas">
+            <span class="chave-bolinha"></span>
+        </button>
+        <span class="chave-rotulo">Desligada</span>
+    </form>
+
+    <dialog id="dialogoDesligar2fa" class="dialogo-2fa" th:if="${conta.duasEtapasAtiva}">
+        <form method="post" th:action="@{/conta/duas-etapas}">
+            <input type="hidden" name="ativar" value="false">
+
+            <h2>Desligar a verificação em duas etapas?</h2>
+            <p class="dialogo-2fa-aviso">
+                <strong>Isso diminui a segurança da sua conta.</strong>
+                Quem descobrir a sua senha poderá entrar sem o código enviado ao seu e-mail.
+                Você é responsável por essa escolha.
+            </p>
+
+            <label>Confirme a sua senha atual</label>
+            <input type="password" name="senhaAtual" autocomplete="current-password" required>
+
+            <span class="erro" th:if="${erroDuasEtapas}" th:text="${erroDuasEtapas}"></span>
+
+            <div class="acoes-form">
+                <button type="button" class="botao-secundario" id="cancelarDesligar2fa">Cancelar</button>
+                <button type="submit" class="botao-perigo">Desligar mesmo assim</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script th:if="${conta.duasEtapasAtiva}">
+        (function () {
+            var dialogo = document.getElementById("dialogoDesligar2fa");
+            var abrir = document.getElementById("botaoDesligar2fa");
+            var cancelar = document.getElementById("cancelarDesligar2fa");
+            if (!dialogo || !abrir || !cancelar) {
+                return;
+            }
+            abrir.addEventListener("click", function () { dialogo.showModal(); });
+            cancelar.addEventListener("click", function () { dialogo.close(); });
+        })();
+    </script>
+
+    <script th:if="${erroDuasEtapas}">
+        (function () {
+            var dialogo = document.getElementById("dialogoDesligar2fa");
+            if (dialogo) {
+                dialogo.showModal();
+            }
+        })();
+    </script>
+</div>
+
+</body>
+</html>

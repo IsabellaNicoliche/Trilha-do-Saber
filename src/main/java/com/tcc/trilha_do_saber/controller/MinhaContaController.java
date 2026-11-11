@@ -106,6 +106,23 @@ public class MinhaContaController {
         return "redirect:/conta?senhaAlterada";
     }
 
+    @PostMapping("/duas-etapas")
+    public String alterarDuasEtapas(@RequestParam(value = "ativar", defaultValue = "true") boolean ativar,
+                                    @RequestParam(value = "senhaAtual", required = false) String senhaAtual,
+                                    HttpSession session, HttpServletRequest request, Model model){
+        UsuarioSessaoDTO usuarioLogado = usuarioAutorizado(session);
+        if (usuarioLogado == null) return "redirect:/login";
+
+        long inicio = System.currentTimeMillis();
+        try {
+            minhaContaService.alterarDuasEtapas(usuarioLogado, ativar, senhaAtual, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
+        } catch (IllegalArgumentException e) {
+            return recarregarComErro(model, usuarioLogado, "erroDuasEtapas", e.getMessage());
+        }
+
+        return ativar ? "redirect:/conta?duasEtapasAtivada" : "redirect:/conta?duasEtapasDesativada";
+    }
+
     @PostMapping("/foto")
     public String atualizarFoto(@RequestParam("foto") MultipartFile foto, HttpSession session,
                                 HttpServletRequest request, Model model) throws IOException {

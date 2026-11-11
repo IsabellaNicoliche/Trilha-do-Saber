@@ -60,7 +60,8 @@ public class MinhaContaService {
     public MinhaContaDTO montar(UsuarioSessaoDTO sessao){
         Usuario usuario = buscar(sessao.getTipo(), sessao.getId());
         return new MinhaContaDTO(usuario.getId(), usuario.getNome(), usuario.getEmail(), sessao.getTipo(),
-                usuario.getFotoPerfil() != null, usuario.getSolicitacaoConta(), usuario.getDataSolicitacaoConta());
+                usuario.getFotoPerfil() != null, usuario.getSolicitacaoConta(), usuario.getDataSolicitacaoConta(),
+                usuario.isDuasEtapasAtiva());
     }
 
     public void atualizarPerfil(UsuarioSessaoDTO sessao, AtualizarPerfilDTO dto, String ip, long duracaoMs){
@@ -108,6 +109,31 @@ public class MinhaContaService {
         logAuditoriaService.registrar(usuario.getId(), usuario.getNome(), sessao.getTipo(),
                 TipoAcao.ATUALIZACAO, sessao.getTipo(), usuario.getId(),
                 "Usuário alterou a própria senha", ip, duracaoMs);
+    }
+
+    public void alterarDuasEtapas(UsuarioSessaoDTO sessao, boolean ativar, String senhaAtual, String ip, long duracaoMs){
+        Usuario usuario = buscar(sessao.getTipo(), sessao.getId());
+
+        if (!ativar) {
+            if (senhaAtual == null || senhaAtual.isBlank()) {
+                throw new IllegalArgumentException("Informe a senha atual para desativar a verificação em duas etapas");
+            }
+            if (!passwordEncoder.matches(senhaAtual, usuario.getSenha())) {
+                throw new IllegalArgumentException("Senha atual incorreta");
+            }
+        }
+
+        if (usuario.isDuasEtapasAtiva() == ativar) {
+            return;
+        }
+
+        usuario.setDuasEtapasAtiva(ativar);
+        salvar(sessao.getTipo(), usuario);
+
+        logAuditoriaService.registrar(usuario.getId(), usuario.getNome(), sessao.getTipo(),
+                TipoAcao.ATUALIZACAO, sessao.getTipo(), usuario.getId(),
+                ativar ? "Usuário ativou a verificação em duas etapas" : "Usuário desativou a verificação em duas etapas",
+                ip, duracaoMs);
     }
 
     public void atualizarFoto(UsuarioSessaoDTO sessao, MultipartFile foto, String ip, long duracaoMs) throws IOException {

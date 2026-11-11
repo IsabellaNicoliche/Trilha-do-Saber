@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Minha Conta</title>
     <link rel="stylesheet" th:href="@{/css/painel.css}">
+    <link rel="stylesheet" th:href="@{/css/duas-etapas.css}">
 </head>
 <body>
 
@@ -19,6 +20,8 @@
 
     <p class="aviso" th:if="${param.perfilAtualizado != null}">Seus dados foram atualizados.</p>
     <p class="aviso" th:if="${param.senhaAlterada != null}">Sua senha foi alterada.</p>
+    <p class="aviso" th:if="${param.duasEtapasAtivada != null}">A verificação em duas etapas foi ativada.</p>
+    <p class="aviso" th:if="${param.duasEtapasDesativada != null}">A verificação em duas etapas foi desativada.</p>
     <p class="aviso" th:if="${param.fotoAtualizada != null}">Sua foto de perfil foi atualizada.</p>
     <p class="aviso" th:if="${param.fotoRemovida != null}">Sua foto de perfil foi removida.</p>
     <p class="aviso" th:if="${param.solicitacaoEnviada != null}">Sua solicitação foi registrada.</p>
@@ -81,6 +84,8 @@
             </div>
         </form>
     </div>
+
+    <div th:replace="~{fragments/duasEtapas :: cartao}"></div>
 
 </main>
 

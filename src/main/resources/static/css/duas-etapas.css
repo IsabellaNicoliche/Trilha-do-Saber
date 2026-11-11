@@ -1,0 +1,128 @@
+.chave {
+    position: relative;
+    flex-shrink: 0;
+    width: 46px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.chave-ligada {
+    background: #16A34A;
+}
+
+.chave-desligada {
+    background: #CBD5E1;
+}
+
+.chave-bolinha {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+}
+
+.chave-ligada .chave-bolinha {
+    transform: translateX(20px);
+}
+
+.chave:focus-visible {
+    outline: 3px solid rgba(108, 76, 232, 0.45);
+    outline-offset: 2px;
+}
+
+.chave-rotulo {
+    margin-left: 10px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.form-2fa {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+}
+
+.coluna-2fa {
+    white-space: nowrap;
+}
+
+.linha-2fa {
+    display: flex;
+    align-items: center;
+    margin: 12px 0;
+}
+
+.dialogo-2fa {
+    width: calc(100% - 32px);
+    max-width: 460px;
+    padding: 24px;
+    border: 0;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35);
+}
+
+.dialogo-2fa::backdrop {
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.dialogo-2fa h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+}
+
+.dialogo-2fa-aviso {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: #FEF2F2;
+    color: #991B1B;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+tr[hidden] {
+    display: none;
+}
+
+.barra-lote {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 12px;
+}
+
+.campo-filtro {
+    flex: 1 1 260px;
+    max-width: 360px;
+    padding: 10px 12px;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.contador-selecionados {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748B;
+}
+
+.form-lote {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 0 auto;
+}
+
+.coluna-selecao {
+    width: 36px;
+    text-align: center;
+}
