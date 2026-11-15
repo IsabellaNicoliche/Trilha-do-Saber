@@ -54,6 +54,13 @@
                     O aluno vê a nota e os acertos assim que termina, mas o gabarito comentado só aparece depois do horário de encerramento.
                     Marque quando grupos diferentes fazem as mesmas questões em horários diferentes.</span>
             </label>
+
+            <label class="pv-opcao">
+                <input type="checkbox" class="pv-caixa-opcao" name="encerrarAoSair" value="true" th:checked="${encerrarAoSair}">
+                <span><strong>Encerrar a prova se o aluno sair da tela.</strong>
+                    Sair da tela por mais de 2 segundos envia a prova na hora. Desmarcado, a prova continua e as saídas
+                    ficam registradas para você ver no acompanhamento da prova.</span>
+            </label>
         </div>
 
         <div class="cartao-form pv-cartao">

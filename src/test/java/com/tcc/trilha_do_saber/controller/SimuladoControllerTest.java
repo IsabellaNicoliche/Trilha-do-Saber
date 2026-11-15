@@ -10,6 +10,7 @@ import com.tcc.trilha_do_saber.model.Alternativa;
 import com.tcc.trilha_do_saber.model.Questao;
 import com.tcc.trilha_do_saber.model.Simulado;
 import com.tcc.trilha_do_saber.model.SimuladoQuestao;
+import com.tcc.trilha_do_saber.model.TipoEventoProva;
 import com.tcc.trilha_do_saber.repository.AlternativaRepository;
 import com.tcc.trilha_do_saber.dto.ProvaDisponivelDTO;
 import com.tcc.trilha_do_saber.service.ProvaDoAlunoService;
@@ -206,6 +207,42 @@ class SimuladoControllerTest {
 
         assertEquals(HttpStatus.OK, resposta.getStatusCode());
         assertEquals(true, resposta.getBody().get("encerrada"));
+    }
+
+    @Test
+    void eventoDaProvaEhRegistradoEmSilencio() {
+        entrarComoAluno();
+        donoDoSimulado(10L);
+
+        ResponseEntity<Void> resposta = simuladoController.evento(10L, "SAIU_DA_ABA", 48_000L, session);
+
+        assertEquals(HttpStatus.NO_CONTENT, resposta.getStatusCode());
+        verify(provaDoAlunoService).registrarEvento(10L, 1L, TipoEventoProva.SAIU_DA_ABA, 48_000L);
+        verify(provaDoAlunoService, never()).registrarSaida(any(), any());
+    }
+
+    @Test
+    void eventoDesconhecidoOuDeSimuladoComumDevolveErro() {
+        entrarComoAluno();
+        donoDoSimulado(10L);
+        when(provaDoAlunoService.registrarEvento(10L, 1L, TipoEventoProva.TENTOU_COLAR, null))
+                .thenThrow(new IllegalArgumentException("Este simulado não registra eventos"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, simuladoController.evento(10L, "ABRIU_O_GOOGLE", null, session).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, simuladoController.evento(10L, null, null, session).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, simuladoController.evento(10L, "TENTOU_COLAR", null, session).getStatusCode());
+    }
+
+    @Test
+    void eventoSemLoginOuDeOutroAlunoEhRecusado() {
+        when(session.getAttribute("usuarioLogado")).thenReturn(null);
+        assertEquals(HttpStatus.UNAUTHORIZED, simuladoController.evento(10L, "SAIU_DA_ABA", 1L, session).getStatusCode());
+
+        entrarComoAluno();
+        when(simuladoService.pertenceAoAluno(10L, 1L)).thenReturn(false);
+        assertEquals(HttpStatus.FORBIDDEN, simuladoController.evento(10L, "SAIU_DA_ABA", 1L, session).getStatusCode());
+
+        verifyNoInteractions(provaDoAlunoService);
     }
 
     @Test

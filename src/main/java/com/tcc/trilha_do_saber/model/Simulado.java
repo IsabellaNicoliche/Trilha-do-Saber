@@ -92,6 +92,10 @@ public class Simulado {
         return provaAplicada != null && provaAplicada.isGabaritoRetido();
     }
 
+    public boolean isEncerrarAoSair() {
+        return provaAplicada != null && provaAplicada.isEncerrarAoSair();
+    }
+
     public boolean isEncerradoPorSaida() {
         return Boolean.TRUE.equals(encerradoPorSaida);
     }

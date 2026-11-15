@@ -71,7 +71,8 @@
                             <li>A prova é individual e só pode ser feita uma vez.</li>
                             <li>Todos terminam no mesmo horário de encerramento.</li>
                             <li>Durante a prova você não consegue abrir outras páginas do sistema.</li>
-                            <li><strong>Se sair da tela da prova</strong> (trocar de aba, minimizar ou abrir outro programa) por mais de 2 segundos, <strong>ela é encerrada na hora</strong>, com as respostas que você já deu.</li>
+                            <li th:if="${prova.encerrarAoSair}"><strong>Se sair da tela da prova</strong> (trocar de aba, minimizar ou abrir outro programa) por mais de 2 segundos, <strong>ela é encerrada na hora</strong>, com as respostas que você já deu.</li>
+                            <li th:unless="${prova.encerrarAoSair}"><strong>As saídas da tela da prova</strong> (trocar de aba, minimizar ou abrir outro programa) <strong>ficam registradas para o professor</strong>, com o horário e quanto tempo você ficou fora.</li>
                             <li>Feche notificações e outros programas. Use um computador, não o celular.</li>
                             <li>Copiar, colar, imprimir e o clique direito ficam bloqueados.</li>
                         </ul>

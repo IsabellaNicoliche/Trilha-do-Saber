@@ -219,6 +219,32 @@ details.pv-prova > summary {
     background: #FEF2F2;
 }
 
+.pv-eventos summary {
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.pv-eventos-lista {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    font-size: 13px;
+    min-width: 260px;
+}
+
+.pv-eventos-lista li {
+    margin: 2px 0;
+}
+
+.pv-evento-hora {
+    font-variant-numeric: tabular-nums;
+    color: #6B7280;
+    margin-right: 6px;
+}
+
+.pv-evento-duracao {
+    color: #6B7280;
+}
+
 a.botao-primario,
 a.botao-secundario {
     display: inline-block;

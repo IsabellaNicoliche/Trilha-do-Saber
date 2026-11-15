@@ -11,6 +11,7 @@ import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
 import com.tcc.trilha_do_saber.model.AlocacaoDisciplina;
 import com.tcc.trilha_do_saber.model.Aluno;
 import com.tcc.trilha_do_saber.model.Dificuldade;
+import com.tcc.trilha_do_saber.model.EventoProva;
 import com.tcc.trilha_do_saber.model.Professor;
 import com.tcc.trilha_do_saber.model.Prova;
 import com.tcc.trilha_do_saber.model.ProvaAplicada;
@@ -21,8 +22,10 @@ import com.tcc.trilha_do_saber.model.Questao;
 import com.tcc.trilha_do_saber.model.Simulado;
 import com.tcc.trilha_do_saber.model.StatusProva;
 import com.tcc.trilha_do_saber.model.TipoAcao;
+import com.tcc.trilha_do_saber.model.TipoEventoProva;
 import com.tcc.trilha_do_saber.repository.AlocacaoDisciplinaRepository;
 import com.tcc.trilha_do_saber.repository.AlunoRepository;
+import com.tcc.trilha_do_saber.repository.EventoProvaRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaAlunoRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaQuestaoRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaRepository;
@@ -92,6 +95,8 @@ class ProvaAplicadaServiceTest {
     private ImportacaoAlunosService importacaoAlunosService;
     @Mock
     private LogAuditoriaService logAuditoriaService;
+    @Mock
+    private EventoProvaRepository eventoProvaRepository;
 
     private ProvaAplicadaService servico;
     private final Professor carlos = new Professor("Carlos", "carlos@umc.br", "hash", "PROF-1");
@@ -100,7 +105,7 @@ class ProvaAplicadaServiceTest {
     void preparar() {
         servico = new ProvaAplicadaService(provaRepository, provaQuestaoRepository, provaTurmaRepository, provaAlunoRepository, questaoRepository,
                 alocacaoRepository, alunoRepository, simuladoRepository, respostaRepository, importacaoAlunosService,
-                logAuditoriaService);
+                logAuditoriaService, eventoProvaRepository);
         lenient().when(alocacaoRepository.buscarDoProfessor(eq(5L), anyString()))
                 .thenReturn(List.of(alocacao(8, "B", "Noturno", "Banco de Dados")));
         lenient().when(provaRepository.save(any(ProvaAplicada.class))).thenAnswer(i -> comId(i.getArgument(0), 50L));
@@ -758,6 +763,19 @@ class ProvaAplicadaServiceTest {
     }
 
     @Test
+    void criaProvaQueEncerraAoSairSoQuandoOProfessorPede() {
+        when(questaoRepository.findAllById(any())).thenReturn(List.of(questao(101L, true)));
+
+        servico.criar(PROFESSOR, "Rigida", futuro(60), futuro(120), List.of(CHAVE_8B), List.of(), List.of(101L), false, true, "ip");
+        servico.criar(PROFESSOR, "Padrao", futuro(60), futuro(120), List.of(CHAVE_8B), List.of(), List.of(101L), false, "ip");
+
+        ArgumentCaptor<ProvaAplicada> salvas = ArgumentCaptor.forClass(ProvaAplicada.class);
+        verify(provaRepository, times(2)).save(salvas.capture());
+        assertTrue(salvas.getAllValues().get(0).isEncerrarAoSair());
+        assertFalse(salvas.getAllValues().get(1).isEncerrarAoSair());
+    }
+
+    @Test
     void detalheCalculaMaiorMenorNotaEADistribuicaoPorFaixa() {
         LocalDateTime inicio = LocalDateTime.now().minusMinutes(40);
         ProvaAplicada prova = comId(new ProvaAplicada("P", "PROFESSOR", 5L, "Carlos", inicio.minusMinutes(5),
@@ -892,14 +910,18 @@ class ProvaAplicadaServiceTest {
         lenient().when(respostaRepository.countBySimuladoIdAndAcertouTrue(201L)).thenReturn(8L);
         lenient().when(respostaRepository.countBySimuladoId(202L)).thenReturn(3L);
         lenient().when(respostaRepository.countBySimuladoIdAndAcertouTrue(202L)).thenReturn(1L);
+        when(eventoProvaRepository.findBySimuladoIdOrderByOcorreuEmAscIdAsc(201L)).thenReturn(List.of(
+                new EventoProva(daAna, TipoEventoProva.SAIU_DA_ABA, LocalDateTime.of(2026, 11, 13, 19, 40), 48L),
+                new EventoProva(daAna, TipoEventoProva.TENTOU_COLAR, LocalDateTime.of(2026, 11, 13, 19, 45), null),
+                new EventoProva(daAna, TipoEventoProva.PERDEU_FOCO, LocalDateTime.of(2026, 11, 13, 19, 50), 17L)));
 
         String csv = servico.exportarCsv(50L, PROFESSOR);
 
         String esperado = "\uFEFF"
-                + "\"Aluno\";\"Registro\";\"Turma\";\"Situação\";\"Respondidas\";\"Total de questões\";\"Acertos\";\"Nota (%)\";\"Encerrou às\";\"Saiu da tela\"\r\n"
-                + "\"Ana\";\"RA-2\";\"8º · turma B · Noturno\";\"Enviada\";\"10\";\"10\";\"8\";\"80,0\";\"20:05:09\";\"Não\"\r\n"
-                + "\"Bia\";\"RA-3\";\"8º · turma B · Noturno\";\"Encerrada por saída da tela\";\"3\";\"10\";\"1\";\"10,0\";\"19:50:00\";\"Sim\"\r\n"
-                + "\"Zeca\";\"RA-1\";\"8º · turma B · Noturno\";\"Não iniciou\";\"\";\"10\";\"\";\"\";\"\";\"Não\"\r\n";
+                + "\"Aluno\";\"Registro\";\"Turma\";\"Situação\";\"Respondidas\";\"Total de questões\";\"Acertos\";\"Nota (%)\";\"Encerrou às\";\"Saiu da tela\";\"Saídas registradas\";\"Tempo fora da tela\"\r\n"
+                + "\"Ana\";\"RA-2\";\"8º · turma B · Noturno\";\"Enviada\";\"10\";\"10\";\"8\";\"80,0\";\"20:05:09\";\"Não\";\"2\";\"1min05s\"\r\n"
+                + "\"Bia\";\"RA-3\";\"8º · turma B · Noturno\";\"Encerrada por saída da tela\";\"3\";\"10\";\"1\";\"10,0\";\"19:50:00\";\"Sim\";\"0\";\"0s\"\r\n"
+                + "\"Zeca\";\"RA-1\";\"8º · turma B · Noturno\";\"Não iniciou\";\"\";\"10\";\"\";\"\";\"\";\"Não\";\"\";\"\"\r\n";
         assertEquals(esperado, csv);
     }
 

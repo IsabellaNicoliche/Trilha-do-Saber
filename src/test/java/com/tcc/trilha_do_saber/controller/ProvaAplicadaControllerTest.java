@@ -79,7 +79,7 @@ class ProvaAplicadaControllerTest {
 
             assertEquals("redirect:/login", controller().lista(session, model));
             assertEquals("redirect:/login", controller().nova(session, model));
-            assertEquals("redirect:/login", controller().criar("t", "a", "b", List.of(), List.of(), List.of(), false, session, request, model, redirect));
+            assertEquals("redirect:/login", controller().criar("t", "a", "b", List.of(), List.of(), List.of(), false, false, session, request, model, redirect));
             assertEquals("redirect:/login", controller().detalhe(5L, session, model, redirect));
             assertEquals("redirect:/login", controller().cancelar(5L, session, request, redirect));
         }
@@ -135,11 +135,11 @@ class ProvaAplicadaControllerTest {
         ProvaAplicada prova = provaComId(50L);
         when(servico.criar(eq(professor), eq("Prova X"), eq(LocalDateTime.of(2026, 11, 13, 19, 30)),
                 eq(LocalDateTime.of(2026, 11, 13, 21, 0)), eq(List.of("c|8|B|Noturno")), eq(List.of(7L, 8L)),
-                eq(List.of(101L, 102L)), eq(false), eq("7.7.7.7")))
+                eq(List.of(101L, 102L)), eq(false), eq(false), eq("7.7.7.7")))
                 .thenReturn(prova);
 
         String destino = controller().criar("Prova X", "2026-11-13T19:30", "2026-11-13T21:00", List.of("c|8|B|Noturno"),
-                List.of(7L, 8L), List.of(101L, 102L), false, session, request, model, redirect);
+                List.of(7L, 8L), List.of(101L, 102L), false, false, session, request, model, redirect);
 
         assertEquals("redirect:/professor/provas/50", destino);
         verify(redirect).addFlashAttribute("mensagemProva", "Prova criada e agendada");
@@ -148,10 +148,10 @@ class ProvaAplicadaControllerTest {
     @Test
     void coordenadorVaiParaODetalheNaBaseDoCoordenador() {
         UsuarioSessaoDTO coordenador = entrarComo("COORDENADOR");
-        when(servico.criar(eq(coordenador), anyString(), any(), any(), any(), any(), any(), anyBoolean(), anyString())).thenReturn(provaComId(51L));
+        when(servico.criar(eq(coordenador), anyString(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyString())).thenReturn(provaComId(51L));
 
         String destino = controller().criar("P", "2026-11-13T19:30:00", "2026-11-13T21:00:00", List.of("c"), null, List.of(1L),
-                false, session, request, model, redirect);
+                false, false, session, request, model, redirect);
 
         assertEquals("redirect:/coordenador/provas/51", destino);
     }
@@ -163,7 +163,7 @@ class ProvaAplicadaControllerTest {
         when(servico.bancoDeQuestoes()).thenReturn(List.of());
 
         String destino = controller().criar("Minha prova", "amanhã", "2026-11-13T21:00", List.of("turma1"), List.of(5L), List.of(7L, 8L),
-                false, session, request, model, redirect);
+                false, false, session, request, model, redirect);
 
         assertEquals("prova/nova", destino);
         verify(model).addAttribute("erroProva", "Data ou horário inválido");
@@ -173,7 +173,7 @@ class ProvaAplicadaControllerTest {
         verify(model).addAttribute("turmasSelecionadas", Set.of("turma1"));
         verify(model).addAttribute("alunosSelecionados", Set.of(5L));
         verify(model).addAttribute("questoesSelecionadas", Set.of(7L, 8L));
-        verify(servico, never()).criar(any(), any(), any(), any(), any(), any(), any(), anyBoolean(), any());
+        verify(servico, never()).criar(any(), any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), any());
     }
 
     @Test
@@ -181,11 +181,11 @@ class ProvaAplicadaControllerTest {
         UsuarioSessaoDTO professor = entrarComo("PROFESSOR");
         when(servico.gruposDeAlunos(professor)).thenReturn(List.of());
         when(servico.bancoDeQuestoes()).thenReturn(List.of());
-        when(servico.criar(any(), any(), any(), any(), any(), any(), any(), anyBoolean(), any()))
+        when(servico.criar(any(), any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), any()))
                 .thenThrow(new IllegalArgumentException("Escolha pelo menos uma questão"));
 
         String destino = controller().criar("P", "2026-11-13T19:30", "2026-11-13T21:00", List.of("t"), null, null,
-                false, session, request, model, redirect);
+                false, false, session, request, model, redirect);
 
         assertEquals("prova/nova", destino);
         verify(model).addAttribute("erroProva", "Escolha pelo menos uma questão");
@@ -198,10 +198,10 @@ class ProvaAplicadaControllerTest {
         UsuarioSessaoDTO professor = entrarComo("PROFESSOR");
         when(servico.gruposDeAlunos(professor)).thenReturn(List.of());
         when(servico.bancoDeQuestoes()).thenReturn(List.of());
-        when(servico.criar(professor, null, null, null, null, null, null, false, "7.7.7.7"))
+        when(servico.criar(professor, null, null, null, null, null, null, false, false, "7.7.7.7"))
                 .thenThrow(new IllegalArgumentException("Informe o título da prova"));
 
-        assertEquals("prova/nova", controller().criar(null, null, " ", null, null, null, false, session, request, model, redirect));
+        assertEquals("prova/nova", controller().criar(null, null, " ", null, null, null, false, false, session, request, model, redirect));
 
         verify(model).addAttribute("titulo", "");
         verify(model).addAttribute("turmasSelecionadas", Set.of());
@@ -299,11 +299,11 @@ class ProvaAplicadaControllerTest {
         UsuarioSessaoDTO professor = entrarComo("PROFESSOR");
         when(servico.gruposDeAlunos(professor)).thenReturn(List.of());
         when(servico.bancoDeQuestoes()).thenReturn(List.of());
-        when(servico.criar(eq(professor), anyString(), any(), any(), any(), any(), any(), eq(true), anyString()))
+        when(servico.criar(eq(professor), anyString(), any(), any(), any(), any(), any(), eq(true), eq(false), anyString()))
                 .thenThrow(new IllegalArgumentException("Escolha pelo menos uma questão"));
 
         assertEquals("prova/nova", controller().criar("P", "2026-11-13T19:30", "2026-11-13T21:00", List.of("t"), null, null, true,
-                session, request, model, redirect));
+                false, session, request, model, redirect));
 
         verify(model).addAttribute("reterGabarito", true);
     }
@@ -311,11 +311,36 @@ class ProvaAplicadaControllerTest {
     @Test
     void oGabaritoRetidoMarcadoVaiParaOServicoNaCriacao() {
         UsuarioSessaoDTO professor = entrarComo("PROFESSOR");
-        when(servico.criar(eq(professor), anyString(), any(), any(), any(), any(), any(), eq(true), anyString()))
+        when(servico.criar(eq(professor), anyString(), any(), any(), any(), any(), any(), eq(true), eq(false), anyString()))
                 .thenReturn(provaComId(50L));
 
         assertEquals("redirect:/professor/provas/50", controller().criar("P", "2026-11-13T19:30", "2026-11-13T21:00", List.of("t"),
-                null, List.of(1L), true, session, request, model, redirect));
+                null, List.of(1L), true, false, session, request, model, redirect));
+    }
+
+    @Test
+    void encerrarAoSairMarcadoVaiParaOServicoEVoltaMarcadoSeOFormularioErrar() {
+        UsuarioSessaoDTO professor = entrarComo("PROFESSOR");
+        when(servico.gruposDeAlunos(professor)).thenReturn(List.of());
+        when(servico.bancoDeQuestoes()).thenReturn(List.of());
+        when(servico.criar(eq(professor), anyString(), any(), any(), any(), any(), any(), eq(false), eq(true), anyString()))
+                .thenThrow(new IllegalArgumentException("Escolha pelo menos uma questão"));
+
+        assertEquals("prova/nova", controller().criar("P", "2026-11-13T19:30", "2026-11-13T21:00", List.of("t"), null, null, false,
+                true, session, request, model, redirect));
+
+        verify(model).addAttribute("encerrarAoSair", true);
+    }
+
+    @Test
+    void oFormularioNovoComecaSoRegistrandoAsSaidas() {
+        UsuarioSessaoDTO professor = entrarComo("PROFESSOR");
+        when(servico.gruposDeAlunos(professor)).thenReturn(List.of());
+        when(servico.bancoDeQuestoes()).thenReturn(List.of());
+
+        controller().nova(session, model);
+
+        verify(model).addAttribute("encerrarAoSair", false);
     }
 
     @Test

@@ -14,6 +14,8 @@
       th:data-resultado-url="@{'/simulado/' + ${simulado.id} + '/resultado'}"
       th:data-login-url="@{/login}"
       th:data-saida-url="@{'/simulado/' + ${simulado.id} + '/saida'}"
+      th:data-evento-url="@{'/simulado/' + ${simulado.id} + '/evento'}"
+      th:data-encerrar-ao-sair="${encerrarAoSair}"
       th:data-tolerancia-ms="${toleranciaSaidaMs}">
 
     <header class="topo">
@@ -33,8 +35,11 @@
 </span>
             </div>
         </div>
-        <div class="aviso-prova-aplicada" th:if="${aplicado}">
+        <div class="aviso-prova-aplicada" th:if="${aplicado and encerrarAoSair}">
             Prova em andamento: se você sair desta tela por mais de 2 segundos, a prova será encerrada.
+        </div>
+        <div class="aviso-prova-aplicada" th:if="${aplicado and !encerrarAoSair}">
+            Prova em andamento: as saídas desta tela ficam registradas para o professor.
         </div>
         <div class="barra-progresso">
             <div class="barra-preenchida" th:style="'width:' + ${progresso} + '%'"></div>
@@ -153,6 +158,11 @@
         const campoCsrf = formulario.querySelector('input[name="_csrf"]');
         const tokenCsrf = campoCsrf ? campoCsrf.value : "";
 
+        function irPara(url) {
+            window.provaNavegando = true;
+            window.location.href = url;
+        }
+
         const cronometro = document.getElementById("cronometro");
         if (cronometro) {
             const aviso = document.getElementById("aviso-tempo");
@@ -175,7 +185,7 @@
 
                 if (restante === 0) {
                     clearInterval(intervalo);
-                    window.location.href = urlResultado;
+                    irPara(urlResultado);
                 }
             }
 
@@ -222,11 +232,11 @@
                 })
                     .then(function (resposta) {
                         if (resposta.status === 409) {
-                            window.location.href = urlResultado;
+                            irPara(urlResultado);
                             return null;
                         }
                         if (resposta.status === 401) {
-                            window.location.href = urlLogin;
+                            irPara(urlLogin);
                             return null;
                         }
                         if (!resposta.ok) {
@@ -260,20 +270,62 @@
     (function () {
         const formulario = document.querySelector("form.prova");
         const urlSaida = formulario.dataset.saidaUrl;
+        const urlEvento = formulario.dataset.eventoUrl;
         const urlResultado = formulario.dataset.resultadoUrl;
+        const encerrarAoSair = formulario.dataset.encerrarAoSair === "true";
         const tolerancia = Number(formulario.dataset.toleranciaMs) || 2000;
+        const minimoSaidaMs = 1000;
+        const intervaloRepeticaoMs = 3000;
         const campoCsrf = formulario.querySelector('input[name="_csrf"]');
-        const tokenCsrf = campoCsrf ? campoCsrf.value : "";
+        const ultimoEnvio = {};
         let foraDesde = null;
+        let tipoSaida = null;
         let encerrando = false;
+
+        function enviarEvento(tipo, duracaoMs) {
+            const dados = new URLSearchParams({tipo: tipo});
+            if (duracaoMs !== undefined) {
+                dados.append("duracaoMs", String(Math.round(duracaoMs)));
+            }
+            if (campoCsrf) {
+                dados.append("_csrf", campoCsrf.value);
+            }
+            if (navigator.sendBeacon && navigator.sendBeacon(urlEvento, dados)) {
+                return;
+            }
+            fetch(urlEvento, {method: "POST", credentials: "same-origin", keepalive: true, body: dados})
+                .catch(function () {});
+        }
+
+        function registrarTentativa(tipo) {
+            const agora = Date.now();
+            if (ultimoEnvio[tipo] && agora - ultimoEnvio[tipo] < intervaloRepeticaoMs) {
+                return;
+            }
+            ultimoEnvio[tipo] = agora;
+            enviarEvento(tipo);
+        }
+
+        function fecharSaida() {
+            if (foraDesde === null) {
+                return;
+            }
+            const duracao = Date.now() - foraDesde;
+            if (duracao >= minimoSaidaMs) {
+                enviarEvento(tipoSaida, duracao);
+            }
+            foraDesde = null;
+            tipoSaida = null;
+        }
 
         function encerrar() {
             if (encerrando) {
                 return;
             }
             encerrando = true;
-            fetch(urlSaida, {method: "POST", credentials: "same-origin", keepalive: true,
-                headers: {"X-CSRF-TOKEN": tokenCsrf}})
+            window.provaNavegando = true;
+            const cabecalhos = campoCsrf ? {"X-CSRF-TOKEN": campoCsrf.value} : {};
+            fetch(urlSaida, {method: "POST", credentials: "same-origin", keepalive: true, headers: cabecalhos})
                 .catch(function () {})
                 .then(function () { window.location.href = urlResultado; });
         }
@@ -281,12 +333,17 @@
         function verificar() {
             const fora = document.hidden || !document.hasFocus();
             if (!fora) {
-                foraDesde = null;
+                fecharSaida();
                 return;
             }
             if (foraDesde === null) {
                 foraDesde = Date.now();
-            } else if (Date.now() - foraDesde >= tolerancia) {
+                tipoSaida = document.hidden ? "SAIU_DA_ABA" : "PERDEU_FOCO";
+            } else if (document.hidden) {
+                tipoSaida = "SAIU_DA_ABA";
+            }
+            if (encerrarAoSair && Date.now() - foraDesde >= tolerancia) {
+                fecharSaida();
                 encerrar();
             }
         }
@@ -296,8 +353,28 @@
         window.addEventListener("blur", verificar);
         window.addEventListener("focus", verificar);
 
+        document.addEventListener("submit", function () { window.provaNavegando = true; }, true);
+        document.addEventListener("click", function (e) {
+            if (e.target.closest && e.target.closest("a[href]")) {
+                window.provaNavegando = true;
+            }
+        }, true);
+
+        window.addEventListener("pagehide", function () {
+            fecharSaida();
+            if (!window.provaNavegando) {
+                enviarEvento("SAIU_DA_PAGINA");
+            }
+        });
+
+        const tentativas = {contextmenu: "CLIQUE_DIREITO", copy: "TENTOU_COPIAR", cut: "TENTOU_COPIAR", paste: "TENTOU_COLAR"};
         ["contextmenu", "copy", "cut", "paste", "dragstart", "selectstart"].forEach(function (evento) {
-            document.addEventListener(evento, function (e) { e.preventDefault(); });
+            document.addEventListener(evento, function (e) {
+                e.preventDefault();
+                if (tentativas[evento]) {
+                    registrarTentativa(tentativas[evento]);
+                }
+            });
         });
 
         document.addEventListener("keydown", function (e) {
@@ -305,6 +382,13 @@
             const bloqueada = (e.ctrlKey || e.metaKey) && ["p", "s", "u", "c", "v", "x", "a"].indexOf(tecla) !== -1;
             if (bloqueada || e.key === "F12" || e.key === "PrintScreen") {
                 e.preventDefault();
+                if (bloqueada && (tecla === "c" || tecla === "x")) {
+                    registrarTentativa("TENTOU_COPIAR");
+                } else if (bloqueada && tecla === "v") {
+                    registrarTentativa("TENTOU_COLAR");
+                } else if (tecla !== "a") {
+                    registrarTentativa("ATALHO_BLOQUEADO");
+                }
             }
         });
     })();

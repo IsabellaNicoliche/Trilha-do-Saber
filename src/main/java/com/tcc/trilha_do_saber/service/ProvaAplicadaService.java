@@ -3,6 +3,7 @@ package com.tcc.trilha_do_saber.service;
 import com.tcc.trilha_do_saber.dto.AlunoOpcaoDTO;
 import com.tcc.trilha_do_saber.dto.DesempenhoQuestaoDTO;
 import com.tcc.trilha_do_saber.dto.DetalheProvaAplicadaDTO;
+import com.tcc.trilha_do_saber.dto.EventoProvaDTO;
 import com.tcc.trilha_do_saber.dto.FaixaNotaDTO;
 import com.tcc.trilha_do_saber.dto.LinhaProvaAlunoDTO;
 import com.tcc.trilha_do_saber.dto.ModeloProvaDTO;
@@ -24,6 +25,7 @@ import com.tcc.trilha_do_saber.model.StatusProva;
 import com.tcc.trilha_do_saber.model.TipoAcao;
 import com.tcc.trilha_do_saber.repository.AlocacaoDisciplinaRepository;
 import com.tcc.trilha_do_saber.repository.AlunoRepository;
+import com.tcc.trilha_do_saber.repository.EventoProvaRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaAlunoRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaQuestaoRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaRepository;
@@ -78,6 +80,7 @@ public class ProvaAplicadaService {
     private final RespostaRepository respostaRepository;
     private final ImportacaoAlunosService importacaoAlunosService;
     private final LogAuditoriaService logAuditoriaService;
+    private final EventoProvaRepository eventoProvaRepository;
 
     public ProvaAplicadaService(ProvaAplicadaRepository provaRepository,
                                 ProvaAplicadaQuestaoRepository provaQuestaoRepository,
@@ -89,7 +92,8 @@ public class ProvaAplicadaService {
                                 SimuladoRepository simuladoRepository,
                                 RespostaRepository respostaRepository,
                                 ImportacaoAlunosService importacaoAlunosService,
-                                LogAuditoriaService logAuditoriaService) {
+                                LogAuditoriaService logAuditoriaService,
+                                EventoProvaRepository eventoProvaRepository) {
         this.provaRepository = provaRepository;
         this.provaQuestaoRepository = provaQuestaoRepository;
         this.provaTurmaRepository = provaTurmaRepository;
@@ -101,6 +105,7 @@ public class ProvaAplicadaService {
         this.respostaRepository = respostaRepository;
         this.importacaoAlunosService = importacaoAlunosService;
         this.logAuditoriaService = logAuditoriaService;
+        this.eventoProvaRepository = eventoProvaRepository;
     }
 
     public List<TurmaAlvoDTO> turmasDisponiveis(UsuarioSessaoDTO ator) {
@@ -200,6 +205,13 @@ public class ProvaAplicadaService {
     public ProvaAplicada criar(UsuarioSessaoDTO ator, String titulo, LocalDateTime abertura, LocalDateTime encerramento,
                                Collection<String> chavesTurmas, Collection<Long> alunoIds, Collection<Long> questaoIds,
                                boolean reterGabarito, String ip) {
+        return criar(ator, titulo, abertura, encerramento, chavesTurmas, alunoIds, questaoIds, reterGabarito, false, ip);
+    }
+
+    @Transactional
+    public ProvaAplicada criar(UsuarioSessaoDTO ator, String titulo, LocalDateTime abertura, LocalDateTime encerramento,
+                               Collection<String> chavesTurmas, Collection<Long> alunoIds, Collection<Long> questaoIds,
+                               boolean reterGabarito, boolean encerrarAoSair, String ip) {
 
         if (!"PROFESSOR".equals(ator.getTipo()) && !"COORDENADOR".equals(ator.getTipo())) {
             throw new IllegalArgumentException("Apenas professor ou coordenador pode criar provas");
@@ -269,6 +281,7 @@ public class ProvaAplicadaService {
         ProvaAplicada nova = new ProvaAplicada(tituloLimpo, ator.getTipo(), ator.getId(), ator.getNome(), abertura,
                 encerramento, agora);
         nova.definirGabaritoRetido(reterGabarito);
+        nova.definirEncerrarAoSair(encerrarAoSair);
         ProvaAplicada prova = provaRepository.save(nova);
 
         for (TurmaAlvoDTO turma : escolhidas) {
@@ -389,6 +402,7 @@ public class ProvaAplicadaService {
             LinhaProvaAlunoDTO linha = new LinhaProvaAlunoDTO(aluno.getNome(), aluno.getRegistroAluno(), turmaRotulo,
                     situacao(tentativa, agora), true, respondidas, acertos, total, tentativa.getDataFim(),
                     tentativa.isEncerradoPorSaida());
+            linha.comEventos(eventosDaTentativa(tentativa.getId()));
             linhas.add(linha);
 
             iniciaram++;
@@ -417,7 +431,7 @@ public class ProvaAplicadaService {
 
         StringBuilder csv = new StringBuilder("\uFEFF");
         csv.append(linhaCsv("Aluno", "Registro", "Turma", "Situação", "Respondidas", "Total de questões", "Acertos",
-                "Nota (%)", "Encerrou às", "Saiu da tela"));
+                "Nota (%)", "Encerrou às", "Saiu da tela", "Saídas registradas", "Tempo fora da tela"));
 
         for (LinhaProvaAlunoDTO linha : detalhe.getLinhas()) {
             csv.append(linhaCsv(linha.getNome(), linha.getRegistro(), linha.getTurma(), linha.getSituacao(),
@@ -426,9 +440,18 @@ public class ProvaAplicadaService {
                     linha.isIniciou() ? String.valueOf(linha.getAcertos()) : "",
                     linha.isIniciou() ? String.format(PT_BR, "%.1f", linha.getPercentual()) : "",
                     linha.getTerminouEm() != null ? linha.getTerminouEm().format(FORMATO_HORA) : "",
-                    linha.isSaiuDaTela() ? "Sim" : "Não"));
+                    linha.isSaiuDaTela() ? "Sim" : "Não",
+                    linha.isIniciou() ? String.valueOf(linha.getTotalSaidas()) : "",
+                    linha.isIniciou() ? linha.getTempoForaTexto() : ""));
         }
         return csv.toString();
+    }
+
+    private List<EventoProvaDTO> eventosDaTentativa(Long simuladoId) {
+        return eventoProvaRepository.findBySimuladoIdOrderByOcorreuEmAscIdAsc(simuladoId).stream()
+                .map(evento -> new EventoProvaDTO(evento.getTipo().getDescricao(), evento.getOcorreuEm(),
+                        evento.getDuracaoSegundos(), evento.getTipo().isSaidaDaTela()))
+                .toList();
     }
 
     static String celulaCsv(String valor) {
