@@ -2,16 +2,19 @@ package com.tcc.trilha_do_saber.service;
 
 import com.tcc.trilha_do_saber.dto.TurmaDoProfessorDTO;
 import com.tcc.trilha_do_saber.model.AlocacaoDisciplina;
+import com.tcc.trilha_do_saber.model.Aluno;
 import com.tcc.trilha_do_saber.model.Professor;
 import com.tcc.trilha_do_saber.repository.AlocacaoDisciplinaRepository;
 import com.tcc.trilha_do_saber.repository.AlunoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 public class ProfessorTurmaService {
@@ -26,6 +29,28 @@ public class ProfessorTurmaService {
 
     public List<String> periodos(Long professorId) {
         return alocacaoRepository.periodosDoProfessor(professorId);
+    }
+
+    public List<Aluno> alunosDasTurmas(Long professorId) {
+        String periodo = escolherPeriodo(periodos(professorId), null);
+        if (periodo == null) {
+            return List.of();
+        }
+
+        Set<String> turmasVistas = new HashSet<>();
+        Map<Long, Aluno> alunos = new LinkedHashMap<>();
+        for (AlocacaoDisciplina alocacao : alocacaoRepository.buscarDoProfessor(professorId, periodo)) {
+            String chave = (alocacao.getCurso() + "|" + alocacao.getSemestre() + "|" + alocacao.getTurma()
+                    + "|" + alocacao.getTurno()).toLowerCase();
+            if (!turmasVistas.add(chave)) {
+                continue;
+            }
+            for (Aluno aluno : alunoRepository.buscarDaTurma(alocacao.getCurso(), alocacao.getSemestre(),
+                    alocacao.getTurma(), alocacao.getTurno())) {
+                alunos.putIfAbsent(aluno.getId(), aluno);
+            }
+        }
+        return new ArrayList<>(alunos.values());
     }
 
     public String escolherPeriodo(List<String> periodos, String periodoPedido) {

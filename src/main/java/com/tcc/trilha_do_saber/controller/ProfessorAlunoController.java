@@ -1,7 +1,7 @@
 package com.tcc.trilha_do_saber.controller;
 
 import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
-import com.tcc.trilha_do_saber.service.AlunoService;
+import com.tcc.trilha_do_saber.service.ProfessorTurmaService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/professor/alunos")
 public class ProfessorAlunoController {
 
-    private final AlunoService alunoService;
+    private final ProfessorTurmaService professorTurmaService;
 
-    public ProfessorAlunoController(AlunoService alunoService){
-        this.alunoService = alunoService;
+    public ProfessorAlunoController(ProfessorTurmaService professorTurmaService){
+        this.professorTurmaService = professorTurmaService;
     }
 
     @GetMapping
@@ -24,7 +24,7 @@ public class ProfessorAlunoController {
         if (!(usuarioLogado instanceof UsuarioSessaoDTO usuarioSessao) || !"PROFESSOR".equals(usuarioSessao.getTipo())) {
             return "redirect:/login";
         }
-        model.addAttribute("alunos", alunoService.listarTodos());
+        model.addAttribute("alunos", professorTurmaService.alunosDasTurmas(usuarioSessao.getId()));
         model.addAttribute("usuarioLogado", usuarioSessao);
         return "professor/alunos";
     }
