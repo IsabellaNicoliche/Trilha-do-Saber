@@ -33,7 +33,7 @@
                 <span th:text="${erro}"></span>
             </div>
 
-            <form action="/arquivoPDF" method="post" enctype="multipart/form-data" class="form-importacao">
+            <form th:action="@{/arquivoPDF}" method="post" enctype="multipart/form-data" class="form-importacao">
 
                 <div class="campo">
                     <label for="curso">Curso</label>

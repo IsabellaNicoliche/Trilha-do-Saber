@@ -150,6 +150,8 @@
         const urlSalvar = formulario.dataset.salvarUrl;
         const urlResultado = formulario.dataset.resultadoUrl;
         const urlLogin = formulario.dataset.loginUrl;
+        const campoCsrf = formulario.querySelector('input[name="_csrf"]');
+        const tokenCsrf = campoCsrf ? campoCsrf.value : "";
 
         const cronometro = document.getElementById("cronometro");
         if (cronometro) {
@@ -215,7 +217,7 @@
                 fetch(urlSalvar, {
                     method: "POST",
                     credentials: "same-origin",
-                    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                    headers: {"Content-Type": "application/x-www-form-urlencoded", "X-CSRF-TOKEN": tokenCsrf},
                     body: new URLSearchParams({alternativaId: radio.value})
                 })
                     .then(function (resposta) {
@@ -260,6 +262,8 @@
         const urlSaida = formulario.dataset.saidaUrl;
         const urlResultado = formulario.dataset.resultadoUrl;
         const tolerancia = Number(formulario.dataset.toleranciaMs) || 2000;
+        const campoCsrf = formulario.querySelector('input[name="_csrf"]');
+        const tokenCsrf = campoCsrf ? campoCsrf.value : "";
         let foraDesde = null;
         let encerrando = false;
 
@@ -268,7 +272,8 @@
                 return;
             }
             encerrando = true;
-            fetch(urlSaida, {method: "POST", credentials: "same-origin", keepalive: true})
+            fetch(urlSaida, {method: "POST", credentials: "same-origin", keepalive: true,
+                headers: {"X-CSRF-TOKEN": tokenCsrf}})
                 .catch(function () {})
                 .then(function () { window.location.href = urlResultado; });
         }
