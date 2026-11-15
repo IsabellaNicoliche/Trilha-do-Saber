@@ -13,6 +13,7 @@ import com.tcc.trilha_do_saber.model.SimuladoQuestao;
 import com.tcc.trilha_do_saber.repository.AlternativaRepository;
 import com.tcc.trilha_do_saber.dto.ProvaDisponivelDTO;
 import com.tcc.trilha_do_saber.service.ProvaDoAlunoService;
+import com.tcc.trilha_do_saber.service.ReporteQuestaoService;
 import com.tcc.trilha_do_saber.service.SimuladoService;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,9 @@ class SimuladoControllerTest {
 
     @Mock
     private ProvaDoAlunoService provaDoAlunoService;
+
+    @Mock
+    private ReporteQuestaoService reporteQuestaoService;
 
     @Mock
     private HttpSession session;

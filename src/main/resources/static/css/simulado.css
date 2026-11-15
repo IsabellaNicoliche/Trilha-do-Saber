@@ -1052,3 +1052,69 @@ a.botao-secundario {
         transition: none;
     }
 }
+
+.reporte-questao {
+    margin-top: 16px;
+    border-top: 1px solid #E5E7EB;
+    padding-top: 12px;
+}
+
+.reporte-questao summary {
+    cursor: pointer;
+    color: #6B7280;
+    font-size: 14px;
+}
+
+.reporte-questao form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+    max-width: 560px;
+}
+
+.reporte-questao label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.reporte-questao select,
+.reporte-questao textarea {
+    font: inherit;
+    padding: 8px;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+}
+
+.reporte-questao button {
+    align-self: flex-start;
+    margin-top: 4px;
+}
+
+.reporte-limite {
+    font-size: 12px;
+    color: #6B7280;
+}
+
+.reporte-enviado {
+    margin-top: 16px;
+    font-size: 14px;
+    color: #6B7280;
+}
+
+.reporte-aviso {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.reporte-ok {
+    background: #ECFDF5;
+    color: #065F46;
+}
+
+.reporte-erro {
+    background: #FEF2F2;
+    color: #991B1B;
+}

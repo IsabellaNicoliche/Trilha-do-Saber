@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reportes de questões</title>
+    <link rel="stylesheet" th:href="@{/css/painel.css}">
+    <link rel="stylesheet" th:href="@{/css/reportes.css}">
+</head>
+<body>
+
+<header th:replace="~{fragments/navAdmin :: nav(pagina='reportes', usuarioLogado=${usuarioLogado})}"></header>
+
+<main class="conteudo">
+
+    <header class="topo-conteudo">
+        <h1>Reportes de questões</h1>
+        <p class="subtitulo-pagina">Problemas apontados pelos alunos nas questões. Corrija a questão no banco de questões
+            e marque o reporte como resolvido, ou descarte quando não houver problema.</p>
+    </header>
+
+    <div class="reporte-mensagem" th:if="${mensagemReporte}" th:text="${mensagemReporte}"></div>
+    <div class="alerta-erro" th:if="${erroReporte}" th:text="${erroReporte}"></div>
+
+    <nav class="abas">
+        <a class="aba" th:classappend="${filtro == 'ABERTO'} ? 'ativa'" th:href="@{/admin/reportes(status='ABERTO')}"
+           th:text="'Abertos (' + ${abertos} + ')'">Abertos</a>
+        <a class="aba" th:classappend="${filtro == 'RESOLVIDO'} ? 'ativa'" th:href="@{/admin/reportes(status='RESOLVIDO')}">Resolvidos</a>
+        <a class="aba" th:classappend="${filtro == 'DESCARTADO'} ? 'ativa'" th:href="@{/admin/reportes(status='DESCARTADO')}">Descartados</a>
+        <a class="aba" th:classappend="${filtro == 'TODOS'} ? 'ativa'" th:href="@{/admin/reportes(status='TODOS')}">Todos</a>
+    </nav>
+
+    <div class="reportes-tabela">
+        <table class="tabela-usuarios">
+            <thead>
+            <tr>
+                <th>Recebido em</th>
+                <th>Questão</th>
+                <th>Problema</th>
+                <th>Aluno</th>
+                <th>Situação</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="reporte : ${reportes}">
+                <td th:text="${#temporals.format(reporte.criadoEm, 'dd/MM/yyyy HH:mm')}"></td>
+                <td>
+                    <a th:href="@{|/admin/questoes/${reporte.questaoId}/editar|}" th:text="${reporte.questaoRotulo}"></a>
+                    <span class="badge-status badge-inativo" th:unless="${reporte.questaoAtiva}">Desativada</span>
+                </td>
+                <td>
+                    <strong th:text="${reporte.tipo}"></strong>
+                    <p class="reporte-descricao" th:text="${reporte.descricao}"></p>
+                </td>
+                <td th:text="${reporte.aluno}"></td>
+                <td>
+                    <span class="badge-status" th:classappend="${reporte.aberto} ? 'badge-aviso' : 'badge-ativo'"
+                          th:text="${reporte.status}"></span>
+                    <span class="reporte-analise" th:if="${reporte.analisadoEm != null}"
+                          th:text="${reporte.analisadoPor} + ' · ' + ${#temporals.format(reporte.analisadoEm, 'dd/MM HH:mm')}"></span>
+                </td>
+                <td>
+                    <div class="reporte-acoes" th:if="${reporte.aberto}">
+                        <form method="post" th:action="@{|/admin/reportes/${reporte.id}/resolver|}">
+                            <button type="submit" class="botao-primario">Resolver</button>
+                        </form>
+                        <form method="post" th:action="@{|/admin/reportes/${reporte.id}/resolver|}" th:if="${reporte.questaoAtiva}"
+                              data-confirmar="Desativar a questão? Ela deixa de aparecer em novos simulados.">
+                            <input type="hidden" name="desativarQuestao" value="true">
+                            <button type="submit" class="botao-perigo">Resolver e desativar questão</button>
+                        </form>
+                        <form method="post" th:action="@{|/admin/reportes/${reporte.id}/descartar|}">
+                            <button type="submit" class="botao-secundario">Descartar</button>
+                        </form>
+                    </div>
+                    <span th:unless="${reporte.aberto}">—</span>
+                </td>
+            </tr>
+            <tr th:if="${reportes.isEmpty()}">
+                <td colspan="6" class="linha-vazia">Nenhum reporte nesta situação</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<script>
+    document.querySelectorAll("form[data-confirmar]").forEach(function (formulario) {
+        formulario.addEventListener("submit", function (e) {
+            if (!window.confirm(formulario.dataset.confirmar)) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
