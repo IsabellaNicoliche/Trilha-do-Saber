@@ -6,6 +6,7 @@ import com.tcc.trilha_do_saber.dto.VerificacaoSessaoDTO;
 import com.tcc.trilha_do_saber.model.TipoAcao;
 import com.tcc.trilha_do_saber.service.AuthService;
 import com.tcc.trilha_do_saber.service.EmailService;
+import com.tcc.trilha_do_saber.service.LimiteTentativasLogin;
 import com.tcc.trilha_do_saber.service.LogAuditoriaService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -182,7 +183,7 @@ class LoginControllerDuasEtapasTest {
     }
 
     private LoginController controller() {
-        return new LoginController(authService, emailService, logAuditoriaService);
+        return new LoginController(authService, emailService, logAuditoriaService, new LimiteTentativasLogin());
     }
 
     private LoginDTO dto(String email, String senha) {
