@@ -1,5 +1,7 @@
 package com.tcc.trilha_do_saber.controller;
 
+import com.tcc.trilha_do_saber.config.SessaoSegura;
+import com.tcc.trilha_do_saber.dto.LoginDTO;
 import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
 import com.tcc.trilha_do_saber.dto.VerificacaoSessaoDTO;
 import com.tcc.trilha_do_saber.service.EmailService;
@@ -19,6 +21,9 @@ import java.time.temporal.ChronoUnit;
 
 @Controller
 public class VerificacaoController {
+
+    static final int MAXIMO_TENTATIVAS = 5;
+    static final int INTERVALO_REENVIO_SEGUNDOS = 60;
 
     private final EmailService emailService;
     private final LogAuditoriaService logAuditoriaService;
@@ -58,6 +63,14 @@ public class VerificacaoController {
         String codigoDigitado = d1 + d2 + d3 + d4 + d5 + d6;
 
         if (!codigoDigitado.equals(verificacao.getCodigo())) {
+            if (verificacao.registrarTentativaErrada() >= MAXIMO_TENTATIVAS) {
+                session.removeAttribute("verificacao");
+                logAuditoriaService.registrarSemAtor(verificacao.getUsuario().getEmail(), TipoAcao.LOGIN_FALHA,
+                        "Login", "Codigo de verificacao errado muitas vezes", request.getRemoteAddr(), null);
+                model.addAttribute("loginDTO", new LoginDTO());
+                model.addAttribute("erroLogin", "Código incorreto muitas vezes. Faça o login novamente.");
+                return "login";
+            }
             if (!verificacao.isEmailEnviado()) {
                 model.addAttribute("emailIndisponivel", true);
             }
@@ -67,6 +80,7 @@ public class VerificacaoController {
 
         UsuarioSessaoDTO usuario = verificacao.getUsuario();
         session.removeAttribute("verificacao");
+        SessaoSegura.renovar(request);
 
         if (usuario.isPrimeiroAcesso()) {
             session.setAttribute("primeiroAcesso", usuario);
@@ -89,6 +103,12 @@ public class VerificacaoController {
             return "redirect:/login";
         }
 
+        if (verificacao.isEmailEnviado()
+                && Instant.now().isBefore(verificacao.getEnviadoEm().plusSeconds(INTERVALO_REENVIO_SEGUNDOS))) {
+            model.addAttribute("mensagemReenvio", "Aguarde um minuto para pedir outro código.");
+            return "verificacao";
+        }
+
         UsuarioSessaoDTO usuario = verificacao.getUsuario();
         String novoCodigo = gerarCodigo();
         Instant novaExpiracao = Instant.now().plus(10, ChronoUnit.MINUTES);
@@ -96,7 +116,8 @@ public class VerificacaoController {
         boolean emailEnviado = emailService.enviarCodigoVerificacao(usuario.getNome(), usuario.getEmail(), novoCodigo);
 
         session.setAttribute("verificacao",
-                new VerificacaoSessaoDTO(usuario, novoCodigo, novaExpiracao, emailEnviado));
+                new VerificacaoSessaoDTO(usuario, novoCodigo, novaExpiracao, emailEnviado,
+                        verificacao.getTentativasErradas()));
 
         model.addAttribute("mensagemReenvio", "Código reenviado.");
         if (!emailEnviado) {

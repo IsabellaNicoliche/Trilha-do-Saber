@@ -5,6 +5,8 @@ import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
 import com.tcc.trilha_do_saber.dto.VerificacaoSessaoDTO;
 import com.tcc.trilha_do_saber.service.AuthService;
 import com.tcc.trilha_do_saber.service.EmailService;
+import com.tcc.trilha_do_saber.service.LimiteTentativasLogin;
+import com.tcc.trilha_do_saber.config.SessaoSegura;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -27,12 +29,15 @@ public class LoginController {
     private final AuthService authService;
     private final EmailService emailService;
     private final LogAuditoriaService logAuditoriaService;
+    private final LimiteTentativasLogin limiteTentativas;
     private final SecureRandom random = new SecureRandom();
 
-    public LoginController(AuthService authService, EmailService emailService, LogAuditoriaService logAuditoriaService){
+    public LoginController(AuthService authService, EmailService emailService, LogAuditoriaService logAuditoriaService,
+                           LimiteTentativasLogin limiteTentativas){
         this.authService = authService;
         this.emailService = emailService;
         this.logAuditoriaService = logAuditoriaService;
+        this.limiteTentativas = limiteTentativas;
     }
 
     @GetMapping("/")
@@ -52,8 +57,17 @@ public class LoginController {
             return "login";
         }
 
+        if (limiteTentativas.bloqueado(dto.getEmail())) {
+            logAuditoriaService.registrarSemAtor(dto.getEmail(), TipoAcao.LOGIN_FALHA, "Login",
+                    "Login bloqueado por excesso de tentativas", request.getRemoteAddr(), null);
+            model.addAttribute("erroLogin", "Muitas tentativas sem sucesso. Tente novamente em alguns minutos.");
+            return "login";
+        }
+
         try {
             UsuarioSessaoDTO usuario = authService.autenticar(dto.getEmail(), dto.getSenha());
+            limiteTentativas.registrarSucesso(dto.getEmail());
+            SessaoSegura.renovar(request);
 
             if (!usuario.isExigeCodigo()) {
 
@@ -84,6 +98,7 @@ public class LoginController {
 
             return "redirect:/verificacao";
         } catch (IllegalArgumentException e) {
+            limiteTentativas.registrarFalha(dto.getEmail());
             logAuditoriaService.registrarSemAtor(dto.getEmail(), TipoAcao.LOGIN_FALHA, "Login",
                     e.getMessage(), request.getRemoteAddr(), null);
             model.addAttribute("erroLogin", e.getMessage());

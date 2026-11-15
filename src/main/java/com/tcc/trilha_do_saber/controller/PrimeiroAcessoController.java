@@ -1,5 +1,6 @@
 package com.tcc.trilha_do_saber.controller;
 
+import com.tcc.trilha_do_saber.config.SessaoSegura;
 import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
 import com.tcc.trilha_do_saber.service.PrimeiroAcessoService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,6 +49,7 @@ public class PrimeiroAcessoController {
             UsuarioSessaoDTO usuario = primeiroAcessoService
                     .concluir(pendente, senha, confirmarSenha, aceitou, request.getRemoteAddr());
             session.removeAttribute("primeiroAcesso");
+            SessaoSegura.renovar(request);
             session.setAttribute("usuarioLogado", usuario);
             return "redirect:" + ("PROFESSOR".equals(usuario.getTipo()) ? "/professor/inicio" : "/aluno/inicio");
         } catch (IllegalArgumentException e) {
