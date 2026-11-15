@@ -9,6 +9,7 @@ import com.tcc.trilha_do_saber.model.Alternativa;
 import com.tcc.trilha_do_saber.model.Questao;
 import com.tcc.trilha_do_saber.model.Simulado;
 import com.tcc.trilha_do_saber.model.SimuladoQuestao;
+import com.tcc.trilha_do_saber.model.TipoEventoProva;
 import com.tcc.trilha_do_saber.repository.AlternativaRepository;
 import com.tcc.trilha_do_saber.service.ProvaDoAlunoService;
 import com.tcc.trilha_do_saber.service.SimuladoService;
@@ -143,6 +144,7 @@ public class SimuladoController {
         model.addAttribute("totalMarcadas", simuladoService.totalMarcadas(id));
         model.addAttribute("aplicado", simulado.isAplicado());
         model.addAttribute("toleranciaSaidaMs", ProvaDoAlunoService.TOLERANCIA_SAIDA_MS);
+        model.addAttribute("encerrarAoSair", simulado.isEncerrarAoSair());
 
         return "simulado";
     }
@@ -243,6 +245,36 @@ public class SimuladoController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
         }
         return ResponseEntity.ok(corpo);
+    }
+
+    @PostMapping("/simulado/{id}/evento")
+    @ResponseBody
+    public ResponseEntity<Void> evento(@PathVariable Long id,
+                                       @RequestParam(required = false) String tipo,
+                                       @RequestParam(required = false) Long duracaoMs,
+                                       HttpSession session) {
+
+        UsuarioSessaoDTO aluno = alunoLogado(session);
+        if (aluno == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (!simuladoService.pertenceAoAluno(id, aluno.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        TipoEventoProva tipoEvento;
+        try {
+            tipoEvento = TipoEventoProva.valueOf(tipo == null ? "" : tipo);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            provaDoAlunoService.registrarEvento(id, aluno.getId(), tipoEvento, duracaoMs);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/simulado/{id}/concluido")

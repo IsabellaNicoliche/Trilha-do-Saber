@@ -2,6 +2,7 @@ package com.tcc.trilha_do_saber.service;
 
 import com.tcc.trilha_do_saber.dto.ProvaDisponivelDTO;
 import com.tcc.trilha_do_saber.model.Aluno;
+import com.tcc.trilha_do_saber.model.EventoProva;
 import com.tcc.trilha_do_saber.model.ProvaAplicada;
 import com.tcc.trilha_do_saber.model.ProvaAplicadaAluno;
 import com.tcc.trilha_do_saber.model.ProvaAplicadaQuestao;
@@ -9,7 +10,9 @@ import com.tcc.trilha_do_saber.model.ProvaAplicadaTurma;
 import com.tcc.trilha_do_saber.model.Simulado;
 import com.tcc.trilha_do_saber.model.SimuladoQuestao;
 import com.tcc.trilha_do_saber.model.StatusProva;
+import com.tcc.trilha_do_saber.model.TipoEventoProva;
 import com.tcc.trilha_do_saber.repository.AlunoRepository;
+import com.tcc.trilha_do_saber.repository.EventoProvaRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaAlunoRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaQuestaoRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaRepository;
@@ -19,6 +22,7 @@ import com.tcc.trilha_do_saber.repository.SimuladoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -32,6 +36,7 @@ public class ProvaDoAlunoService {
 
     public static final int TOLERANCIA_SAIDA_MS = 2000;
     static final int DIAS_PARA_MOSTRAR_ENVIADA = 7;
+    public static final int MAXIMO_EVENTOS_POR_PROVA = 300;
 
     private final ProvaAplicadaRepository provaRepository;
     private final ProvaAplicadaQuestaoRepository provaQuestaoRepository;
@@ -41,6 +46,7 @@ public class ProvaDoAlunoService {
     private final SimuladoQuestaoRepository simuladoQuestaoRepository;
     private final AlunoRepository alunoRepository;
     private final SimuladoService simuladoService;
+    private final EventoProvaRepository eventoProvaRepository;
 
     public ProvaDoAlunoService(ProvaAplicadaRepository provaRepository,
                                ProvaAplicadaQuestaoRepository provaQuestaoRepository,
@@ -49,7 +55,8 @@ public class ProvaDoAlunoService {
                                SimuladoRepository simuladoRepository,
                                SimuladoQuestaoRepository simuladoQuestaoRepository,
                                AlunoRepository alunoRepository,
-                               SimuladoService simuladoService) {
+                               SimuladoService simuladoService,
+                               EventoProvaRepository eventoProvaRepository) {
         this.provaRepository = provaRepository;
         this.provaQuestaoRepository = provaQuestaoRepository;
         this.provaTurmaRepository = provaTurmaRepository;
@@ -58,6 +65,7 @@ public class ProvaDoAlunoService {
         this.simuladoQuestaoRepository = simuladoQuestaoRepository;
         this.alunoRepository = alunoRepository;
         this.simuladoService = simuladoService;
+        this.eventoProvaRepository = eventoProvaRepository;
     }
 
     public List<ProvaDisponivelDTO> disponiveis(Long alunoId) {
@@ -180,7 +188,7 @@ public class ProvaDoAlunoService {
         if (!simulado.isAplicado()) {
             throw new IllegalArgumentException("Este simulado não registra saídas da tela");
         }
-        if (simulado.isFinalizado()) {
+        if (simulado.isFinalizado() || !simulado.isEncerrarAoSair()) {
             return false;
         }
 
@@ -192,6 +200,41 @@ public class ProvaDoAlunoService {
         simulado.marcarEncerradoPorSaida();
         simuladoRepository.save(simulado);
         simuladoService.finalizar(simuladoId);
+        return true;
+    }
+
+    @Transactional
+    public boolean registrarEvento(Long simuladoId, Long alunoId, TipoEventoProva tipo, Long duracaoMs) {
+
+        Simulado simulado = simuladoRepository.findById(simuladoId)
+                .filter(s -> s.getAluno().getId().equals(alunoId))
+                .orElseThrow(() -> new IllegalArgumentException("Prova não encontrada"));
+
+        if (!simulado.isAplicado()) {
+            throw new IllegalArgumentException("Este simulado não registra eventos");
+        }
+        if (tipo == null) {
+            throw new IllegalArgumentException("Evento desconhecido");
+        }
+
+        LocalDateTime agora = LocalDateTime.now();
+        if (simulado.isFinalizado() || simulado.expirou(agora)) {
+            return false;
+        }
+        if (eventoProvaRepository.countBySimuladoId(simuladoId) >= MAXIMO_EVENTOS_POR_PROVA) {
+            return false;
+        }
+
+        Long duracaoSegundos = null;
+        LocalDateTime ocorreuEm = agora;
+        if (tipo.isSaidaDaTela()) {
+            long maximoMs = Math.max(0, Duration.between(simulado.getDataInicio(), agora).toMillis());
+            long ms = Math.min(Math.max(duracaoMs == null ? 0 : duracaoMs, 0), maximoMs);
+            duracaoSegundos = Math.round(ms / 1000.0);
+            ocorreuEm = agora.minusNanos(ms * 1_000_000);
+        }
+
+        eventoProvaRepository.save(new EventoProva(simulado, tipo, ocorreuEm, duracaoSegundos));
         return true;
     }
 
@@ -208,6 +251,6 @@ public class ProvaDoAlunoService {
 
     private ProvaDisponivelDTO dto(ProvaAplicada prova, ProvaDisponivelDTO.Situacao situacao, Long simuladoId) {
         return new ProvaDisponivelDTO(prova.getId(), prova.getTitulo(), prova.getDataAbertura(),
-                prova.getDataEncerramento(), situacao, simuladoId);
+                prova.getDataEncerramento(), situacao, simuladoId).comEncerrarAoSair(prova.isEncerrarAoSair());
     }
 }

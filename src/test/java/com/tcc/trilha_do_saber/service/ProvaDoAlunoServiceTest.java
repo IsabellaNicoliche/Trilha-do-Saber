@@ -3,6 +3,7 @@ package com.tcc.trilha_do_saber.service;
 import com.tcc.trilha_do_saber.dto.ProvaDisponivelDTO;
 import com.tcc.trilha_do_saber.model.Aluno;
 import com.tcc.trilha_do_saber.model.Dificuldade;
+import com.tcc.trilha_do_saber.model.EventoProva;
 import com.tcc.trilha_do_saber.model.ProvaAplicada;
 import com.tcc.trilha_do_saber.model.ProvaAplicadaAluno;
 import com.tcc.trilha_do_saber.model.ProvaAplicadaQuestao;
@@ -10,7 +11,9 @@ import com.tcc.trilha_do_saber.model.ProvaAplicadaTurma;
 import com.tcc.trilha_do_saber.model.Questao;
 import com.tcc.trilha_do_saber.model.Simulado;
 import com.tcc.trilha_do_saber.model.SimuladoQuestao;
+import com.tcc.trilha_do_saber.model.TipoEventoProva;
 import com.tcc.trilha_do_saber.repository.AlunoRepository;
+import com.tcc.trilha_do_saber.repository.EventoProvaRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaAlunoRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaQuestaoRepository;
 import com.tcc.trilha_do_saber.repository.ProvaAplicadaRepository;
@@ -66,13 +69,16 @@ class ProvaDoAlunoServiceTest {
     @Mock
     private SimuladoService simuladoService;
 
+    @Mock
+    private EventoProvaRepository eventoProvaRepository;
+
     private ProvaDoAlunoService servico;
     private Aluno ana;
 
     @BeforeEach
     void preparar() {
         servico = new ProvaDoAlunoService(provaRepository, provaQuestaoRepository, provaTurmaRepository, provaAlunoRepository, simuladoRepository,
-                simuladoQuestaoRepository, alunoRepository, simuladoService);
+                simuladoQuestaoRepository, alunoRepository, simuladoService, eventoProvaRepository);
         ana = aluno(1L, 8, "B", "Noturno");
         lenient().when(alunoRepository.findById(1L)).thenReturn(Optional.of(ana));
         lenient().when(simuladoRepository.findByProvaAplicadaIdAndAlunoId(anyLong(), eq(1L))).thenReturn(Optional.empty());
@@ -397,7 +403,7 @@ class ProvaDoAlunoServiceTest {
 
     @Test
     void saidaDaTelaEncerraAProvaMarcandoOMotivo() {
-        Simulado simulado = comId(new Simulado(ana, prova(11L, -10, 60), LocalDateTime.now().minusMinutes(5)), 300L);
+        Simulado simulado = comId(new Simulado(ana, provaQueEncerra(11L, -10, 60), LocalDateTime.now().minusMinutes(5)), 300L);
         when(simuladoRepository.findById(300L)).thenReturn(Optional.of(simulado));
 
         assertTrue(servico.registrarSaida(300L, 1L));
@@ -422,7 +428,7 @@ class ProvaDoAlunoServiceTest {
 
     @Test
     void saidaDepoisDoTempoSoEncerraPorTempoSemCulparOAluno() {
-        Simulado simulado = comId(new Simulado(ana, prova(11L, -300, -200), LocalDateTime.now().minusMinutes(290)), 300L);
+        Simulado simulado = comId(new Simulado(ana, provaQueEncerra(11L, -300, -200), LocalDateTime.now().minusMinutes(290)), 300L);
         when(simuladoRepository.findById(300L)).thenReturn(Optional.of(simulado));
 
         assertFalse(servico.registrarSaida(300L, 1L));
@@ -464,6 +470,92 @@ class ProvaDoAlunoServiceTest {
 
     private ProvaAplicadaTurma turma(ProvaAplicada prova) {
         return new ProvaAplicadaTurma(prova, SI, 8, "B", "Noturno");
+    }
+
+    @Test
+    void saidaDaTelaNaoEncerraQuandoAProvaSoRegistra() {
+        Simulado simulado = comId(new Simulado(ana, prova(11L, -10, 60), LocalDateTime.now().minusMinutes(5)), 300L);
+        when(simuladoRepository.findById(300L)).thenReturn(Optional.of(simulado));
+
+        assertFalse(servico.registrarSaida(300L, 1L));
+
+        assertFalse(simulado.isEncerradoPorSaida());
+        verify(simuladoService, never()).finalizar(anyLong());
+    }
+
+    @Test
+    void saidaDaTelaViraEventoComDuracaoSemEncerrarAProva() {
+        Simulado simulado = comId(new Simulado(ana, prova(11L, -10, 60), LocalDateTime.now().minusMinutes(5)), 300L);
+        when(simuladoRepository.findById(300L)).thenReturn(Optional.of(simulado));
+
+        assertTrue(servico.registrarEvento(300L, 1L, TipoEventoProva.SAIU_DA_ABA, 48_400L));
+
+        ArgumentCaptor<EventoProva> salvo = ArgumentCaptor.forClass(EventoProva.class);
+        verify(eventoProvaRepository).save(salvo.capture());
+        assertEquals(TipoEventoProva.SAIU_DA_ABA, salvo.getValue().getTipo());
+        assertEquals(48L, salvo.getValue().getDuracaoSegundos());
+        assertTrue(salvo.getValue().getOcorreuEm().isBefore(LocalDateTime.now().minusSeconds(47)));
+        assertFalse(simulado.isFinalizado());
+        verify(simuladoService, never()).finalizar(anyLong());
+    }
+
+    @Test
+    void duracaoDaSaidaNuncaPassaDoInicioDaProvaNemFicaNegativa() {
+        Simulado simulado = comId(new Simulado(ana, prova(11L, -10, 60), LocalDateTime.now().minusMinutes(5)), 300L);
+        when(simuladoRepository.findById(300L)).thenReturn(Optional.of(simulado));
+
+        servico.registrarEvento(300L, 1L, TipoEventoProva.PERDEU_FOCO, 999_999_999L);
+        servico.registrarEvento(300L, 1L, TipoEventoProva.PERDEU_FOCO, -5_000L);
+
+        ArgumentCaptor<EventoProva> salvos = ArgumentCaptor.forClass(EventoProva.class);
+        verify(eventoProvaRepository, times(2)).save(salvos.capture());
+        assertTrue(salvos.getAllValues().get(0).getDuracaoSegundos() <= 5 * 60 + 1);
+        assertEquals(0L, salvos.getAllValues().get(1).getDuracaoSegundos());
+    }
+
+    @Test
+    void tentativaDeColarViraEventoSemDuracao() {
+        Simulado simulado = comId(new Simulado(ana, prova(11L, -10, 60), LocalDateTime.now().minusMinutes(5)), 300L);
+        when(simuladoRepository.findById(300L)).thenReturn(Optional.of(simulado));
+
+        assertTrue(servico.registrarEvento(300L, 1L, TipoEventoProva.TENTOU_COLAR, 10_000L));
+
+        ArgumentCaptor<EventoProva> salvo = ArgumentCaptor.forClass(EventoProva.class);
+        verify(eventoProvaRepository).save(salvo.capture());
+        assertEquals(null, salvo.getValue().getDuracaoSegundos());
+    }
+
+    @Test
+    void eventoDeProvaFinalizadaOuComLimiteAtingidoNaoEhGravado() {
+        Simulado finalizada = comId(new Simulado(ana, prova(11L, -10, 60), LocalDateTime.now().minusMinutes(5)), 300L);
+        finalizada.finalizar(LocalDateTime.now().minusMinutes(1));
+        Simulado cheia = comId(new Simulado(ana, prova(12L, -10, 60), LocalDateTime.now().minusMinutes(5)), 301L);
+        when(simuladoRepository.findById(300L)).thenReturn(Optional.of(finalizada));
+        when(simuladoRepository.findById(301L)).thenReturn(Optional.of(cheia));
+        when(eventoProvaRepository.countBySimuladoId(301L)).thenReturn((long) ProvaDoAlunoService.MAXIMO_EVENTOS_POR_PROVA);
+
+        assertFalse(servico.registrarEvento(300L, 1L, TipoEventoProva.SAIU_DA_ABA, 5_000L));
+        assertFalse(servico.registrarEvento(301L, 1L, TipoEventoProva.SAIU_DA_ABA, 5_000L));
+
+        verify(eventoProvaRepository, never()).save(any());
+    }
+
+    @Test
+    void eventoDeOutroAlunoOuDeSimuladoComumEhRecusado() {
+        Simulado daAna = comId(new Simulado(ana, prova(11L, -10, 60), LocalDateTime.now().minusMinutes(5)), 300L);
+        Simulado treino = comId(new Simulado(ana, "Treino", 60, LocalDateTime.now(), false), 301L);
+        lenient().when(simuladoRepository.findById(300L)).thenReturn(Optional.of(daAna));
+        lenient().when(simuladoRepository.findById(301L)).thenReturn(Optional.of(treino));
+
+        assertEquals("Prova não encontrada", erro(() -> servico.registrarEvento(300L, 2L, TipoEventoProva.SAIU_DA_ABA, 1L)));
+        assertEquals("Este simulado não registra eventos", erro(() -> servico.registrarEvento(301L, 1L, TipoEventoProva.SAIU_DA_ABA, 1L)));
+        verify(eventoProvaRepository, never()).save(any());
+    }
+
+    private ProvaAplicada provaQueEncerra(Long id, int minutosParaAbrir, int minutosParaEncerrar) {
+        ProvaAplicada prova = prova(id, minutosParaAbrir, minutosParaEncerrar);
+        prova.definirEncerrarAoSair(true);
+        return prova;
     }
 
     private ProvaAplicada prova(Long id, int minutosParaAbrir, int minutosParaEncerrar) {

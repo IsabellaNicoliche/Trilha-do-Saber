@@ -88,6 +88,7 @@ public class ProvaAplicadaController {
                         @RequestParam(value = "alunoIds", required = false) List<Long> alunoIds,
                         @RequestParam(value = "questaoIds", required = false) List<Long> questaoIds,
                         @RequestParam(value = "reterGabarito", defaultValue = "false") boolean reterGabarito,
+                        @RequestParam(value = "encerrarAoSair", defaultValue = "false") boolean encerrarAoSair,
                         HttpSession session, HttpServletRequest request, Model model, RedirectAttributes redirect) {
 
         UsuarioSessaoDTO ator = autorizado(session);
@@ -97,7 +98,7 @@ public class ProvaAplicadaController {
 
         try {
             ProvaAplicada prova = provaAplicadaService.criar(ator, titulo, lerData(abertura), lerData(encerramento),
-                    turmas, alunoIds, questaoIds, reterGabarito, request.getRemoteAddr());
+                    turmas, alunoIds, questaoIds, reterGabarito, encerrarAoSair, request.getRemoteAddr());
             redirect.addFlashAttribute("mensagemProva", "Prova criada e agendada");
             return "redirect:" + base(ator) + "/" + prova.getId();
         } catch (IllegalArgumentException e) {
@@ -107,6 +108,7 @@ public class ProvaAplicadaController {
                     alunoIds == null ? Set.of() : new HashSet<>(alunoIds),
                     questaoIds == null ? Set.of() : new HashSet<>(questaoIds));
             model.addAttribute("reterGabarito", reterGabarito);
+            model.addAttribute("encerrarAoSair", encerrarAoSair);
             model.addAttribute("erroProva", e.getMessage());
             return "prova/nova";
         }
@@ -182,6 +184,7 @@ public class ProvaAplicadaController {
         model.addAttribute("alunosSelecionados", alunosSelecionados);
         model.addAttribute("questoesSelecionadas", questoesSelecionadas);
         model.addAttribute("reterGabarito", false);
+        model.addAttribute("encerrarAoSair", false);
         model.addAttribute("maximoQuestoes", ProvaAplicadaService.MAXIMO_QUESTOES);
         model.addAttribute("minimoMinutos", ProvaAplicadaService.MINIMO_MINUTOS_ABERTA);
     }

@@ -120,6 +120,7 @@
                 <th>Acertos</th>
                 <th>Nota</th>
                 <th>Encerrou às</th>
+                <th>Saídas da tela</th>
             </tr>
             </thead>
             <tbody>
@@ -132,9 +133,22 @@
                 <td th:text="${linha.iniciou} ? ${linha.acertos} : '—'"></td>
                 <td th:text="${linha.iniciou} ? ${#numbers.formatDecimal(linha.percentual, 1, 0)} + '%' : '—'"></td>
                 <td th:text="${linha.terminouEm != null} ? ${#temporals.format(linha.terminouEm, 'HH:mm:ss')} : '—'"></td>
+                <td>
+                    <span th:unless="${linha.temEventos}" th:text="${linha.iniciou} ? 'Nenhuma' : '—'"></span>
+                    <details class="pv-eventos" th:if="${linha.temEventos}">
+                        <summary th:text="${linha.totalSaidas} + (${linha.totalSaidas == 1} ? ' saída · ' : ' saídas · ') + ${linha.tempoForaTexto} + ' fora'"></summary>
+                        <ol class="pv-eventos-lista">
+                            <li th:each="evento : ${linha.eventos}">
+                                <span class="pv-evento-hora" th:text="${#temporals.format(evento.ocorreuEm, 'HH:mm:ss')}"></span>
+                                <span th:text="${evento.descricao}"></span>
+                                <span class="pv-evento-duracao" th:if="${evento.duracaoSegundos != null}" th:text="'por ' + ${evento.duracaoTexto}"></span>
+                            </li>
+                        </ol>
+                    </details>
+                </td>
             </tr>
             <tr th:if="${detalhe.linhas.isEmpty()}">
-                <td colspan="8" class="linha-vazia">Nenhum aluno ativo convocado para esta prova</td>
+                <td colspan="9" class="linha-vazia">Nenhum aluno ativo convocado para esta prova</td>
             </tr>
             </tbody>
         </table>

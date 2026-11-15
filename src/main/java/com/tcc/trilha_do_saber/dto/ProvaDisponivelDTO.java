@@ -13,6 +13,7 @@ public class ProvaDisponivelDTO {
     private final LocalDateTime encerramento;
     private final Situacao situacao;
     private final Long simuladoId;
+    private boolean encerrarAoSair;
 
     public ProvaDisponivelDTO(Long provaId, String titulo, LocalDateTime abertura, LocalDateTime encerramento,
                               Situacao situacao, Long simuladoId) {
@@ -30,6 +31,12 @@ public class ProvaDisponivelDTO {
     public LocalDateTime getEncerramento() { return encerramento; }
     public Situacao getSituacao() { return situacao; }
     public Long getSimuladoId() { return simuladoId; }
+    public boolean isEncerrarAoSair() { return encerrarAoSair; }
+
+    public ProvaDisponivelDTO comEncerrarAoSair(boolean encerrarAoSair) {
+        this.encerrarAoSair = encerrarAoSair;
+        return this;
+    }
 
     public long getSegundosParaAbrir() {
         return Math.max(0, Duration.between(LocalDateTime.now(), abertura).getSeconds());

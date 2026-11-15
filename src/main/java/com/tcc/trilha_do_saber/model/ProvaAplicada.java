@@ -42,6 +42,8 @@ public class ProvaAplicada {
 
     private Boolean gabaritoRetido;
 
+    private Boolean encerrarAoSair;
+
     public ProvaAplicada() {
     }
 
@@ -80,6 +82,14 @@ public class ProvaAplicada {
 
     public boolean isGabaritoRetido() {
         return Boolean.TRUE.equals(gabaritoRetido);
+    }
+
+    public void definirEncerrarAoSair(boolean encerrar) {
+        this.encerrarAoSair = encerrar;
+    }
+
+    public boolean isEncerrarAoSair() {
+        return Boolean.TRUE.equals(encerrarAoSair);
     }
 
     public Long getId() { return id; }
