@@ -53,11 +53,13 @@ public class ImportacaoController {
         }
         model.addAttribute("ehAdmin", "ADMIN".equals(usuario.getTipo()));
 
+        File arquivoProva = null;
+        File arquivoGabarito = null;
         try {
-            File arquivoProva = File.createTempFile("prova", ".pdf");
+            arquivoProva = File.createTempFile("prova", ".pdf");
             prova.transferTo(arquivoProva);
 
-            File arquivoGabarito = File.createTempFile("gabarito", ".pdf");
+            arquivoGabarito = File.createTempFile("gabarito", ".pdf");
             gabarito.transferTo(arquivoGabarito);
 
             int questoesImportadas = importadorProvaService.provaMontada(
@@ -80,9 +82,18 @@ public class ImportacaoController {
         } catch (ArquivoInvalidoException e) {
             model.addAttribute("sucesso", false);
             model.addAttribute("erro", e.getMessage());
+        } finally {
+            apagar(arquivoProva);
+            apagar(arquivoGabarito);
         }
 
         return "importar";
+    }
+
+    private void apagar(File arquivo) {
+        if (arquivo != null && arquivo.exists() && !arquivo.delete()) {
+            arquivo.deleteOnExit();
+        }
     }
 
     private UsuarioSessaoDTO usuarioAutorizado(HttpSession session) {
