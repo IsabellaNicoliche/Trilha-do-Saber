@@ -19,4 +19,10 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
             + "and a.ativo = true and a.anonimizado = false")
     long contarAtivosDaTurma(@Param("curso") String curso, @Param("semestre") int semestre,
                              @Param("turma") String turma, @Param("turno") String turno);
+
+    @Query("select a from Aluno a where lower(a.curso) = lower(:curso) and a.semestre = :semestre "
+            + "and lower(a.turma) = lower(:turma) and lower(a.turno) = lower(:turno) "
+            + "and a.anonimizado = false order by a.nome asc")
+    List<Aluno> buscarDaTurma(@Param("curso") String curso, @Param("semestre") int semestre,
+                              @Param("turma") String turma, @Param("turno") String turno);
 }

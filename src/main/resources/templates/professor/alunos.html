@@ -14,12 +14,12 @@
 
     <header class="topo-conteudo">
         <h1>Alunos</h1>
-        <p class="subtitulo-pagina">Consulta dos alunos cadastrados na plataforma</p>
+        <p class="subtitulo-pagina">Alunos das suas turmas no período atual</p>
     </header>
 
     <section class="grade-cards">
         <div class="card-estatistica">
-            <span class="rotulo-card">Alunos cadastrados</span>
+            <span class="rotulo-card">Alunos das turmas</span>
             <strong class="numero-card" th:text="${alunos.size()}"></strong>
         </div>
         <div class="card-estatistica">
@@ -52,7 +52,7 @@
             </td>
         </tr>
         <tr th:if="${alunos.isEmpty()}">
-            <td colspan="6" class="linha-vazia">Nenhum aluno cadastrado</td>
+            <td colspan="6" class="linha-vazia">Nenhum aluno nas suas turmas</td>
         </tr>
         </tbody>
     </table>

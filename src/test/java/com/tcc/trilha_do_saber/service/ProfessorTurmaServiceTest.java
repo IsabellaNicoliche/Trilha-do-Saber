@@ -2,6 +2,7 @@ package com.tcc.trilha_do_saber.service;
 
 import com.tcc.trilha_do_saber.dto.TurmaDoProfessorDTO;
 import com.tcc.trilha_do_saber.model.AlocacaoDisciplina;
+import com.tcc.trilha_do_saber.model.Aluno;
 import com.tcc.trilha_do_saber.model.Professor;
 import com.tcc.trilha_do_saber.repository.AlocacaoDisciplinaRepository;
 import com.tcc.trilha_do_saber.repository.AlunoRepository;
@@ -169,6 +170,39 @@ class ProfessorTurmaServiceTest {
                 .sorted(Comparator.comparing(Professor::getNome)).toList();
         lenient().when(alocacao.getProfessoresOrdenados()).thenReturn(ordenados);
         return alocacao;
+    }
+
+    @Test
+    void alunosDasTurmasTrazSoAsTurmasDoProfessorNoPeriodoMaisRecenteSemRepetir() {
+        Professor alessandro = professor(1L, "Alessandro");
+        AlocacaoDisciplina web = alocacao(10L, SI, 8, "B", "Noturno", "Aplicativos Web", alessandro);
+        AlocacaoDisciplina banco = alocacao(11L, SI, 8, "B", "Noturno", "Banco de Dados", alessandro);
+        AlocacaoDisciplina redes = alocacao(12L, SI, 7, "A", "Noturno", "Redes", alessandro);
+        Aluno ana = aluno(100L);
+        Aluno bia = aluno(101L);
+        when(alocacaoRepository.periodosDoProfessor(1L)).thenReturn(List.of(PERIODO, "2026/1"));
+        when(alocacaoRepository.buscarDoProfessor(1L, PERIODO)).thenReturn(List.of(web, banco, redes));
+        when(alunoRepository.buscarDaTurma(SI, 8, "B", "Noturno")).thenReturn(List.of(ana));
+        when(alunoRepository.buscarDaTurma(SI, 7, "A", "Noturno")).thenReturn(List.of(bia, ana));
+
+        List<Aluno> alunos = professorTurmaService.alunosDasTurmas(1L);
+
+        assertEquals(List.of(ana, bia), alunos);
+        verify(alunoRepository).buscarDaTurma(SI, 8, "B", "Noturno");
+    }
+
+    @Test
+    void professorSemAlocacaoNaoVeNenhumAluno() {
+        when(alocacaoRepository.periodosDoProfessor(1L)).thenReturn(List.of());
+
+        assertTrue(professorTurmaService.alunosDasTurmas(1L).isEmpty());
+        verify(alunoRepository, never()).buscarDaTurma(any(), anyInt(), any(), any());
+    }
+
+    private Aluno aluno(Long id) {
+        Aluno aluno = mock(Aluno.class);
+        lenient().when(aluno.getId()).thenReturn(id);
+        return aluno;
     }
 
     private Professor professor(Long id, String nome) {
