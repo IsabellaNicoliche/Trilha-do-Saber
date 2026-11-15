@@ -1,45 +1,43 @@
 package com.tcc.trilha_do_saber.config;
 
 import com.tcc.trilha_do_saber.model.AdmGeral;
-import com.tcc.trilha_do_saber.model.Coordenador;
 import com.tcc.trilha_do_saber.repository.AdmGeralRepository;
-import com.tcc.trilha_do_saber.repository.CoordenadorRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-// Classe temporaria: garante um admin e um coordenador para conseguir testar o login.
 @Profile("!import")
 @Component
 public class CargaUsuariosIniciais implements CommandLineRunner {
 
     private final AdmGeralRepository admGeralRepository;
-    private final CoordenadorRepository coordenadorRepository;
     private final PasswordEncoder passwordEncoder;
+    private final String email;
+    private final String senha;
 
-    public CargaUsuariosIniciais(AdmGeralRepository admGeralRepository, CoordenadorRepository coordenadorRepository,
-                                  PasswordEncoder passwordEncoder){
+    public CargaUsuariosIniciais(AdmGeralRepository admGeralRepository, PasswordEncoder passwordEncoder,
+                                  @Value("${app.admin-inicial.email:}") String email,
+                                  @Value("${app.admin-inicial.senha:}") String senha){
         this.admGeralRepository = admGeralRepository;
-        this.coordenadorRepository = coordenadorRepository;
         this.passwordEncoder = passwordEncoder;
+        this.email = email;
+        this.senha = senha;
     }
 
     @Override
     public void run(String... args){
-        if (admGeralRepository.findByEmail("adm@umc.br").isEmpty()) {
-            AdmGeral admin = new AdmGeral("Admin Sistema", "adm@umc.br", passwordEncoder.encode("Admin@123"));
-            admin.setAtivo(true);
-            admGeralRepository.save(admin);
-            System.out.println("Admin de teste criado: adm@umc.br / Admin@123");
+        if (email == null || email.isBlank() || senha == null || senha.isBlank()) {
+            return;
+        }
+        if (admGeralRepository.count() > 0) {
+            return;
         }
 
-        if (coordenadorRepository.findByEmail("coordenacao@umc.br").isEmpty()) {
-            Coordenador coordenador = new Coordenador("Coordenação", "coordenacao@umc.br",
-                    passwordEncoder.encode("Coord@123"), "20240001", "Sistemas de Informação");
-            coordenador.setAtivo(true);
-            coordenadorRepository.save(coordenador);
-            System.out.println("Coordenador de teste criado: coordenacao@umc.br / Coord@123");
-        }
+        AdmGeral admin = new AdmGeral("Admin Sistema", email.trim(), passwordEncoder.encode(senha));
+        admin.setAtivo(true);
+        admGeralRepository.save(admin);
+        System.out.println("Administrador inicial criado: " + email.trim());
     }
 }
