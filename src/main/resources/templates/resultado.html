@@ -53,7 +53,7 @@
         <h2>Revisão das questões</h2>
         <p class="subtitulo">Sua resposta e o gabarito de cada questão.</p>
 
-        <article class="cartao-revisao" th:each="q : ${revisao}">
+        <article class="cartao-revisao" th:each="q : ${revisao}" th:id="'questao-' + ${q.questaoId}">
 
             <header class="cabecalho-revisao">
                 <span class="etiqueta-ordem">Questão <span th:text="${q.numero}">1</span></span>
@@ -80,6 +80,34 @@
             </ul>
 
             <p class="nota-branco" th:unless="${q.respondida}">Você não respondeu esta questão.</p>
+
+            <div class="reporte-aviso reporte-ok" th:if="${mensagemReporte != null and reporteQuestaoId == q.questaoId}"
+                 th:text="${mensagemReporte}"></div>
+            <div class="reporte-aviso reporte-erro" th:if="${erroReporte != null and reporteQuestaoId == q.questaoId}"
+                 th:text="${erroReporte}"></div>
+
+            <p class="reporte-enviado" th:if="${questoesReportadas.contains(q.questaoId) and !(erroReporte != null and reporteQuestaoId == q.questaoId)}">
+                Você reportou um problema nesta questão.
+            </p>
+
+            <details class="reporte-questao" th:unless="${questoesReportadas.contains(q.questaoId)}"
+                     th:open="${erroReporte != null and reporteQuestaoId == q.questaoId}">
+                <summary>Reportar problema nesta questão</summary>
+                <form method="post" th:action="@{'/simulado/' + ${simulado.id} + '/questao/' + ${q.questaoId} + '/reportar'}">
+                    <label th:for="'tipo-' + ${q.questaoId}">Tipo de problema</label>
+                    <select th:id="'tipo-' + ${q.questaoId}" name="tipo" required>
+                        <option value="">Selecione</option>
+                        <option th:each="tipo : ${tiposProblema}" th:value="${tipo.name()}" th:text="${tipo.rotulo}"></option>
+                    </select>
+                    <label th:for="'descricao-' + ${q.questaoId}">Descreva o problema</label>
+                    <textarea th:id="'descricao-' + ${q.questaoId}" name="descricao" rows="3" required
+                              th:maxlength="${maximoDescricao}"
+                              th:text="${reporteQuestaoId == q.questaoId} ? ${descricaoReporte} : ''"
+                              placeholder="Ex.: a alternativa C está cortada, a imagem não aparece, o gabarito parece estar errado..."></textarea>
+                    <span class="reporte-limite">Até <span th:text="${maximoDescricao}">500</span> caracteres.</span>
+                    <button type="submit" class="botao-secundario">Enviar reporte</button>
+                </form>
+            </details>
 
         </article>
     </section>

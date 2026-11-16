@@ -11,7 +11,10 @@ import com.tcc.trilha_do_saber.model.Simulado;
 import com.tcc.trilha_do_saber.model.SimuladoQuestao;
 import com.tcc.trilha_do_saber.model.TipoEventoProva;
 import com.tcc.trilha_do_saber.repository.AlternativaRepository;
+import com.tcc.trilha_do_saber.model.ReporteQuestao;
+import com.tcc.trilha_do_saber.model.TipoProblemaQuestao;
 import com.tcc.trilha_do_saber.service.ProvaDoAlunoService;
+import com.tcc.trilha_do_saber.service.ReporteQuestaoService;
 import com.tcc.trilha_do_saber.service.SimuladoService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
@@ -37,12 +40,14 @@ public class SimuladoController {
     private final SimuladoService simuladoService;
     private final AlternativaRepository alternativaRepository;
     private final ProvaDoAlunoService provaDoAlunoService;
+    private final ReporteQuestaoService reporteQuestaoService;
 
     public SimuladoController(SimuladoService simuladoService, AlternativaRepository alternativaRepository,
-                              ProvaDoAlunoService provaDoAlunoService) {
+                              ProvaDoAlunoService provaDoAlunoService, ReporteQuestaoService reporteQuestaoService) {
         this.simuladoService = simuladoService;
         this.alternativaRepository = alternativaRepository;
         this.provaDoAlunoService = provaDoAlunoService;
+        this.reporteQuestaoService = reporteQuestaoService;
     }
 
     @GetMapping("/simulado/novo")
@@ -325,6 +330,9 @@ public class SimuladoController {
         model.addAttribute("resultado", resultado);
         model.addAttribute("simulado", simulado);
         model.addAttribute("revisao", simuladoService.gerarRevisao(id));
+        model.addAttribute("questoesReportadas", reporteQuestaoService.questoesReportadas(id, alunoLogado(session).getId()));
+        model.addAttribute("tiposProblema", TipoProblemaQuestao.values());
+        model.addAttribute("maximoDescricao", ReporteQuestao.MAXIMO_DESCRICAO);
         model.addAttribute("tempoUtilizado",
                 SimuladoService.formatarTempo(SimuladoService.segundosUtilizados(simulado)));
         model.addAttribute("porTempo", simulado.isFinalizadoPorTempo());

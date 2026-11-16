@@ -1,0 +1,39 @@
+.reportes-tabela {
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+.reporte-descricao {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--texto-secundario);
+    white-space: pre-line;
+    max-width: 420px;
+}
+
+.reporte-analise {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--texto-secundario);
+}
+
+.reporte-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.reporte-acoes button {
+    width: 100%;
+}
+
+.reporte-mensagem {
+    background: #ECFDF5;
+    border: 1px solid #10B981;
+    border-left-width: 4px;
+    border-radius: 8px;
+    font-size: 14px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
