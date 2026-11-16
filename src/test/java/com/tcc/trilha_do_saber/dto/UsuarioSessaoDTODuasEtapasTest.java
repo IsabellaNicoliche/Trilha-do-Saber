@@ -33,12 +33,12 @@ class UsuarioSessaoDTODuasEtapasTest {
     }
 
     @Test
-    void primeiroAcessoExigeOCodigoMesmoComDuasEtapasDesativadas() {
+    void primeiroAcessoRespeitaAsDuasEtapasDesativadas() {
         UsuarioSessaoDTO usuario = new UsuarioSessaoDTO(1L, "Ana", "ana@umc.br", "ALUNO", true, false);
 
         assertFalse(usuario.isDuasEtapasAtiva());
         assertTrue(usuario.isPrimeiroAcesso());
-        assertTrue(usuario.isExigeCodigo());
+        assertFalse(usuario.isExigeCodigo());
     }
 
     @Test

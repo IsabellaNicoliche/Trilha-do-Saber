@@ -146,8 +146,22 @@ class LoginControllerDuasEtapasTest {
     }
 
     @Test
-    void primeiroAcessoExigeOCodigoMesmoComDuasEtapasDesativadas() {
+    void primeiroAcessoComDuasEtapasDesativadasVaiDiretoParaOPrimeiroAcessoSemCodigo() {
         UsuarioSessaoDTO usuario = new UsuarioSessaoDTO(7L, "Ana", "ana@umc.br", "ALUNO", true, false);
+        when(authService.autenticar("ana@umc.br", "RA-1")).thenReturn(usuario);
+
+        String destino = controller().autenticar(dto("ana@umc.br", "RA-1"), result, model, session, request);
+
+        assertEquals("redirect:/primeiro-acesso", destino);
+        assertSame(usuario, dados.get("primeiroAcesso"));
+        assertNull(dados.get("usuarioLogado"));
+        assertNull(dados.get("verificacao"));
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    void primeiroAcessoComDuasEtapasAtivasContinuaExigindoOCodigo() {
+        UsuarioSessaoDTO usuario = new UsuarioSessaoDTO(7L, "Ana", "ana@umc.br", "ALUNO", true, true);
         when(authService.autenticar("ana@umc.br", "RA-1")).thenReturn(usuario);
         when(emailService.enviarCodigoVerificacao(eq("Ana"), eq("ana@umc.br"), anyString())).thenReturn(true);
 

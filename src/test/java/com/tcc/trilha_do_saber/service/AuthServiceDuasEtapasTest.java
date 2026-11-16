@@ -77,8 +77,19 @@ class AuthServiceDuasEtapasTest {
     }
 
     @Test
-    void contaComDuasEtapasDesativadasEmPrimeiroAcessoAindaExigeOCodigo() {
+    void contaComDuasEtapasDesativadasEmPrimeiroAcessoNaoExigeCodigo() {
         aluno.setDuasEtapasAtiva(false);
+        aluno.setSenhaProvisoria(Boolean.TRUE);
+        aluno.setSenhaProvisoriaExpiraEm(LocalDateTime.now().plusDays(2));
+
+        UsuarioSessaoDTO usuario = servico.autenticar("ana@umc.br", "certa");
+
+        assertTrue(usuario.isPrimeiroAcesso());
+        assertFalse(usuario.isExigeCodigo());
+    }
+
+    @Test
+    void contaComDuasEtapasAtivasEmPrimeiroAcessoExigeCodigo() {
         aluno.setSenhaProvisoria(Boolean.TRUE);
         aluno.setSenhaProvisoriaExpiraEm(LocalDateTime.now().plusDays(2));
 
