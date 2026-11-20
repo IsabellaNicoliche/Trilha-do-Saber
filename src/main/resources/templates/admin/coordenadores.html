@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Usuários</title>
     <link rel="stylesheet" th:href="@{/css/painel.css}">
+    <link rel="stylesheet" th:href="@{/css/paginacao.css}">
 </head>
 <body>
 
@@ -60,7 +61,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="coordenador : ${coordenadores}">
+            <tr th:each="coordenador : ${paginaCoordenadores.itens}">
                 <td th:text="${coordenador.nome}"></td>
                 <td th:text="${coordenador.email}"></td>
                 <td th:text="${coordenador.registroFuncional}"></td>
@@ -77,11 +78,13 @@
                     <a th:href="@{/admin/coordenadores/{id}/editar(id=${coordenador.id})}">Editar</a>
                 </td>
             </tr>
-            <tr th:if="${coordenadores.isEmpty()}">
+            <tr th:if="${paginaCoordenadores.vazia}">
                 <td colspan="6" class="linha-vazia">Nenhum coordenador cadastrado</td>
             </tr>
             </tbody>
         </table>
+
+        <nav th:replace="~{fragments/paginacao :: paginacao(dados=${paginaCoordenadores}, link=${linkCoordenadores})}"></nav>
 
         <div class="cabecalho-usuarios">
             <h2>Professores</h2>
@@ -100,7 +103,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="professor : ${professores}">
+            <tr th:each="professor : ${paginaProfessores.itens}">
                 <td th:text="${professor.nome}"></td>
                 <td th:text="${professor.email}"></td>
                 <td th:text="${professor.registroProfissional}"></td>
@@ -113,11 +116,13 @@
                     <a th:href="@{/admin/usuarios/professor/{id}/editar(id=${professor.id})}">Editar</a>
                 </td>
             </tr>
-            <tr th:if="${professores.isEmpty()}">
+            <tr th:if="${paginaProfessores.vazia}">
                 <td colspan="6" class="linha-vazia">Nenhum professor cadastrado</td>
             </tr>
             </tbody>
         </table>
+
+        <nav th:replace="~{fragments/paginacao :: paginacao(dados=${paginaProfessores}, link=${linkProfessores})}"></nav>
 
         <div class="cabecalho-usuarios">
             <h2>Alunos</h2>
@@ -136,7 +141,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="aluno : ${alunos}">
+            <tr th:each="aluno : ${paginaAlunos.itens}">
                 <td th:text="${aluno.nome}"></td>
                 <td th:text="${aluno.email}"></td>
                 <td th:text="${aluno.registroAluno}"></td>
@@ -150,11 +155,13 @@
                     <a th:href="@{/admin/usuarios/aluno/{id}/editar(id=${aluno.id})}">Editar</a>
                 </td>
             </tr>
-            <tr th:if="${alunos.isEmpty()}">
+            <tr th:if="${paginaAlunos.vazia}">
                 <td colspan="7" class="linha-vazia">Nenhum aluno cadastrado</td>
             </tr>
             </tbody>
         </table>
+
+        <nav th:replace="~{fragments/paginacao :: paginacao(dados=${paginaAlunos}, link=${linkAlunos})}"></nav>
 
     </div>
 

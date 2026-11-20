@@ -3,7 +3,6 @@ package com.tcc.trilha_do_saber.service;
 import com.tcc.trilha_do_saber.dto.AtividadeUsuarioDTO;
 import com.tcc.trilha_do_saber.dto.ContagemAcaoDTO;
 import com.tcc.trilha_do_saber.dto.FiltroLogDTO;
-import com.tcc.trilha_do_saber.dto.ResultadoBuscaLogDTO;
 import com.tcc.trilha_do_saber.model.LogAuditoria;
 import com.tcc.trilha_do_saber.model.TipoAcao;
 import com.tcc.trilha_do_saber.repository.LogAuditoriaRepository;
@@ -26,9 +25,6 @@ import java.util.Set;
 @Service
 public class LogAuditoriaService {
 
-
-    public static final int MAXIMO_LINHAS = 500;
-    public static final int MAXIMO_SOFRIDAS = 200;
     public static final int MAXIMO_IPS = 10;
     private static final int DIAS_RETENCAO = 365;
     private static final LocalDateTime INICIO_ABERTO = LocalDateTime.of(1970, 1, 1, 0, 0);
@@ -92,7 +88,7 @@ public class LogAuditoriaService {
         return logAuditoriaRepository.findAllByOrderByDataHoraDesc();
     }
 
-    public ResultadoBuscaLogDTO buscar(FiltroLogDTO filtro){
+    public List<LogAuditoria> buscar(FiltroLogDTO filtro){
         LocalDate de = filtro.getDe();
         LocalDate ate = filtro.getAte();
         if (de != null && ate != null && de.isAfter(ate)) {
@@ -127,8 +123,7 @@ public class LogAuditoriaService {
             encontrados.add(log);
         }
 
-        List<LogAuditoria> exibidos = encontrados.subList(0, Math.min(encontrados.size(), MAXIMO_LINHAS));
-        return new ResultadoBuscaLogDTO(exibidos, encontrados.size());
+        return encontrados;
     }
 
     public AtividadeUsuarioDTO atividadeDoUsuario(String tipo, Long usuarioId, String nome){
@@ -181,11 +176,8 @@ public class LogAuditoriaService {
         LocalDateTime ultima = feitas.isEmpty() ? null : feitas.get(0).getDataHora();
         LocalDateTime primeira = feitas.isEmpty() ? null : feitas.get(feitas.size() - 1).getDataHora();
 
-        List<LogAuditoria> feitasExibidas = feitas.subList(0, Math.min(feitas.size(), MAXIMO_LINHAS));
-        List<LogAuditoria> sofridasExibidas = sofridas.subList(0, Math.min(sofridas.size(), MAXIMO_SOFRIDAS));
-
         return new AtividadeUsuarioDTO(tipo, usuarioId, nomeExibido, feitas.size(), primeira, ultima, loginsSucesso,
-                loginsFalha, new ArrayList<>(ips), acoesPorTipo, feitasExibidas, sofridas.size(), sofridasExibidas);
+                loginsFalha, new ArrayList<>(ips), acoesPorTipo, feitas, sofridas.size(), sofridas);
     }
 
     static String entidadeDoTipo(String tipo){

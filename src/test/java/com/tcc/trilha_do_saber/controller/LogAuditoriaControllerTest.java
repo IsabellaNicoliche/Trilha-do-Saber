@@ -1,10 +1,7 @@
 package com.tcc.trilha_do_saber.controller;
 
-import com.tcc.trilha_do_saber.dto.AtividadeUsuarioDTO;
-import com.tcc.trilha_do_saber.dto.FiltroLogDTO;
-import com.tcc.trilha_do_saber.dto.LogAuditoriaViewDTO;
-import com.tcc.trilha_do_saber.dto.ResultadoBuscaLogDTO;
-import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
+import com.tcc.trilha_do_saber.dto.*;
+import com.tcc.trilha_do_saber.dto.PaginacaoDTO;
 import com.tcc.trilha_do_saber.model.LogAuditoria;
 import com.tcc.trilha_do_saber.model.TipoAcao;
 import com.tcc.trilha_do_saber.service.LogAuditoriaService;
@@ -18,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +28,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -52,7 +51,7 @@ class LogAuditoriaControllerTest {
     void preparar() {
         controller = new LogAuditoriaController(servico);
         lenient().when(session.getAttribute("usuarioLogado")).thenReturn(new UsuarioSessaoDTO(1L, "Adm", "adm@umc.br", "ADMIN"));
-        lenient().when(servico.buscar(any(FiltroLogDTO.class))).thenReturn(new ResultadoBuscaLogDTO(List.of(), 0));
+        lenient().when(servico.buscar(any(FiltroLogDTO.class))).thenReturn(List.of());
     }
 
     @Test
@@ -61,15 +60,15 @@ class LogAuditoriaControllerTest {
                 new UsuarioSessaoDTO(3L, "Coord", "c@umc.br", "COORDENADOR"), "texto"}) {
             when(session.getAttribute("usuarioLogado")).thenReturn(intruso);
 
-            assertEquals("redirect:/login", controller.listar(null, null, null, null, null, model, session));
-            assertEquals("redirect:/login", controller.usuario("ALUNO", 7L, null, model, session));
+            assertEquals("redirect:/login", controller.listar(null, null, null, null, null, 1, model, session));
+            assertEquals("redirect:/login", controller.usuario("ALUNO", 7L, null, 1, 1, model, session));
         }
         verifyNoInteractions(servico);
     }
 
     @Test
     void semFiltrosMostraTudoENaoMarcaFiltroAtivo() {
-        String tela = controller.listar(null, null, null, null, null, model, session);
+        String tela = controller.listar(null, null, null, null, null, 1, model, session);
 
         assertEquals("admin/logs", tela);
         ArgumentCaptor<FiltroLogDTO> filtro = ArgumentCaptor.forClass(FiltroLogDTO.class);
@@ -77,8 +76,9 @@ class LogAuditoriaControllerTest {
         assertFalse(filtro.getValue().temFiltro());
         verify(model).addAttribute("temFiltro", false);
         verify(model).addAttribute("totalEncontrado", 0);
-        verify(model).addAttribute("cortado", false);
-        verify(model).addAttribute("maximoLinhas", 500);
+        verify(model).addAttribute("integros", 0L);
+        verify(model).addAttribute("adulterados", 0L);
+        verify(model).addAttribute("linkLogs", "/admin/logs?pagina=");
         verify(model).addAttribute("perfis", List.of("ALUNO", "PROFESSOR", "COORDENADOR", "ADMIN", "DESCONHECIDO"));
         verify(model).addAttribute("acoes", TipoAcao.values());
         verify(model).addAttribute("erroFiltro", (Object) null);
@@ -86,7 +86,7 @@ class LogAuditoriaControllerTest {
 
     @Test
     void leOsFiltrosDaUrlLimpandoEspacosEPadronizandoOPerfil() {
-        controller.listar("  ana lima ", "aluno", "login_falha", "2026-11-10", "2026-11-12", model, session);
+        controller.listar("  ana lima ", "aluno", "login_falha", "2026-11-10", "2026-11-12", 1, model, session);
 
         ArgumentCaptor<FiltroLogDTO> filtro = ArgumentCaptor.forClass(FiltroLogDTO.class);
         verify(servico).buscar(filtro.capture());
@@ -104,8 +104,16 @@ class LogAuditoriaControllerTest {
     }
 
     @Test
+    void osFiltrosVaoJuntoNoLinkDaPaginacao() {
+        controller.listar("  ana lima ", "aluno", "login_falha", "2026-11-10", "2026-11-12", 1, model, session);
+
+        verify(model).addAttribute("linkLogs",
+                "/admin/logs?acao=LOGIN_FALHA&ate=2026-11-12&de=2026-11-10&perfil=ALUNO&usuario=ana+lima&pagina=");
+    }
+
+    @Test
     void perfilEAcaoInventadosSaoIgnoradosEmVezDeQuebrar() {
-        controller.listar(null, "HACKER", "NAO_EXISTE", null, null, model, session);
+        controller.listar(null, "HACKER", "NAO_EXISTE", null, null, 1, model, session);
 
         ArgumentCaptor<FiltroLogDTO> filtro = ArgumentCaptor.forClass(FiltroLogDTO.class);
         verify(servico).buscar(filtro.capture());
@@ -118,7 +126,7 @@ class LogAuditoriaControllerTest {
 
     @Test
     void dataInvalidaEIgnoradaComAvisoENaoDerrubaAPagina() {
-        String tela = controller.listar(null, null, null, "13/11/2026", "lixo", model, session);
+        String tela = controller.listar(null, null, null, "13/11/2026", "lixo", 1, model, session);
 
         assertEquals("admin/logs", tela);
         ArgumentCaptor<FiltroLogDTO> filtro = ArgumentCaptor.forClass(FiltroLogDTO.class);
@@ -131,44 +139,69 @@ class LogAuditoriaControllerTest {
 
     @Test
     void dataEmBrancoNaoGeraAvisoDeErro() {
-        controller.listar(null, null, null, "", "  ", model, session);
+        controller.listar(null, null, null, "", "  ", 1, model, session);
 
         verify(model).addAttribute("erroFiltro", (Object) null);
     }
 
     @Test
-    void informaOTotalEncontradoESeAListaFoiCortada() {
-        LogAuditoria log = new LogAuditoria(1L, "Ana", "ALUNO", TipoAcao.LOGIN_SUCESSO, null, null, "d", "ip", null);
-        when(servico.buscar(any(FiltroLogDTO.class))).thenReturn(new ResultadoBuscaLogDTO(List.of(log), 730));
-        when(servico.verificarIntegridade(log)).thenReturn(true);
+    void mostraSoAPaginaPedidaMasContaTodosOsEncontrados() {
+        when(servico.buscar(any(FiltroLogDTO.class))).thenReturn(logs(45));
+        lenient().when(servico.verificarIntegridade(any(LogAuditoria.class))).thenReturn(true);
 
-        controller.listar(null, null, null, null, null, model, session);
+        controller.listar(null, null, null, null, null, 2, model, session);
 
-        verify(model).addAttribute("totalEncontrado", 730);
-        verify(model).addAttribute("cortado", true);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<PaginacaoDTO<LogAuditoriaViewDTO>> pagina = ArgumentCaptor.forClass(PaginacaoDTO.class);
+        verify(model).addAttribute(eq("paginaLogs"), pagina.capture());
+        assertEquals(2, pagina.getValue().getPaginaAtual());
+        assertEquals(3, pagina.getValue().getTotalPaginas());
+        assertEquals(20, pagina.getValue().getItens().size());
+        assertEquals("Aluno 20", pagina.getValue().getItens().get(0).getUsuarioNome());
+        verify(model).addAttribute("totalEncontrado", 45);
+        verify(model).addAttribute("integros", 45L);
+        verify(model).addAttribute("adulterados", 0L);
+    }
+
+    @Test
+    void paginaForaDoIntervaloCaiNaPrimeiraOuNaUltima() {
+        when(servico.buscar(any(FiltroLogDTO.class))).thenReturn(logs(45));
+
+        controller.listar(null, null, null, null, null, 99, model, session);
+        controller.listar(null, null, null, null, null, -4, model, session);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<PaginacaoDTO<LogAuditoriaViewDTO>> pagina = ArgumentCaptor.forClass(PaginacaoDTO.class);
+        verify(model, times(2)).addAttribute(eq("paginaLogs"), pagina.capture());
+        assertEquals(3, pagina.getAllValues().get(0).getPaginaAtual());
+        assertEquals(5, pagina.getAllValues().get(0).getItens().size());
+        assertEquals(1, pagina.getAllValues().get(1).getPaginaAtual());
     }
 
     @Test
     void cadaLinhaVaiParaATelaComOResultadoDaVerificacaoDeIntegridade() {
         LogAuditoria integro = new LogAuditoria(1L, "Ana", "ALUNO", TipoAcao.LOGIN_SUCESSO, null, null, "d", "ip", null);
         LogAuditoria adulterado = new LogAuditoria(2L, "Bia", "ALUNO", TipoAcao.LOGIN_FALHA, null, null, "d", "ip", null);
-        when(servico.buscar(any(FiltroLogDTO.class))).thenReturn(new ResultadoBuscaLogDTO(List.of(integro, adulterado), 2));
+        when(servico.buscar(any(FiltroLogDTO.class))).thenReturn(List.of(integro, adulterado));
         lenient().when(servico.verificarIntegridade(integro)).thenReturn(true);
         lenient().when(servico.verificarIntegridade(adulterado)).thenReturn(false);
 
-        controller.listar(null, null, null, null, null, model, session);
+        controller.listar(null, null, null, null, null, 1, model, session);
 
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<LogAuditoriaViewDTO>> visao = ArgumentCaptor.forClass(List.class);
-        verify(model).addAttribute(eq("logs"), visao.capture());
-        assertEquals(2, visao.getValue().size());
-        assertTrue(visao.getValue().get(0).isIntegro());
-        assertFalse(visao.getValue().get(1).isIntegro());
-        assertEquals("Ana", visao.getValue().get(0).getUsuarioNome());
+        ArgumentCaptor<PaginacaoDTO<LogAuditoriaViewDTO>> pagina = ArgumentCaptor.forClass(PaginacaoDTO.class);
+        verify(model).addAttribute(eq("paginaLogs"), pagina.capture());
+        List<LogAuditoriaViewDTO> visao = pagina.getValue().getItens();
+        assertEquals(2, visao.size());
+        assertTrue(visao.get(0).isIntegro());
+        assertFalse(visao.get(1).isIntegro());
+        assertEquals("Ana", visao.get(0).getUsuarioNome());
+        verify(model).addAttribute("integros", 1L);
+        verify(model).addAttribute("adulterados", 1L);
     }
 
     @Test
-    void atividadeDeUmUsuarioMostraResumoEAsDuasListas() {
+    void atividadeDeUmUsuarioMostraResumoEAsDuasListasPaginadas() {
         LogAuditoria feita = new LogAuditoria(7L, "Ana", "ALUNO", TipoAcao.LOGIN_SUCESSO, null, null, "d", "ip", null);
         LogAuditoria sofrida = new LogAuditoria(9L, "Coord", "COORDENADOR", TipoAcao.ATUALIZACAO, "Aluno", 7L, "d", "ip", null);
         AtividadeUsuarioDTO atividade = new AtividadeUsuarioDTO("ALUNO", 7L, "Ana", 1, null, null, 1, 0, List.of("ip"),
@@ -176,20 +209,44 @@ class LogAuditoriaControllerTest {
         when(servico.atividadeDoUsuario("ALUNO", 7L, null)).thenReturn(atividade);
         lenient().when(servico.verificarIntegridade(any(LogAuditoria.class))).thenReturn(true);
 
-        String tela = controller.usuario("ALUNO", 7L, null, model, session);
+        String tela = controller.usuario("ALUNO", 7L, null, 1, 1, model, session);
 
         assertEquals("admin/logsUsuario", tela);
         verify(model).addAttribute("atividade", atividade);
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<LogAuditoriaViewDTO>> feitas = ArgumentCaptor.forClass(List.class);
-        verify(model).addAttribute(eq("feitas"), feitas.capture());
-        assertEquals("Ana", feitas.getValue().get(0).getUsuarioNome());
+        ArgumentCaptor<PaginacaoDTO<LogAuditoriaViewDTO>> feitas = ArgumentCaptor.forClass(PaginacaoDTO.class);
+        verify(model).addAttribute(eq("paginaFeitas"), feitas.capture());
+        assertEquals("Ana", feitas.getValue().getItens().get(0).getUsuarioNome());
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<LogAuditoriaViewDTO>> sofridas = ArgumentCaptor.forClass(List.class);
-        verify(model).addAttribute(eq("sofridas"), sofridas.capture());
-        assertEquals("Coord", sofridas.getValue().get(0).getUsuarioNome());
-        verify(model).addAttribute("maximoLinhas", 500);
-        verify(model).addAttribute("maximoSofridas", 200);
+        ArgumentCaptor<PaginacaoDTO<LogAuditoriaViewDTO>> sofridas = ArgumentCaptor.forClass(PaginacaoDTO.class);
+        verify(model).addAttribute(eq("paginaSofridas"), sofridas.capture());
+        assertEquals("Coord", sofridas.getValue().getItens().get(0).getUsuarioNome());
+        verify(model).addAttribute("linkFeitas", "/admin/logs/usuario?id=7&ps=1&tipo=ALUNO&pf=");
+        verify(model).addAttribute("linkSofridas", "/admin/logs/usuario?id=7&pf=1&tipo=ALUNO&ps=");
+    }
+
+    @Test
+    void asDuasListasDoUsuarioSaoPaginadasSeparadamente() {
+        List<LogAuditoria> feitas = logs(30);
+        List<LogAuditoria> sofridas = logs(50);
+        AtividadeUsuarioDTO atividade = new AtividadeUsuarioDTO("ALUNO", 7L, "Ana", 30, null, null, 30, 0, List.of(),
+                List.of(), feitas, 50, sofridas);
+        when(servico.atividadeDoUsuario("ALUNO", 7L, null)).thenReturn(atividade);
+
+        controller.usuario("ALUNO", 7L, null, 2, 3, model, session);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<PaginacaoDTO<LogAuditoriaViewDTO>> paginaFeitas = ArgumentCaptor.forClass(PaginacaoDTO.class);
+        verify(model).addAttribute(eq("paginaFeitas"), paginaFeitas.capture());
+        assertEquals(2, paginaFeitas.getValue().getPaginaAtual());
+        assertEquals(10, paginaFeitas.getValue().getItens().size());
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<PaginacaoDTO<LogAuditoriaViewDTO>> paginaSofridas = ArgumentCaptor.forClass(PaginacaoDTO.class);
+        verify(model).addAttribute(eq("paginaSofridas"), paginaSofridas.capture());
+        assertEquals(3, paginaSofridas.getValue().getPaginaAtual());
+        assertEquals(10, paginaSofridas.getValue().getItens().size());
+        verify(model).addAttribute("linkFeitas", "/admin/logs/usuario?id=7&ps=3&tipo=ALUNO&pf=");
+        verify(model).addAttribute("linkSofridas", "/admin/logs/usuario?id=7&pf=2&tipo=ALUNO&ps=");
     }
 
     @Test
@@ -197,7 +254,7 @@ class LogAuditoriaControllerTest {
         AtividadeUsuarioDTO vazia = new AtividadeUsuarioDTO("PROFESSOR", 3L, "Carlos", 0, null, null, 0, 0, List.of(), List.of(), List.of(), 0, List.of());
         when(servico.atividadeDoUsuario("PROFESSOR", 3L, null)).thenReturn(vazia);
 
-        assertEquals("admin/logsUsuario", controller.usuario("  professor ", 3L, null, model, session));
+        assertEquals("admin/logsUsuario", controller.usuario("  professor ", 3L, null, 1, 1, model, session));
     }
 
     @Test
@@ -206,19 +263,27 @@ class LogAuditoriaControllerTest {
                 List.of(), List.of(), 0, List.of());
         when(servico.atividadeDoUsuario("DESCONHECIDO", null, "x@umc.br")).thenReturn(tentativas);
 
-        assertEquals("admin/logsUsuario", controller.usuario("DESCONHECIDO", null, "x@umc.br", model, session));
-        assertEquals("redirect:/admin/logs", controller.usuario("DESCONHECIDO", null, "  ", model, session));
-        assertEquals("redirect:/admin/logs", controller.usuario("DESCONHECIDO", null, null, model, session));
+        assertEquals("admin/logsUsuario", controller.usuario("DESCONHECIDO", null, "x@umc.br", 1, 1, model, session));
+        assertEquals("redirect:/admin/logs", controller.usuario("DESCONHECIDO", null, "  ", 1, 1, model, session));
+        assertEquals("redirect:/admin/logs", controller.usuario("DESCONHECIDO", null, null, 1, 1, model, session));
     }
 
     @Test
     void pedidosSemTipoValidoOuSemIdVoltamParaALista() {
-        assertEquals("redirect:/admin/logs", controller.usuario(null, 7L, null, model, session));
-        assertEquals("redirect:/admin/logs", controller.usuario("", 7L, null, model, session));
-        assertEquals("redirect:/admin/logs", controller.usuario("HACKER", 7L, null, model, session));
-        assertEquals("redirect:/admin/logs", controller.usuario("ALUNO", null, null, model, session));
-        assertEquals("redirect:/admin/logs", controller.usuario("PROFESSOR", null, "Ana", model, session));
+        assertEquals("redirect:/admin/logs", controller.usuario(null, 7L, null, 1, 1, model, session));
+        assertEquals("redirect:/admin/logs", controller.usuario("", 7L, null, 1, 1, model, session));
+        assertEquals("redirect:/admin/logs", controller.usuario("HACKER", 7L, null, 1, 1, model, session));
+        assertEquals("redirect:/admin/logs", controller.usuario("ALUNO", null, null, 1, 1, model, session));
+        assertEquals("redirect:/admin/logs", controller.usuario("PROFESSOR", null, "Ana", 1, 1, model, session));
         verify(servico, never()).atividadeDoUsuario(anyString(), anyLong(), anyString());
         verify(servico, never()).atividadeDoUsuario(any(), any(), any());
+    }
+
+    private List<LogAuditoria> logs(int quantidade) {
+        List<LogAuditoria> logs = new ArrayList<>();
+        for (int i = 0; i < quantidade; i++) {
+            logs.add(new LogAuditoria((long) i, "Aluno " + i, "ALUNO", TipoAcao.LOGIN_SUCESSO, null, null, "d", "ip", null));
+        }
+        return logs;
     }
 }

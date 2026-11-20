@@ -54,14 +54,6 @@ public class AtividadeUsuarioDTO {
     public int getTotalSofridas() { return totalSofridas; }
     public List<LogAuditoria> getSofridas() { return sofridas; }
 
-    public boolean isFeitasCortadas() {
-        return totalAcoes > feitas.size();
-    }
-
-    public boolean isSofridasCortadas() {
-        return totalSofridas > sofridas.size();
-    }
-
     public boolean isSemRegistros() {
         return totalAcoes == 0 && totalSofridas == 0;
     }

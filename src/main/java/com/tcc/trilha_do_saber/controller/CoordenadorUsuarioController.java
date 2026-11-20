@@ -1,6 +1,7 @@
 package com.tcc.trilha_do_saber.controller;
 
 import com.tcc.trilha_do_saber.dto.AlunoFormDTO;
+import com.tcc.trilha_do_saber.dto.PaginacaoDTO;
 import com.tcc.trilha_do_saber.dto.ProfessorFormDTO;
 import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
 import com.tcc.trilha_do_saber.model.Aluno;
@@ -16,9 +17,18 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.Normalizer;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+
 @Controller
 @RequestMapping("/coordenador/usuarios")
 public class CoordenadorUsuarioController {
+
+    static final int TAMANHO_PAGINA = 10;
 
     private final AlunoService alunoService;
     private final ProfessorService professorService;
@@ -32,13 +42,33 @@ public class CoordenadorUsuarioController {
     }
 
     @GetMapping
-    public String listar(@RequestParam(required = false) String aba, Model model, HttpSession session){
+    public String listar(@RequestParam(required = false) String aba,
+                         @RequestParam(required = false) String busca,
+                         @RequestParam(defaultValue = "1") int pa,
+                         @RequestParam(defaultValue = "1") int pp,
+                         Model model, HttpSession session){
         UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
         if (ator == null || !("ADMIN".equals(ator.getTipo()) || "COORDENADOR".equals(ator.getTipo()))) {
             return "redirect:/login";
         }
-        model.addAttribute("alunos", alunoService.listarTodos());
-        model.addAttribute("professores", professorService.listarTodos());
+        List<Aluno> alunos = alunoService.listarTodos();
+        List<Professor> professores = professorService.listarTodos();
+        String termo = busca == null ? "" : busca.trim();
+
+        PaginacaoDTO<Aluno> paginaAlunos = PaginacaoDTO.de(filtrarAlunos(alunos, termo), pa, TAMANHO_PAGINA);
+        PaginacaoDTO<Professor> paginaProfessores = PaginacaoDTO.de(professores, pp, TAMANHO_PAGINA);
+
+        model.addAttribute("alunos", alunos);
+        model.addAttribute("professores", professores);
+        model.addAttribute("paginaAlunos", paginaAlunos);
+        model.addAttribute("paginaProfessores", paginaProfessores);
+        model.addAttribute("busca", termo);
+        model.addAttribute("linkAlunos", LinkPaginacao.montar("/coordenador/usuarios", "pa", Map.of(
+                "busca", termo,
+                "pp", String.valueOf(paginaProfessores.getPaginaAtual()))));
+        model.addAttribute("linkProfessores", LinkPaginacao.montar("/coordenador/usuarios", "pp", Map.of(
+                "busca", termo,
+                "pa", String.valueOf(paginaAlunos.getPaginaAtual()))));
         model.addAttribute("solicitacoes", minhaContaService.listarSolicitacoesDeAlunosEProfessores());
         model.addAttribute("abaAtiva", "solicitacoes".equals(aba) ? "solicitacoes" : "usuarios");
         model.addAttribute("usuarioLogado", ator);
@@ -163,5 +193,53 @@ public class CoordenadorUsuarioController {
         long inicio = System.currentTimeMillis();
         minhaContaService.recusarSolicitacao(tipo.toUpperCase(), id, ator, request.getRemoteAddr(), System.currentTimeMillis() - inicio);
         return "redirect:/coordenador/usuarios?aba=solicitacoes";
+    }
+
+    static List<Aluno> filtrarAlunos(List<Aluno> alunos, String busca){
+        List<String> termos = Arrays.stream(normalizar(busca).split("\\s+"))
+                .filter(termo -> !termo.isEmpty())
+                .toList();
+        if (termos.isEmpty()) {
+            return alunos;
+        }
+        return alunos.stream()
+                .filter(aluno -> {
+                    String texto = textoDeBusca(aluno);
+                    return termos.stream().allMatch(texto::contains);
+                })
+                .toList();
+    }
+
+    private static String textoDeBusca(Aluno aluno){
+        String status;
+        if (aluno.isPrimeiroAcessoPendente()) {
+            status = "Aguardando 1º acesso";
+        } else if (aluno.isAtivo()) {
+            status = "Ativo";
+        } else if (aluno.isExcluido()) {
+            status = "Excluído";
+        } else {
+            status = "Pendente";
+        }
+        String duasEtapas = aluno.isDuasEtapasAtiva() ? "Ligada" : "Desligada";
+
+        return normalizar(String.join(" ",
+                Objects.toString(aluno.getNome(), ""),
+                Objects.toString(aluno.getEmail(), ""),
+                Objects.toString(aluno.getRegistroAluno(), ""),
+                Objects.toString(aluno.getCurso(), ""),
+                Objects.toString(aluno.getSemestre(), ""),
+                Objects.toString(aluno.getTurma(), ""),
+                Objects.toString(aluno.getTurno(), ""),
+                status,
+                duasEtapas));
+    }
+
+    private static String normalizar(String texto){
+        if (texto == null) {
+            return "";
+        }
+        String semAcento = Normalizer.normalize(texto.trim(), Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return semAcento.toLowerCase(Locale.ROOT);
     }
 }

@@ -7,6 +7,7 @@
   <link rel="stylesheet" th:href="@{/css/painel.css}">
   <link rel="stylesheet" th:href="@{/css/importacao-usuarios.css}">
   <link rel="stylesheet" th:href="@{/css/duas-etapas.css}">
+  <link rel="stylesheet" th:href="@{/css/paginacao.css}">
 </head>
 <body>
 
@@ -56,8 +57,12 @@
     </div>
 
     <div class="barra-lote">
-      <input type="search" id="filtroAlunos" class="campo-filtro"
-             placeholder="Filtrar: nome, curso, turma, noturno, desligada..." aria-label="Filtrar alunos">
+      <form class="form-busca" method="get" th:action="@{/coordenador/usuarios}">
+        <input type="search" name="busca" class="campo-filtro" th:value="${busca}"
+               placeholder="Buscar: nome, curso, turma, noturno, desligada..." aria-label="Buscar alunos">
+        <button type="submit" class="botao-secundario">Buscar</button>
+        <a class="botao-secundario" th:if="${!busca.isEmpty()}" th:href="@{/coordenador/usuarios}">Limpar</a>
+      </form>
       <span class="contador-selecionados" id="contadorSelecionados">0 selecionados</span>
       <form id="formLote" method="post" class="form-lote" th:action="@{/coordenador/usuarios/alunos/duas-etapas-lote}">
         <button type="submit" name="ativar" value="false" class="botao-perigo">Desligar 2FA dos selecionados</button>
@@ -69,7 +74,7 @@
       <thead>
       <tr>
         <th class="coluna-selecao">
-          <input type="checkbox" id="selecionarTodos" aria-label="Selecionar todos os alunos visíveis">
+          <input type="checkbox" id="selecionarTodos" aria-label="Selecionar todos os alunos desta página">
         </th>
         <th>Nome</th>
         <th>Email</th>
@@ -84,7 +89,7 @@
       </tr>
       </thead>
       <tbody id="corpoAlunos">
-      <tr th:each="aluno : ${alunos}" th:id="'aluno-' + ${aluno.id}" data-aluno>
+      <tr th:each="aluno : ${paginaAlunos.itens}" th:id="'aluno-' + ${aluno.id}" data-aluno>
         <td class="coluna-selecao">
           <input type="checkbox" class="selecao-aluno" name="ids" form="formLote" th:value="${aluno.id}"
                  th:attr="aria-label='Selecionar ' + ${aluno.nome}">
@@ -125,11 +130,14 @@
           </form>
         </td>
       </tr>
-      <tr th:if="${alunos.isEmpty()}">
-        <td colspan="11" class="linha-vazia">Nenhum aluno cadastrado</td>
+      <tr th:if="${paginaAlunos.vazia}">
+        <td colspan="11" class="linha-vazia"
+            th:text="${busca.isEmpty()} ? 'Nenhum aluno cadastrado' : 'Nenhum aluno encontrado para essa busca'">Nenhum aluno cadastrado</td>
       </tr>
       </tbody>
     </table>
+
+    <nav th:replace="~{fragments/paginacao :: paginacao(dados=${paginaAlunos}, link=${linkAlunos})}"></nav>
 
     <div class="cabecalho-usuarios">
       <h2>Professores</h2>
@@ -148,7 +156,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr th:each="professor : ${professores}">
+      <tr th:each="professor : ${paginaProfessores.itens}">
         <td th:text="${professor.nome}"></td>
         <td th:text="${professor.email}"></td>
         <td th:text="${professor.registroProfissional}"></td>
@@ -165,11 +173,13 @@
           </form>
         </td>
       </tr>
-      <tr th:if="${professores.isEmpty()}">
+      <tr th:if="${paginaProfessores.vazia}">
         <td colspan="6" class="linha-vazia">Nenhum professor cadastrado</td>
       </tr>
       </tbody>
     </table>
+
+    <nav th:replace="~{fragments/paginacao :: paginacao(dados=${paginaProfessores}, link=${linkProfessores})}"></nav>
 
   </div>
 
@@ -227,11 +237,10 @@
 
   (function () {
     var corpo = document.getElementById("corpoAlunos");
-    var filtro = document.getElementById("filtroAlunos");
     var todos = document.getElementById("selecionarTodos");
     var contador = document.getElementById("contadorSelecionados");
     var formLote = document.getElementById("formLote");
-    if (!corpo || !filtro || !todos || !contador || !formLote) {
+    if (!corpo || !todos || !contador || !formLote) {
       return;
     }
 
@@ -248,28 +257,9 @@
       contador.textContent = total + (total === 1 ? " selecionado" : " selecionados");
     }
 
-    filtro.addEventListener("input", function () {
-      var termos = filtro.value.trim().toLowerCase().split(/\s+/).filter(function (termo) { return termo !== ""; });
-      corpo.querySelectorAll("tr[data-aluno]").forEach(function (linha) {
-        var texto = linha.textContent.toLowerCase();
-        var combina = termos.every(function (termo) { return texto.indexOf(termo) !== -1; });
-        linha.hidden = !combina;
-        if (!combina) {
-          var caixa = linha.querySelector("input.selecao-aluno");
-          if (caixa) {
-            caixa.checked = false;
-          }
-        }
-      });
-      todos.checked = false;
-      atualizar();
-    });
-
     todos.addEventListener("change", function () {
       caixas().forEach(function (caixa) {
-        if (!caixa.closest("tr").hidden) {
-          caixa.checked = todos.checked;
-        }
+        caixa.checked = todos.checked;
       });
       atualizar();
     });

@@ -3,7 +3,7 @@ package com.tcc.trilha_do_saber.controller;
 import com.tcc.trilha_do_saber.dto.AtividadeUsuarioDTO;
 import com.tcc.trilha_do_saber.dto.FiltroLogDTO;
 import com.tcc.trilha_do_saber.dto.LogAuditoriaViewDTO;
-import com.tcc.trilha_do_saber.dto.ResultadoBuscaLogDTO;
+import com.tcc.trilha_do_saber.dto.PaginacaoDTO;
 import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
 import com.tcc.trilha_do_saber.model.LogAuditoria;
 import com.tcc.trilha_do_saber.model.TipoAcao;
@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/logs")
@@ -27,6 +27,7 @@ public class LogAuditoriaController {
 
     static final List<String> PERFIS = List.of("ALUNO", "PROFESSOR", "COORDENADOR", "ADMIN", "DESCONHECIDO");
     private static final Set<String> PERFIS_VALIDOS = Set.copyOf(PERFIS);
+    static final int TAMANHO_PAGINA = 20;
 
     private final LogAuditoriaService logAuditoriaService;
 
@@ -40,6 +41,7 @@ public class LogAuditoriaController {
                          @RequestParam(value = "acao", required = false) String acao,
                          @RequestParam(value = "de", required = false) String de,
                          @RequestParam(value = "ate", required = false) String ate,
+                         @RequestParam(value = "pagina", defaultValue = "1") int pagina,
                          Model model, HttpSession session){
         UsuarioSessaoDTO usuarioLogado = admin(session);
         if (usuarioLogado == null) {
@@ -57,20 +59,31 @@ public class LogAuditoriaController {
         TipoAcao acaoValida = lerAcao(acao);
 
         FiltroLogDTO filtro = new FiltroLogDTO(usuario == null ? "" : usuario.trim(), perfilValido, acaoValida, dataInicial, dataFinal);
-        ResultadoBuscaLogDTO resultado = logAuditoriaService.buscar(filtro);
+        List<LogAuditoria> encontrados = logAuditoriaService.buscar(filtro);
 
-        List<LogAuditoriaViewDTO> visao = paraVisao(resultado.getLogs());
+        long integros = encontrados.stream().filter(logAuditoriaService::verificarIntegridade).count();
+        PaginacaoDTO<LogAuditoriaViewDTO> paginaLogs = PaginacaoDTO.de(encontrados, pagina, TAMANHO_PAGINA).converter(this::paraVisao);
 
-        model.addAttribute("logs", visao);
-        model.addAttribute("totalEncontrado", resultado.getTotalEncontrado());
-        model.addAttribute("cortado", resultado.isCortado());
-        model.addAttribute("maximoLinhas", LogAuditoriaService.MAXIMO_LINHAS);
+        String filtroAcao = acaoValida == null ? "" : acaoValida.name();
+        String filtroDe = dataInicial == null ? "" : dataInicial.toString();
+        String filtroAte = dataFinal == null ? "" : dataFinal.toString();
+
+        model.addAttribute("paginaLogs", paginaLogs);
+        model.addAttribute("linkLogs", LinkPaginacao.montar("/admin/logs", "pagina", Map.of(
+                "usuario", filtro.getUsuario(),
+                "perfil", perfilValido,
+                "acao", filtroAcao,
+                "de", filtroDe,
+                "ate", filtroAte)));
+        model.addAttribute("totalEncontrado", encontrados.size());
+        model.addAttribute("integros", integros);
+        model.addAttribute("adulterados", encontrados.size() - integros);
         model.addAttribute("temFiltro", filtro.temFiltro());
         model.addAttribute("filtroUsuario", filtro.getUsuario());
         model.addAttribute("filtroPerfil", perfilValido);
-        model.addAttribute("filtroAcao", acaoValida == null ? "" : acaoValida.name());
-        model.addAttribute("filtroDe", dataInicial == null ? "" : dataInicial.toString());
-        model.addAttribute("filtroAte", dataFinal == null ? "" : dataFinal.toString());
+        model.addAttribute("filtroAcao", filtroAcao);
+        model.addAttribute("filtroDe", filtroDe);
+        model.addAttribute("filtroAte", filtroAte);
         model.addAttribute("erroFiltro", erroFiltro);
         model.addAttribute("perfis", PERFIS);
         model.addAttribute("acoes", TipoAcao.values());
@@ -82,6 +95,8 @@ public class LogAuditoriaController {
     public String usuario(@RequestParam(value = "tipo", required = false) String tipo,
                           @RequestParam(value = "id", required = false) Long id,
                           @RequestParam(value = "nome", required = false) String nome,
+                          @RequestParam(value = "pf", defaultValue = "1") int pf,
+                          @RequestParam(value = "ps", defaultValue = "1") int ps,
                           Model model, HttpSession session){
         UsuarioSessaoDTO usuarioLogado = admin(session);
         if (usuarioLogado == null) {
@@ -98,19 +113,31 @@ public class LogAuditoriaController {
 
         AtividadeUsuarioDTO atividade = logAuditoriaService.atividadeDoUsuario(tipoNormalizado, id, nome);
 
+        PaginacaoDTO<LogAuditoriaViewDTO> paginaFeitas = PaginacaoDTO.de(atividade.getFeitas(), pf, TAMANHO_PAGINA).converter(this::paraVisao);
+        PaginacaoDTO<LogAuditoriaViewDTO> paginaSofridas = PaginacaoDTO.de(atividade.getSofridas(), ps, TAMANHO_PAGINA).converter(this::paraVisao);
+
+        String idTexto = id == null ? "" : id.toString();
+        String nomeTexto = nome == null ? "" : nome;
+
         model.addAttribute("atividade", atividade);
-        model.addAttribute("feitas", paraVisao(atividade.getFeitas()));
-        model.addAttribute("sofridas", paraVisao(atividade.getSofridas()));
-        model.addAttribute("maximoLinhas", LogAuditoriaService.MAXIMO_LINHAS);
-        model.addAttribute("maximoSofridas", LogAuditoriaService.MAXIMO_SOFRIDAS);
+        model.addAttribute("paginaFeitas", paginaFeitas);
+        model.addAttribute("paginaSofridas", paginaSofridas);
+        model.addAttribute("linkFeitas", LinkPaginacao.montar("/admin/logs/usuario", "pf", Map.of(
+                "tipo", tipoNormalizado,
+                "id", idTexto,
+                "nome", nomeTexto,
+                "ps", String.valueOf(paginaSofridas.getPaginaAtual()))));
+        model.addAttribute("linkSofridas", LinkPaginacao.montar("/admin/logs/usuario", "ps", Map.of(
+                "tipo", tipoNormalizado,
+                "id", idTexto,
+                "nome", nomeTexto,
+                "pf", String.valueOf(paginaFeitas.getPaginaAtual()))));
         model.addAttribute("usuarioLogado", usuarioLogado);
         return "admin/logsUsuario";
     }
 
-    private List<LogAuditoriaViewDTO> paraVisao(List<LogAuditoria> logs){
-        return logs.stream()
-                .map(log -> new LogAuditoriaViewDTO(log, logAuditoriaService.verificarIntegridade(log)))
-                .collect(Collectors.toList());
+    private LogAuditoriaViewDTO paraVisao(LogAuditoria log){
+        return new LogAuditoriaViewDTO(log, logAuditoriaService.verificarIntegridade(log));
     }
 
     private UsuarioSessaoDTO admin(HttpSession session){

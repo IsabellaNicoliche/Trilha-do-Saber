@@ -6,6 +6,7 @@
     <title>Atividade do usuário</title>
     <link rel="stylesheet" th:href="@{/css/painel.css}">
     <link rel="stylesheet" th:href="@{/css/logs.css}">
+    <link rel="stylesheet" th:href="@{/css/paginacao.css}">
 </head>
 <body>
 
@@ -67,11 +68,6 @@
         <h2>O que esta conta fez</h2>
         <p class="subtitulo-secao">Todas as ações registradas em nome deste usuário, da mais recente para a mais antiga.</p>
 
-        <p class="aviso-corte" th:if="${atividade.feitasCortadas}">
-            Mostrando as <strong th:text="${maximoLinhas}">500</strong> mais recentes de
-            <strong th:text="${atividade.totalAcoes}">700</strong> ações.
-        </p>
-
         <div class="tabela-logs-container">
             <table class="tabela-logs">
                 <thead>
@@ -85,7 +81,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="log : ${feitas}">
+                <tr th:each="log : ${paginaFeitas.itens}">
                     <td class="col-data" th:text="${#temporals.format(log.dataHora, 'dd/MM/yyyy HH:mm:ss')}"></td>
                     <td class="col-acao" th:text="${log.acao}"></td>
                     <td class="col-entidade" th:text="${log.entidadeTipo} + (${log.entidadeId} != null ? (' #' + ${log.entidadeId}) : '')"></td>
@@ -96,22 +92,19 @@
                               th:text="${log.integro} ? 'Íntegro' : 'Adulterado'"></span>
                     </td>
                 </tr>
-                <tr th:if="${feitas.isEmpty()}">
+                <tr th:if="${paginaFeitas.vazia}">
                     <td colspan="6" class="linha-vazia">Esta conta não tem ações registradas em seu nome</td>
                 </tr>
                 </tbody>
             </table>
         </div>
+
+        <nav th:replace="~{fragments/paginacao :: paginacao(dados=${paginaFeitas}, link=${linkFeitas})}"></nav>
     </section>
 
     <section class="secao-logs" th:if="${atividade.tipo != 'DESCONHECIDO' and atividade.tipo != 'ADMIN'}">
         <h2>O que fizeram com esta conta</h2>
         <p class="subtitulo-secao">Ações de outras pessoas sobre este cadastro (por exemplo, o 2FA desligado por um coordenador).</p>
-
-        <p class="aviso-corte" th:if="${atividade.sofridasCortadas}">
-            Mostrando as <strong th:text="${maximoSofridas}">200</strong> mais recentes de
-            <strong th:text="${atividade.totalSofridas}">300</strong> ações.
-        </p>
 
         <div class="tabela-logs-container">
             <table class="tabela-logs">
@@ -126,7 +119,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="log : ${sofridas}">
+                <tr th:each="log : ${paginaSofridas.itens}">
                     <td class="col-data" th:text="${#temporals.format(log.dataHora, 'dd/MM/yyyy HH:mm:ss')}"></td>
                     <td class="col-feito-por">
                         <a class="link-usuario" th:if="${log.usuarioId != null}"
@@ -143,12 +136,14 @@
                               th:text="${log.integro} ? 'Íntegro' : 'Adulterado'"></span>
                     </td>
                 </tr>
-                <tr th:if="${sofridas.isEmpty()}">
+                <tr th:if="${paginaSofridas.vazia}">
                     <td colspan="6" class="linha-vazia">Ninguém registrou ações sobre esta conta</td>
                 </tr>
                 </tbody>
             </table>
         </div>
+
+        <nav th:replace="~{fragments/paginacao :: paginacao(dados=${paginaSofridas}, link=${linkSofridas})}"></nav>
     </section>
 
 </main>

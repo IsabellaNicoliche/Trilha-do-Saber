@@ -2,8 +2,11 @@ package com.tcc.trilha_do_saber.controller;
 
 import com.tcc.trilha_do_saber.dto.CadastroCoordenadorAdminDTO;
 import com.tcc.trilha_do_saber.dto.CoordenadorFormDTO;
+import com.tcc.trilha_do_saber.dto.PaginacaoDTO;
 import com.tcc.trilha_do_saber.dto.UsuarioSessaoDTO;
+import com.tcc.trilha_do_saber.model.Aluno;
 import com.tcc.trilha_do_saber.model.Coordenador;
+import com.tcc.trilha_do_saber.model.Professor;
 import com.tcc.trilha_do_saber.service.AlunoService;
 import com.tcc.trilha_do_saber.service.CoordenadorService;
 import com.tcc.trilha_do_saber.service.MinhaContaService;
@@ -18,10 +21,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin/coordenadores")
 public class AdminUsuarioController {
+
+    static final int TAMANHO_PAGINA = 10;
 
     private final CoordenadorService coordenadorService;
     private final ProfessorService professorService;
@@ -37,12 +43,37 @@ public class AdminUsuarioController {
     }
 
     @GetMapping
-    public String listar(@RequestParam(required = false) String aba, Model model, HttpSession session){
+    public String listar(@RequestParam(required = false) String aba,
+                         @RequestParam(defaultValue = "1") int pc,
+                         @RequestParam(defaultValue = "1") int pp,
+                         @RequestParam(defaultValue = "1") int pa,
+                         Model model, HttpSession session){
         UsuarioSessaoDTO ator = (UsuarioSessaoDTO) session.getAttribute("usuarioLogado");
         if (ator == null || !"ADMIN".equals(ator.getTipo())) return "redirect:/login";
-        model.addAttribute("coordenadores", coordenadorService.listarTodos());
-        model.addAttribute("professores", professorService.listarTodos());
-        model.addAttribute("alunos", alunoService.listarTodos());
+        List<Coordenador> coordenadores = coordenadorService.listarTodos();
+        List<Professor> professores = professorService.listarTodos();
+        List<Aluno> alunos = alunoService.listarTodos();
+
+        PaginacaoDTO<Coordenador> paginaCoordenadores = PaginacaoDTO.de(coordenadores, pc, TAMANHO_PAGINA);
+        PaginacaoDTO<Professor> paginaProfessores = PaginacaoDTO.de(professores, pp, TAMANHO_PAGINA);
+        PaginacaoDTO<Aluno> paginaAlunos = PaginacaoDTO.de(alunos, pa, TAMANHO_PAGINA);
+
+        String atualCoordenadores = String.valueOf(paginaCoordenadores.getPaginaAtual());
+        String atualProfessores = String.valueOf(paginaProfessores.getPaginaAtual());
+        String atualAlunos = String.valueOf(paginaAlunos.getPaginaAtual());
+
+        model.addAttribute("coordenadores", coordenadores);
+        model.addAttribute("professores", professores);
+        model.addAttribute("alunos", alunos);
+        model.addAttribute("paginaCoordenadores", paginaCoordenadores);
+        model.addAttribute("paginaProfessores", paginaProfessores);
+        model.addAttribute("paginaAlunos", paginaAlunos);
+        model.addAttribute("linkCoordenadores", LinkPaginacao.montar("/admin/coordenadores", "pc",
+                Map.of("pp", atualProfessores, "pa", atualAlunos)));
+        model.addAttribute("linkProfessores", LinkPaginacao.montar("/admin/coordenadores", "pp",
+                Map.of("pc", atualCoordenadores, "pa", atualAlunos)));
+        model.addAttribute("linkAlunos", LinkPaginacao.montar("/admin/coordenadores", "pa",
+                Map.of("pc", atualCoordenadores, "pp", atualProfessores)));
         model.addAttribute("solicitacoes", minhaContaService.listarSolicitacoesDeCoordenadores());
         model.addAttribute("abaAtiva", "solicitacoes".equals(aba) ? "solicitacoes" : "usuarios");
         model.addAttribute("usuarioLogado", ator);

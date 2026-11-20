@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav th:fragment="paginacao(dados, link)" class="paginacao" th:if="${dados.totalPaginas > 1}" aria-label="Paginação">
+    <span class="paginacao-resumo"
+          th:text="|Mostrando ${dados.primeiroItem}–${dados.ultimoItem} de ${dados.totalItens}|">Mostrando 1–10 de 57</span>
+
+    <div class="paginacao-links">
+        <a th:if="${dados.temAnterior}" class="paginacao-link"
+           th:href="@{${link + (dados.paginaAtual - 1)}}">&lsaquo; Anterior</a>
+        <span th:unless="${dados.temAnterior}" class="paginacao-link desabilitado">&lsaquo; Anterior</span>
+
+        <a th:if="${dados.numeros[0] > 1}" class="paginacao-link" th:href="@{${link + 1}}">1</a>
+        <span th:if="${dados.numeros[0] > 2}" class="paginacao-reticencias">&hellip;</span>
+
+        <th:block th:each="numero : ${dados.numeros}">
+            <span th:if="${numero == dados.paginaAtual}" class="paginacao-link atual" aria-current="page" th:text="${numero}">1</span>
+            <a th:unless="${numero == dados.paginaAtual}" class="paginacao-link" th:href="@{${link + numero}}" th:text="${numero}">2</a>
+        </th:block>
+
+        <span th:if="${dados.numeros[dados.numeros.size() - 1] < dados.totalPaginas - 1}" class="paginacao-reticencias">&hellip;</span>
+        <a th:if="${dados.numeros[dados.numeros.size() - 1] < dados.totalPaginas}" class="paginacao-link"
+           th:href="@{${link + dados.totalPaginas}}" th:text="${dados.totalPaginas}">6</a>
+
+        <a th:if="${dados.temProxima}" class="paginacao-link"
+           th:href="@{${link + (dados.paginaAtual + 1)}}">Próxima &rsaquo;</a>
+        <span th:unless="${dados.temProxima}" class="paginacao-link desabilitado">Próxima &rsaquo;</span>
+    </div>
+</nav>
+
+</body>
+</html>

@@ -2,7 +2,6 @@ package com.tcc.trilha_do_saber.service;
 
 import com.tcc.trilha_do_saber.dto.AtividadeUsuarioDTO;
 import com.tcc.trilha_do_saber.dto.FiltroLogDTO;
-import com.tcc.trilha_do_saber.dto.ResultadoBuscaLogDTO;
 import com.tcc.trilha_do_saber.model.LogAuditoria;
 import com.tcc.trilha_do_saber.model.TipoAcao;
 import com.tcc.trilha_do_saber.repository.LogAuditoriaRepository;
@@ -52,11 +51,9 @@ class LogAuditoriaServiceBuscaTest {
         LogAuditoria b = log(2L, "PROFESSOR", "Carlos", TipoAcao.CADASTRO, null, null, "2.2.2.2", HORA.minusHours(1));
         when(repositorio.findAllByOrderByDataHoraDesc()).thenReturn(List.of(a, b));
 
-        ResultadoBuscaLogDTO resultado = servico.buscar(new FiltroLogDTO("", "", null, null, null));
+        List<LogAuditoria> resultado = servico.buscar(new FiltroLogDTO("", "", null, null, null));
 
-        assertEquals(List.of(a, b), resultado.getLogs());
-        assertEquals(2, resultado.getTotalEncontrado());
-        assertFalse(resultado.isCortado());
+        assertEquals(List.of(a, b), resultado);
         verify(repositorio, never()).findByDataHoraBetweenOrderByDataHoraDesc(any(), any());
     }
 
@@ -67,11 +64,11 @@ class LogAuditoriaServiceBuscaTest {
         LogAuditoria semNome = log(3L, "DESCONHECIDO", null, TipoAcao.LOGIN_FALHA, null, null, "ip", HORA);
         when(repositorio.findAllByOrderByDataHoraDesc()).thenReturn(List.of(joao, maria, semNome));
 
-        assertEquals(List.of(joao), servico.buscar(new FiltroLogDTO("  joao ", "", null, null, null)).getLogs());
-        assertEquals(List.of(joao), servico.buscar(new FiltroLogDTO("SILVA", "", null, null, null)).getLogs());
-        assertEquals(List.of(maria), servico.buscar(new FiltroLogDTO("sou", "", null, null, null)).getLogs());
-        assertEquals(List.of(joao, maria, semNome), servico.buscar(new FiltroLogDTO("   ", "", null, null, null)).getLogs());
-        assertEquals(List.of(joao, maria, semNome), servico.buscar(new FiltroLogDTO(null, null, null, null, null)).getLogs());
+        assertEquals(List.of(joao), servico.buscar(new FiltroLogDTO("  joao ", "", null, null, null)));
+        assertEquals(List.of(joao), servico.buscar(new FiltroLogDTO("SILVA", "", null, null, null)));
+        assertEquals(List.of(maria), servico.buscar(new FiltroLogDTO("sou", "", null, null, null)));
+        assertEquals(List.of(joao, maria, semNome), servico.buscar(new FiltroLogDTO("   ", "", null, null, null)));
+        assertEquals(List.of(joao, maria, semNome), servico.buscar(new FiltroLogDTO(null, null, null, null, null)));
     }
 
     @Test
@@ -80,8 +77,8 @@ class LogAuditoriaServiceBuscaTest {
         LogAuditoria prof = log(2L, "PROFESSOR", "Carlos", TipoAcao.LOGIN_SUCESSO, null, null, "ip", HORA);
         when(repositorio.findAllByOrderByDataHoraDesc()).thenReturn(List.of(aluno, prof));
 
-        assertEquals(List.of(prof), servico.buscar(new FiltroLogDTO("", "professor", null, null, null)).getLogs());
-        assertEquals(List.of(aluno), servico.buscar(new FiltroLogDTO("", "ALUNO", null, null, null)).getLogs());
+        assertEquals(List.of(prof), servico.buscar(new FiltroLogDTO("", "professor", null, null, null)));
+        assertEquals(List.of(aluno), servico.buscar(new FiltroLogDTO("", "ALUNO", null, null, null)));
     }
 
     @Test
@@ -90,7 +87,7 @@ class LogAuditoriaServiceBuscaTest {
         LogAuditoria falhou = log(1L, "ALUNO", "Ana", TipoAcao.LOGIN_FALHA, null, null, "ip", HORA);
         when(repositorio.findAllByOrderByDataHoraDesc()).thenReturn(List.of(entrou, falhou));
 
-        assertEquals(List.of(falhou), servico.buscar(new FiltroLogDTO("", "", TipoAcao.LOGIN_FALHA, null, null)).getLogs());
+        assertEquals(List.of(falhou), servico.buscar(new FiltroLogDTO("", "", TipoAcao.LOGIN_FALHA, null, null)));
     }
 
     @Test
@@ -101,7 +98,7 @@ class LogAuditoriaServiceBuscaTest {
         LogAuditoria outroNome = log(3L, "ALUNO", "Bia", TipoAcao.LOGIN_FALHA, null, null, "ip", HORA);
         when(repositorio.findAllByOrderByDataHoraDesc()).thenReturn(List.of(certo, outraAcao, outroPerfil, outroNome));
 
-        List<LogAuditoria> achados = servico.buscar(new FiltroLogDTO("ana", "ALUNO", TipoAcao.LOGIN_FALHA, null, null)).getLogs();
+        List<LogAuditoria> achados = servico.buscar(new FiltroLogDTO("ana", "ALUNO", TipoAcao.LOGIN_FALHA, null, null));
 
         assertEquals(List.of(certo), achados);
     }
@@ -150,49 +147,31 @@ class LogAuditoriaServiceBuscaTest {
     }
 
     @Test
-    void mostraNoMaximoQuinhentosRegistrosMasInformaOTotalEncontrado() {
+    void naoHaMaisLimiteDeLinhasNaBusca() {
         List<LogAuditoria> muitos = new ArrayList<>();
         for (int i = 0; i < 520; i++) {
             muitos.add(log((long) i, "ALUNO", "Aluno " + i, TipoAcao.LOGIN_SUCESSO, null, null, "ip", HORA.minusMinutes(i)));
         }
         when(repositorio.findAllByOrderByDataHoraDesc()).thenReturn(muitos);
 
-        ResultadoBuscaLogDTO resultado = servico.buscar(new FiltroLogDTO("", "", null, null, null));
+        List<LogAuditoria> resultado = servico.buscar(new FiltroLogDTO("", "", null, null, null));
 
-        assertEquals(500, resultado.getLogs().size());
-        assertEquals(520, resultado.getTotalEncontrado());
-        assertTrue(resultado.isCortado());
-        assertEquals(muitos.get(0), resultado.getLogs().get(0));
-        assertEquals(muitos.get(499), resultado.getLogs().get(499));
+        assertEquals(520, resultado.size());
+        assertEquals(muitos.get(0), resultado.get(0));
+        assertEquals(muitos.get(519), resultado.get(519));
     }
 
     @Test
-    void exatamenteQuinhentosRegistrosNaoSaoCortados() {
-        List<LogAuditoria> quinhentos = new ArrayList<>();
-        for (int i = 0; i < 500; i++) {
-            quinhentos.add(log((long) i, "ALUNO", "Aluno", TipoAcao.LOGIN_SUCESSO, null, null, "ip", HORA));
-        }
-        when(repositorio.findAllByOrderByDataHoraDesc()).thenReturn(quinhentos);
-
-        ResultadoBuscaLogDTO resultado = servico.buscar(new FiltroLogDTO("", "", null, null, null));
-
-        assertEquals(500, resultado.getLogs().size());
-        assertFalse(resultado.isCortado());
-    }
-
-    @Test
-    void oTotalEncontradoConsideraSoOsQueBatemComOFiltro() {
+    void aBuscaTrazSoOsQueBatemComOFiltro() {
         List<LogAuditoria> todos = new ArrayList<>();
         for (int i = 0; i < 600; i++) {
             todos.add(log((long) i, i % 2 == 0 ? "ALUNO" : "PROFESSOR", "Nome", TipoAcao.LOGIN_SUCESSO, null, null, "ip", HORA));
         }
         when(repositorio.findAllByOrderByDataHoraDesc()).thenReturn(todos);
 
-        ResultadoBuscaLogDTO resultado = servico.buscar(new FiltroLogDTO("", "ALUNO", null, null, null));
+        List<LogAuditoria> resultado = servico.buscar(new FiltroLogDTO("", "ALUNO", null, null, null));
 
-        assertEquals(300, resultado.getTotalEncontrado());
-        assertEquals(300, resultado.getLogs().size());
-        assertFalse(resultado.isCortado());
+        assertEquals(300, resultado.size());
     }
 
     @Test
@@ -216,7 +195,6 @@ class LogAuditoriaServiceBuscaTest {
         assertEquals(1, atividade.getLoginsFalha());
         assertEquals(List.of("1.1.1.1", "2.2.2.2"), atividade.getIps());
         assertEquals(List.of(entrou, falhou, entrouDeNovo, atualizou), atividade.getFeitas());
-        assertFalse(atividade.isFeitasCortadas());
         assertFalse(atividade.isSemRegistros());
     }
 
@@ -251,7 +229,6 @@ class LogAuditoriaServiceBuscaTest {
 
         assertEquals(List.of(coordenador, professorComMesmoId), atividade.getSofridas());
         assertEquals(2, atividade.getTotalSofridas());
-        assertFalse(atividade.isSofridasCortadas());
     }
 
     @Test
@@ -315,7 +292,7 @@ class LogAuditoriaServiceBuscaTest {
     }
 
     @Test
-    void muitosRegistrosDoUsuarioSaoCortadosMasOsContadoresContamTudo() {
+    void aAtividadeTrazTodosOsRegistrosDoUsuarioSemCorte() {
         List<LogAuditoria> muitas = new ArrayList<>();
         for (int i = 0; i < 520; i++) {
             muitas.add(log(7L, "ALUNO", "Ana", TipoAcao.LOGIN_SUCESSO, null, null, "ip", HORA.minusMinutes(i)));
@@ -330,34 +307,11 @@ class LogAuditoriaServiceBuscaTest {
         AtividadeUsuarioDTO atividade = servico.atividadeDoUsuario("ALUNO", 7L, null);
 
         assertEquals(520, atividade.getTotalAcoes());
-        assertEquals(500, atividade.getFeitas().size());
-        assertTrue(atividade.isFeitasCortadas());
+        assertEquals(520, atividade.getFeitas().size());
         assertEquals(520, atividade.getLoginsSucesso());
         assertEquals(HORA.minusMinutes(519), atividade.getPrimeira());
         assertEquals(230, atividade.getTotalSofridas());
-        assertEquals(200, atividade.getSofridas().size());
-        assertTrue(atividade.isSofridasCortadas());
-    }
-
-    @Test
-    void exatamenteNoLimiteDeRegistrosDoUsuarioNaoHaCorte() {
-        List<LogAuditoria> quinhentas = new ArrayList<>();
-        for (int i = 0; i < 500; i++) {
-            quinhentas.add(log(7L, "ALUNO", "Ana", TipoAcao.LOGIN_SUCESSO, null, null, "ip", HORA.minusMinutes(i)));
-        }
-        List<LogAuditoria> duzentas = new ArrayList<>();
-        for (int i = 0; i < 200; i++) {
-            duzentas.add(log(9L, "COORDENADOR", "Coord", TipoAcao.ATUALIZACAO, "Aluno", 7L, "ip", HORA.minusMinutes(i)));
-        }
-        when(repositorio.findByUsuarioTipoAndUsuarioIdOrderByDataHoraDesc("ALUNO", 7L)).thenReturn(quinhentas);
-        when(repositorio.findByEntidadeTipoAndEntidadeIdOrderByDataHoraDesc("Aluno", 7L)).thenReturn(duzentas);
-
-        AtividadeUsuarioDTO atividade = servico.atividadeDoUsuario("ALUNO", 7L, null);
-
-        assertEquals(500, atividade.getFeitas().size());
-        assertFalse(atividade.isFeitasCortadas());
-        assertEquals(200, atividade.getSofridas().size());
-        assertFalse(atividade.isSofridasCortadas());
+        assertEquals(230, atividade.getSofridas().size());
     }
 
     @Test

@@ -6,6 +6,7 @@
     <title>Logs de Auditoria</title>
     <link rel="stylesheet" th:href="@{/css/painel.css}">
     <link rel="stylesheet" th:href="@{/css/logs.css}">
+    <link rel="stylesheet" th:href="@{/css/paginacao.css}">
 </head>
 <body>
 
@@ -67,11 +68,11 @@
         </div>
         <div class="card-estatistica">
             <span class="rotulo-card">Íntegros</span>
-            <strong class="numero-card" th:text="${logs.?[integro].size()}"></strong>
+            <strong class="numero-card" th:text="${integros}"></strong>
         </div>
         <div class="card-estatistica">
             <span class="rotulo-card">Com adulteração detectada</span>
-            <strong class="numero-card" th:text="${logs.?[!integro].size()}"></strong>
+            <strong class="numero-card" th:text="${adulterados}"></strong>
         </div>
     </section>
 
@@ -79,12 +80,7 @@
         <h2>Registros</h2>
     </div>
 
-    <p class="aviso-corte" th:if="${cortado}">
-        Mostrando os <strong th:text="${maximoLinhas}">500</strong> registros mais recentes de
-        <strong th:text="${totalEncontrado}">700</strong> encontrados. Refine o filtro para ver os demais.
-        Clique no nome de um usuário para ver tudo o que ele fez.
-    </p>
-    <p class="aviso-corte" th:if="${!cortado and !logs.isEmpty()}">
+    <p class="aviso-corte" th:if="${!paginaLogs.vazia}">
         Clique no nome de um usuário para ver tudo o que ele fez e tudo o que fizeram com a conta dele.
     </p>
 
@@ -104,7 +100,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="log : ${logs}">
+            <tr th:each="log : ${paginaLogs.itens}">
                 <td class="col-data" th:text="${#temporals.format(log.dataHora, 'dd/MM/yyyy HH:mm:ss')}"></td>
                 <td class="col-usuario">
                     <a class="link-usuario" th:if="${log.usuarioId != null}"
@@ -126,13 +122,15 @@
                           th:text="${log.integro} ? 'Íntegro' : 'Adulterado'"></span>
                 </td>
             </tr>
-            <tr th:if="${logs.isEmpty()}">
+            <tr th:if="${paginaLogs.vazia}">
                 <td colspan="9" class="linha-vazia"
                     th:text="${temFiltro} ? 'Nenhum registro encontrado com esses filtros' : 'Nenhum registro de auditoria ainda'"></td>
             </tr>
             </tbody>
         </table>
     </div>
+
+    <nav th:replace="~{fragments/paginacao :: paginacao(dados=${paginaLogs}, link=${linkLogs})}"></nav>
 
 </main>
 
